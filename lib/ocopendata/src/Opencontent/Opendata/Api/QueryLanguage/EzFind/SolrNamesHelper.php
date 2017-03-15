@@ -150,6 +150,12 @@ class SolrNamesHelper
                         );
                     }
                 }
+            } elseif ($subField->data('is_custom_subfield')) {
+                $data[$field . '/' . $subField . '.' . $subField->data('custom_subfield_type')] = $this->generateSolrSubFieldName(
+                    (string)$field,
+                    (string)$subField,
+                    $subField->data('custom_subfield_type')
+                );
             }
         }
         if (empty( $data )) {

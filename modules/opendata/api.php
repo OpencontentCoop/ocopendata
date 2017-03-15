@@ -5,6 +5,7 @@ use Opencontent\Opendata\Api\ContentBrowser;
 use Opencontent\Opendata\Api\ContentRepository;
 use Opencontent\Opendata\Api\ContentSearch;
 use Opencontent\Opendata\Api\ClassRepository;
+use Opencontent\Opendata\Api\TagRepository;
 
 $Module = $Params['Module'];
 $Environment = $Params['Environment'];
@@ -19,9 +20,13 @@ try
     $contentBrowser = new ContentBrowser();
     $contentSearch = new ContentSearch();
     $classRepository = new ClassRepository();
+    $tagsRepository = new TagRepository();
 
     if ( $Environment == 'classes' ){
         $data = (array) $classRepository->load($Action);
+    }
+    elseif ( $Environment == 'tags_tree' ){
+        $data = (array) $tagsRepository->read($Action);
     }
     else
     {

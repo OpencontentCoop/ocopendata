@@ -8,6 +8,7 @@ class OCOpenDataProvider extends ezpRestApiProvider
     public function getRoutes()
     {
         return array_merge(
+            $this->getExtraRoutes(),
             $this->getVersion1Routes(),
             $this->getVersion2Routes()
         );
@@ -70,7 +71,6 @@ class OCOpenDataProvider extends ezpRestApiProvider
                     'http-post'
                 ), 2
             )
-
         );
 
         foreach( EnvironmentLoader::getAvailablePresetIdentifiers() as $identifier )
@@ -100,14 +100,13 @@ class OCOpenDataProvider extends ezpRestApiProvider
                     ), 2
                 );
                 $routes["openData2{$identifier}Browse"] = new ezpRestVersionedRoute(
-                    new OcOpenDataRoute(
-                        "/{$identifier}/browse/:ContentNodeIdentifier",
+                    new ezpMvcRegexpRoute(
+                        '@^/'.$identifier.'/browse/(?P<ContentNodeIdentifier>\w+)@',
                         'OCOpenDataController2',
-                        'protectBrowse',
+                        'protectedBrowse',
                         array(
                             'EnvironmentSettigs' => $identifier
-                        ),
-                        'http-get'
+                        )
                     ), 2
                 );
             }
@@ -131,13 +130,12 @@ class OCOpenDataProvider extends ezpRestApiProvider
                         'anonymousSearch',
                         array(
                             'EnvironmentSettigs' => $identifier
-                        ),
-                        'http-get'
+                        )
                     ), 2
                 );
                 $routes["openData2{$identifier}Browse"] = new ezpRestVersionedRoute(
-                    new OcOpenDataRoute(
-                        "/{$identifier}/browse/:ContentNodeIdentifier",
+                    new ezpMvcRegexpRoute(
+                        '@^/'.$identifier.'/browse/(?P<ContentNodeIdentifier>\w+)@',
                         'OCOpenDataController2',
                         'anonymousBrowse',
                         array(
@@ -148,6 +146,21 @@ class OCOpenDataProvider extends ezpRestApiProvider
                 );
             }
         }
+        return $routes;
+    }
+
+    public function getExtraRoutes()
+    {
+        $routes = array(
+            'openData2tags' => new ezpRestVersionedRoute(
+                new ezpMvcRegexpRoute(
+                    '@^/tags_tree(?P<Tag>.+)@',
+                    'OCOpenDataTagController',
+                    'tagsTree',
+                    array()
+                ), 2
+            )
+        );
         return $routes;
     }
 

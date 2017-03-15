@@ -147,12 +147,13 @@ class OCOpenDataController2 extends ezpRestContentController
     protected function doContentBrowse()
     {
         $result = new ezpRestMvcResult();
-        $browse = $this->contentBrowser->browse(
-            $this->request->variables['ContentNodeIdentifier']
+        $offset = isset($this->request->get['offset']) ? $this->request->get['offset'] : 0;
+        $limit = isset($this->request->get['limit']) ? $this->request->get['limit'] : 10;
+        $result->variables = (array) $this->contentBrowser->browse(
+            $this->request->variables['ContentNodeIdentifier'],
+            $offset,
+            $limit
         );
-        $result->variables['current'] = $browse->current;
-        $result->variables['children'] = $browse->children;
-        $result->variables['parent'] = $browse->parent;
 
         return $result;
     }

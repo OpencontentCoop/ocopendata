@@ -11,6 +11,10 @@ class TokenFactory extends BaseTokenFactory
 
     public $metaFields = array();
 
+    public $customSubFields = array(
+        'tag_ids' => 'sint'
+    );
+
     public function __construct( $fields, $metaFields, $functionFields, $operators, $parameters, $clauses )
     {
         $this->fields = $fields;
@@ -19,11 +23,6 @@ class TokenFactory extends BaseTokenFactory
         $this->operators = $operators;
         $this->parameters = $parameters;
         $this->clauses = $clauses;
-
-        $fields = array_merge(
-            $fields,
-            $metaFields
-        );
     }
 
     protected function isField( Token $token )
@@ -64,10 +63,16 @@ class TokenFactory extends BaseTokenFactory
                 foreach( $subParts as $part )
                 {
                     $tokenPart = $this->createQueryToken( $part );
-                    if ( !$this->isField( $tokenPart ) )
+                    if ( !$this->isField( $tokenPart ) && !in_array((string)$tokenPart, array_keys($this->customSubFields)) ){
                         return false;
-                    else
+                    }
+                    else {
+                        if (in_array((string)$tokenPart, array_keys($this->customSubFields))){
+                            $tokenPart->data( 'is_custom_subfield', true );
+                            $tokenPart->data( 'custom_subfield_type', $this->customSubFields[(string)$tokenPart] );
+                        }
                         $subTokens[] = $tokenPart;
+                    }
                 }
                 $token->data( 'is_field', true );
                 $token->data( 'sub_fields', $subTokens );

@@ -8,7 +8,8 @@
             endpoint: {
                 geo: '/opendata/api/geo/search/',
                 search: '/opendata/api/content/search/',
-                class: '/opendata/api/classes/'
+                class: '/opendata/api/classes/',
+                tags_tree: '/opendata/api/tags_tree/'
             },
             onError: function(errorCode,errorMessage,jqXHR){
                 alert(errorMessage + ' (error: '+errorCode+')');
@@ -249,6 +250,29 @@
             });
         };
 
+        var tagsTree = function (query, cb, context) {
+
+            $.ajax({
+                type: "GET",
+                url: settings.endpoint.tags_tree + encodeURIComponent(query),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                cache: true,
+                success: function (data,textStatus,jqXHR) {
+                    if (!detectError(data,jqXHR)){
+                        cb.call(context, data);
+                    }
+                },
+                error: function (jqXHR) {
+                    var error = {
+                        error_code: jqXHR.status,
+                        error_message: jqXHR.statusText
+                    };
+                    detectError(error,jqXHR);
+                }
+            });
+        };
+
         var geoJsonFind = function (query, cb, context) {
             $.ajax({
                 type: "GET",
@@ -361,14 +385,88 @@
             );
         };
 
+        var formatDate = function (date, format) {
+            return moment(new Date(date)).format(format);
+        };
+
+        var filterUrl = function (fullUrl) {
+            if ($.isFunction(getSetSettings('filterUrl'))) {
+                fullUrl = getSetSettings('filterUrl')(fullUrl);
+            }
+            return fullUrl;
+        };
+
+        var mainImageUrl = function (data) {
+            var images = i18n(data, 'images');
+            if (images.length > 0) {
+                return getSetSettings('accessPath') + '/agenda/image/' + images[0].id;
+            }
+            var image = i18n(data, 'image');
+            if (image) {
+                return filterUrl(image.url);
+            }
+            return null;
+        };
+
+        var getSetSettings = function (key, value) {
+            if (value)
+                settings[key] = value;
+            if (key)
+                return settings[key];
+            return settings;
+        };
+
+        var language = function(){
+            return settings('language')
+        };
+
+        var i18n = function (data, key, fallbackLanguage) {
+            var currentLanguage = getSetSettings('language');
+            fallbackLanguage = fallbackLanguage || 'ita-IT';
+            var returnData = false;
+            if (data && key) {
+                if (typeof data[currentLanguage] != 'undefined' && data[currentLanguage][key]) {
+                    returnData = data[currentLanguage][key];
+                }
+                else if (fallbackLanguage && typeof data[fallbackLanguage] != 'undefined' && data[fallbackLanguage][key]) {
+                    returnData = data[fallbackLanguage][key];
+                }
+            } else if (data) {
+                if (typeof data[currentLanguage] != 'undefined' && data[currentLanguage]) {
+                    returnData = data[currentLanguage];
+                }
+                else if (fallbackLanguage && typeof data[fallbackLanguage] != 'undefined' && data[fallbackLanguage]) {
+                    returnData = data[fallbackLanguage];
+                }
+            }
+            return returnData != 0 ? returnData : false;
+        };
+
+        var editLink = function(metadata){
+          var keys = $.map(metadata.name, function (value, key) {
+              return key;
+          });
+          var string = '';
+          var languages = getSetSettings('languages');
+          var length = languages.length;
+          for (var i = 0; i < length; i++) {
+              if ($.inArray(languages[i], keys) >= 0) {                  
+                  string += '<a href="' + getSetSettings('accessPath') + '/content/edit/' + metadata.id + '/f/'+languages[i]+'"><img src="/share/icons/flags/' + languages[i] + '.gif" /></a> ';
+              } else {
+                  string += '<a href="' + getSetSettings('accessPath') + '/content/edit/' + metadata.id + '/a"><img style="opacity:0.2" src="/share/icons/flags/' + languages[i] + '.gif" /></a> ';
+              }
+          }
+          return string;
+        };
+        
+        var removeLink = function(metadata, redirect){
+          return ' <form method="post" action="' + getSetSettings('accessPath') + '/content/action" style="display: inline;"><button class="btn btn-link btn-xs" type="submit" name="ActionRemove"><i class="fa fa-trash" style="font-size: 12px;"></i></button><input name="ContentObjectID" value="' + metadata.id + '" type="hidden"><input name="NodeID" value="' + metadata.mainNodeId + '" type="hidden"><input name="ContentNodeID" value="' + metadata.mainNodeId + '" type="hidden"><input name="RedirectIfCancel" value="'+redirect+'" type="hidden"><input name="RedirectURIAfterRemove" value="'+redirect+'" type="hidden"></form> ';
+        }
+
         return {
 
             settings: function (key, value) {
-                if (value)
-                    settings[key] = value;
-                if (key)
-                    return settings[key];
-                return settings;
+                return getSetSettings(key, value);
             },
 
             geoJsonFind: function (query, cb, context) {
@@ -401,6 +499,10 @@
 
             contentClass: function (query, cb, context) {
                 return contentClass(query, cb, context);
+            },
+
+            tagsTree: function (query, cb, context) {
+                return tagsTree(query, cb, context);
             },
 
             clearCache: function (startsWith) {
@@ -491,9 +593,36 @@
                     if (typeof userMarker == 'object') {
                         var group = new L.FeatureGroup([markers, userMarker]);
                         map.fitBounds(group.getBounds());
-                    } else {
+                    } else if( markers.getLayers().length > 0){
                         map.fitBounds(markers.getBounds());
                     }
+                }
+            },
+
+            helpers: {
+                'formatDate': function (date, format) {
+                    return formatDate(date, format);
+                },
+                'filterUrl': function (fullUrl) {
+                    return filterUrl(fullUrl);
+                },
+                'mainImageUrl': function (data) {
+                    return mainImageUrl(data);
+                },
+                'settings': function (setting) {
+                    return getSetSettings(setting);
+                },
+                'language': function (setting) {
+                    return language(setting);
+                },
+                'i18n': function (data, key, fallbackLanguage) {
+                    return i18n(data, key, fallbackLanguage);
+                },
+                'editLink': function (metadata) {
+                    return editLink(metadata);
+                },
+                'removeLink': function (metadata, redirect) {
+                    return removeLink(metadata, redirect);
                 }
             }
         }

@@ -9,6 +9,7 @@ $eZTemplateOperatorArray[] = array(
         'fetch_charsets',
         'api_search',
         'api_read',
-        'api_class'
+        'api_class',
+        'api_tagtree'
     )
 );

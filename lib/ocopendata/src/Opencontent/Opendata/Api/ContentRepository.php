@@ -26,9 +26,15 @@ class ContentRepository
         $this->gateway = new FileSystem();      // scrive cache sul filesystem (cluster safe)
     }
 
+    /**
+     * @deprecated
+     *
+     * @return ContentRepository
+     */
     public function setEnvironment(EnvironmentSettings $environmentSettings)
     {
-        $this->currentEnvironmentSettings = $environmentSettings;
+        \eZDebug::writeStrict('Function ContentRepository::setEnvironment has been deprecated in favor of ContentRepository::setCurrentEnvironmentSettings()', 'Deprecation');
+        return $this->setCurrentEnvironmentSettings($environmentSettings);
     }
 
     /**
@@ -110,10 +116,13 @@ class ContentRepository
 
     /**
      * @param EnvironmentSettings $currentEnvironmentSettings
+     *
+     * @return $this
      */
-    public function setCurrentEnvironmentSettings($currentEnvironmentSettings)
+    public function setCurrentEnvironmentSettings(EnvironmentSettings $currentEnvironmentSettings)
     {
         $this->currentEnvironmentSettings = $currentEnvironmentSettings;
+        return $this;
     }
 
     /**
@@ -127,7 +136,7 @@ class ContentRepository
     /**
      * @param Gateway $gateway
      */
-    public function setGateway($gateway)
+    public function setGateway(Gateway $gateway)
     {
         $this->gateway = $gateway;
     }

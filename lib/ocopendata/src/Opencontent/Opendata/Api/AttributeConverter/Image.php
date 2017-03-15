@@ -26,7 +26,10 @@ class Image extends File
             $content['content'] = array(
                 'filename' => $image['original_filename'],
                 'url' => $url,
-                'alt' => $image['alternative_text']
+                'alt' => $image['alternative_text'],
+                'mime_type' => $image['mime_type'],
+                'width' => $image['width'],
+                'height' => $image['height']
             );
         }
 

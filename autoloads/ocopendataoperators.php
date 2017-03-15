@@ -4,6 +4,7 @@ use Opencontent\Opendata\Api\EnvironmentLoader;
 use Opencontent\Opendata\Api\ContentRepository;
 use Opencontent\Opendata\Api\ContentSearch;
 use Opencontent\Opendata\Api\ClassRepository;
+use Opencontent\Opendata\Api\TagRepository;
 
 class OCOpenDataOperators
 {
@@ -14,7 +15,8 @@ class OCOpenDataOperators
             'fetch_charsets',
             'api_search',
             'api_read',
-            'api_class'
+            'api_class',
+            'api_tagtree',
         );
     }
 
@@ -38,6 +40,9 @@ class OCOpenDataOperators
             ),
             'api_class' => array(
                 'identifier' => array( 'type' => 'string', 'required' => true, 'default' => false )
+            ),
+            'api_tagtree' => array(
+                'identifier' => array( 'type' => 'string', 'required' => true, 'default' => false )
             )
         );
     }
@@ -47,6 +52,21 @@ class OCOpenDataOperators
 
         switch ($operatorName)
         {
+            case 'api_tagtree':
+            {
+                $tagsRepository = new TagRepository();
+                $identifier = $namedParameters['identifier'];
+                try {
+                    $data = (array)$tagsRepository->read($identifier)->jsonSerialize();
+                }
+                catch( Exception $e )
+                {
+                    $data = array();
+                }
+                $operatorValue = $data;
+
+            } break;
+
             case 'api_class':
             {
                 $identifier = $namedParameters['identifier'];
