@@ -51,10 +51,9 @@ class Metadata implements \ArrayAccess
     {
         foreach ( $properties as $property => $value )
         {
-            if ( property_exists( $this, $property ) )
+            if ( property_exists( $this, $property ) ) {
                 $this->$property = $value;
-            else
-                throw new OutOfRangeException( $property );
+            }
         }
     }
 

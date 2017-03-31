@@ -37,7 +37,11 @@ class Content
     {
         foreach ($properties as $property => $value) {
             if (property_exists($this, $property)) {
-                $this->$property = $value;
+                if ($property == 'metadata' && is_array($value)){
+                    $this->$property = new Metadata($value);
+                }else{
+                    $this->$property = $value;
+                }
             } else {
                 throw new OutOfRangeException($property);
             }
