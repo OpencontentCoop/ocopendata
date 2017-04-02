@@ -38,9 +38,13 @@ class Relations extends Base
         {
             try
             {
-                $contentObject = eZContentObject::fetch( $id );
-                if ( $contentObject instanceof eZContentObject )
-                    $contents[] = Metadata::createFromEzContentObject( $contentObject );
+                $id = intval($id);
+                if ($id > 0) {
+                    $contentObject = eZContentObject::fetch($id);
+                    if ($contentObject instanceof eZContentObject) {
+                        $contents[] = Metadata::createFromEzContentObject($contentObject);
+                    }
+                }
             }
             catch( \Exception $e )
             {
