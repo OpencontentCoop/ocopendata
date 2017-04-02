@@ -33,17 +33,18 @@ class ContentRepository
 
     /**
      * @param $content
+     * @param bool $ignorePolicies
      *
      * @return array
      * @throws ForbiddenException
      */
-    public function read($content)
+    public function read($content, $ignorePolicies = false)
     {
         if (!$content instanceof Content) {
             $content = $this->gateway->loadContent($content);
         }
 
-        if (!$content->canRead()) {
+        if (!$ignorePolicies && !$content->canRead()) {
             throw new ForbiddenException($content, 'read');
         }
 

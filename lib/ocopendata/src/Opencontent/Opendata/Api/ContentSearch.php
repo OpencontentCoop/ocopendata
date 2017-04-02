@@ -121,7 +121,13 @@ class ContentSearch
                     $content = $fileSystemGateway->loadContent( (int)$id );
                 }
 
-                $content = $contentRepository->read( $content );
+                $ignorePolicies = false;
+                if (is_array($limitation)){
+                    if (empty($limitation) || ( isset($limitation['accessWord']) && $limitation['accessWord'] == 'yes') ){
+                        $ignorePolicies = true;
+                    }
+                }
+                $content = $contentRepository->read( $content, $ignorePolicies );
                 $searchResults->searchHits[] = $content;
             }
             catch ( Exception $e )
