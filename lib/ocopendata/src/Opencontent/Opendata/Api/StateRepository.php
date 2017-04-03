@@ -11,6 +11,8 @@ use Opencontent\Opendata\Api\Values\ContentState;
 
 class StateRepository
 {
+    private static $states;
+
     public function load( $identifier )
     {
         $all = $this->internalLoadStates();
@@ -45,13 +47,17 @@ class StateRepository
 
     protected function internalLoadStates()
     {
-        return $this->getCacheManager()->processCache(
-            array( __CLASS__, 'retrieveCache' ),
-            array( __CLASS__, 'generateCache' ),
-            null,
-            null,
-            'states'
-        );
+        if (self::$states == null) {
+
+            self::$states = $this->getCacheManager()->processCache(
+                array(__CLASS__, 'retrieveCache'),
+                array(__CLASS__, 'generateCache'),
+                null,
+                null,
+                'states'
+            );
+        }
+        return self::$states;
     }
 
     protected static function getCacheManager()
