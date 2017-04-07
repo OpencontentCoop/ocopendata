@@ -28,5 +28,7 @@ path=ocopendata/states.cache
 isClustered=true
 class=OCOpenDataStateRepositoryCache
 
+[Event]
+Listeners[]=content/class/cache@OCOpenDataClassRepositoryCache::clearCache
 
 */ ?>
