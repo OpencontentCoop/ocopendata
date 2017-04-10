@@ -8,9 +8,12 @@ use eZContentObjectAttribute;
 use eZSection;
 use eZContentLanguage;
 use eZContentObjectTreeNode;
+use Opencontent\Opendata\Api\Gateway\SolrStorage;
 
 class Metadata implements \ArrayAccess
 {
+    private static $recursionProtect = array();
+
     public $id;
 
     public $currentVersion;
@@ -47,19 +50,20 @@ class Metadata implements \ArrayAccess
 
     public $modified;
 
-    public function __construct( array $properties = array() )
+    public $extra = array();
+
+    public function __construct(array $properties = array())
     {
-        foreach ( $properties as $property => $value )
-        {
-            if ( property_exists( $this, $property ) ) {
+        foreach ($properties as $property => $value) {
+            if (property_exists($this, $property)) {
                 $this->$property = $value;
             }
         }
     }
 
-    public static function __set_state( array $array )
+    public static function __set_state(array $array)
     {
-        return new static( $array );
+        return new static($array);
     }
 
     public function jsonSerialize()
@@ -67,51 +71,50 @@ class Metadata implements \ArrayAccess
         return (array)$this;
     }
 
+    public function addExtra($key, $value)
+    {
+        $this->extra[$key] = $value;
+    }
+
     /**
      * @param eZContentObject $contentObject
      *
      * @return Metadata
      */
-    public static function createFromEzContentObject( eZContentObject $contentObject )
+    public static function createFromEzContentObject(eZContentObject $contentObject)
     {
         $languages = eZContentLanguage::fetchLocaleList();
         /** @var eZContentLanguage[] $availableLanguages */
-        $availableLanguages = array_keys( $contentObject->allLanguages() );
+        $availableLanguages = array_keys($contentObject->allLanguages());
         $metadata = new Metadata();
-        $metadata->id = (int)$contentObject->attribute( 'id' );
-        $metadata->currentVersion = (int)$contentObject->attribute( 'current_version' );
+        $metadata->id = (int)$contentObject->attribute('id');
+        $metadata->currentVersion = (int)$contentObject->attribute('current_version');
         $names = array();
-        foreach ( $languages as $language )
-        {
-            if ( in_array( $language, $availableLanguages ) )
-            {
-                $names[$language] = $contentObject->name( false, $language );
+        foreach ($languages as $language) {
+            if (in_array($language, $availableLanguages)) {
+                $names[$language] = $contentObject->name(false, $language);
             }
         }
         $metadata->name = $names;
-        $metadata->remoteId = $contentObject->attribute( 'remote_id' );
-        $metadata->ownerId = (int)$contentObject->attribute( 'owner_id' );
-        $owner = eZContentObject::fetch( $metadata->ownerId );
-        if ( $owner instanceof eZContentObject )
-        {
-            $ownerAvailableLanguages = array_keys( $owner->allLanguages() );
+        $metadata->remoteId = $contentObject->attribute('remote_id');
+        $metadata->ownerId = (int)$contentObject->attribute('owner_id');
+        $owner = eZContentObject::fetch($metadata->ownerId);
+        if ($owner instanceof eZContentObject) {
+            $ownerAvailableLanguages = array_keys($owner->allLanguages());
             $names = array();
-            foreach ( $languages as $language )
-            {
-                if ( in_array( $language, $ownerAvailableLanguages ) )
-                {
-                    $names[$language] = $owner->name( false, $language );
+            foreach ($languages as $language) {
+                if (in_array($language, $ownerAvailableLanguages)) {
+                    $names[$language] = $owner->name(false, $language);
                 }
             }
             $metadata->ownerName = $names;
         }
-        $metadata->classIdentifier = $contentObject->attribute( 'class_identifier' );
-        $metadata->classId = $contentObject->attribute( 'contentclass_id' );
-        $metadata->mainNodeId = $contentObject->attribute( 'main_node_id' );
+        $metadata->classIdentifier = $contentObject->attribute('class_identifier');
+        $metadata->classId = $contentObject->attribute('contentclass_id');
+        $metadata->mainNodeId = $contentObject->attribute('main_node_id');
         $metadata->parentNodes = array();
-        foreach( $contentObject->attribute( 'parent_nodes' ) as $node )
-        {
-            $parentNode = eZContentObjectTreeNode::fetch( $node, false, false );
+        foreach ($contentObject->attribute('parent_nodes') as $node) {
+            $parentNode = eZContentObjectTreeNode::fetch($node, false, false);
             $metadata->parentNodes[] = array(
                 'id' => (int)$parentNode['node_id'],
                 'depth' => (int)$parentNode['depth'],
@@ -120,31 +123,87 @@ class Metadata implements \ArrayAccess
         }
         $metadata->assignedNodes = array();
         /** @var \eZContentObjectTreeNode $node */
-        foreach( $contentObject->attribute( 'assigned_nodes' ) as $node )
-        {
+        foreach ($contentObject->attribute('assigned_nodes') as $node) {
             $metadata->assignedNodes[] = array(
-                'id' => (int)$node->attribute( 'node_id' ),
-                'depth' => (int)$node->attribute( 'depth' ),
-                'path_string' => $node->attribute( 'path_string' )
+                'id' => (int)$node->attribute('node_id'),
+                'depth' => (int)$node->attribute('depth'),
+                'path_string' => $node->attribute('path_string')
             );
         }
-        $metadata->published = date( 'c', $contentObject->attribute( 'published' ) );
-        $metadata->modified = date( 'c', $contentObject->attribute( 'modified' ) );
-        $section = eZSection::fetch( $contentObject->attribute( 'section_id' ) );
-        if ( $section instanceof eZSection )
-        {
-            $metadata->sectionIdentifier = $section->attribute( 'identifier' );
-            $metadata->sectionId = $section->attribute( 'id' );
+        $metadata->published = date('c', $contentObject->attribute('published'));
+        $metadata->modified = date('c', $contentObject->attribute('modified'));
+        $section = eZSection::fetch($contentObject->attribute('section_id'));
+        if ($section instanceof eZSection) {
+            $metadata->sectionIdentifier = $section->attribute('identifier');
+            $metadata->sectionId = $section->attribute('id');
         }
         $metadata->stateIdentifiers = array();
-        foreach ( $contentObject->stateIdentifierArray() as $identifier )
-        {
-            $metadata->stateIdentifiers[] = str_replace( '/', '.', $identifier );
+        foreach ($contentObject->stateIdentifierArray() as $identifier) {
+            $metadata->stateIdentifiers[] = str_replace('/', '.', $identifier);
         }
         $metadata->stateIds = $contentObject->stateIDArray();
         $metadata->languages = $availableLanguages;
 
+        if (!isset( self::$recursionProtect[$contentObject->attribute('id')] )) {
+            self::$recursionProtect[$contentObject->attribute('id')] = true;
+            self::addExtraFromIndexPlugins($contentObject, $metadata, $availableLanguages);
+        }
+
         return $metadata;
+    }
+
+    private static function addExtraFromIndexPlugins(
+        eZContentObject $contentObject,
+        Metadata $metadata,
+        array $availableLanguages
+    ) {
+        $ezFindIni = \eZINI::instance('ezfind.ini');
+
+        $generalPlugins = $ezFindIni->hasVariable('IndexPlugins', 'General') ?
+            (array)$ezFindIni->variable('IndexPlugins', 'General') : array();
+
+        $classPlugins = $ezFindIni->hasVariable('IndexPlugins', 'Class') ?
+            (array)$ezFindIni->variable('IndexPlugins', 'Class') : array();
+
+        $indexPlugins = array();
+        if ($generalPlugins) {
+            $indexPlugins = $generalPlugins;
+        }
+        if (array_key_exists($contentObject->attribute('class_identifier'), $classPlugins)) {
+            $indexPlugins[] = $classPlugins[$contentObject->attribute('class_identifier')];
+        }
+
+        /** @var \eZSolrDoc[] $docList */
+        $docList = array();
+        foreach ($availableLanguages as $language) {
+            $doc = new \eZSolrDoc();
+            $docList[$language] = $doc;
+        }
+        foreach ($indexPlugins as $pluginClassString) {
+            if (class_exists($pluginClassString)) {
+                $plugin = new $pluginClassString;
+
+                if ($plugin instanceof \ezfIndexPlugin) {
+                    $plugin->modify($contentObject, $docList);
+                }
+            }
+        }
+
+        $extra = array();
+        foreach ($docList as $language => $doc) {
+            $xml = simplexml_load_string($doc->docToXML());
+            if($xml){
+                /** @var \SimpleXMLElement $field */
+                foreach ($xml->children() as $field) {
+                    if ((string)$field['name'] != SolrStorage::getSolrIdentifier()){
+                        $extra[(string)$field['name']] = (string)$field;
+                    }
+                }
+            }
+        }
+        foreach($extra as $key => $value){
+            $metadata->addExtra($key, $value);
+        }
     }
 
     public function offsetExists($property)
@@ -159,10 +218,11 @@ class Metadata implements \ArrayAccess
 
     public function offsetSet($property, $value)
     {
-        if ( property_exists( $this, $property ) )
+        if (property_exists($this, $property)) {
             $this->{$property} = $value;
-        else
-            throw new OutOfRangeException( $property );
+        } else {
+            throw new OutOfRangeException($property);
+        }
     }
 
     public function offsetUnset($property)

@@ -84,7 +84,8 @@ class AttributeConverterLoader
             'ezpage' => '\Opencontent\Opendata\Api\AttributeConverter\Page',
             'ezboolean' => '\Opencontent\Opendata\Api\AttributeConverter\Boolean',
             'ezuser' => '\Opencontent\Opendata\Api\AttributeConverter\User',
-            'ezfloat' => '\Opencontent\Opendata\Api\AttributeConverter\Float'            
+            'ezfloat' => '\Opencontent\Opendata\Api\AttributeConverter\Float',
+            'mugoobjectrelationlist' => '\Opencontent\Opendata\Api\AttributeConverter\Relations',
         );
 
         if ( EnvironmentLoader::ini()->hasVariable( 'AttributeConverters', 'Converters' ) )

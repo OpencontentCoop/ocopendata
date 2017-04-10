@@ -23,53 +23,79 @@ class Relations extends Base
 
     protected static function gateway()
     {
-        if ( self::$gateway === null )
+        if (self::$gateway === null) {
             self::$gateway = new FileSystem();
+        }
 
         return self::$gateway;
     }
 
-    public function get( eZContentObjectAttribute $attribute )
+    private function parseAttributeContent(eZContentObjectAttribute $attribute)
     {
-        $content = parent::get( $attribute );
-        $ids = explode( '-', $attribute->toString() );
-        $contents = array();
-        foreach( $ids as $id )
-        {
-            try
-            {
-                $id = intval($id);
-                if ($id > 0) {
-                    $contentObject = eZContentObject::fetch($id);
-                    if ($contentObject instanceof eZContentObject) {
-                        $contents[] = Metadata::createFromEzContentObject($contentObject);
+        $content = $attribute->content();
+        $data = null;
+        if ($content instanceof eZContentObject) {
+            $data = array(
+                Metadata::createFromEzContentObject($content)
+            );
+        } elseif (isset( $content['relation_list'] )) {
+            $data = array();
+            foreach ($content['relation_list'] as $relationItem) {
+                $id = (int)$relationItem['contentobject_id'];
+                $contentObject = eZContentObject::fetch($id);
+                if ($contentObject instanceof eZContentObject) {
+                    $dataItem = Metadata::createFromEzContentObject($contentObject);
+                    $extra = array();
+                    if (isset( $relationItem['extra_fields'] )) {
+                        foreach ($relationItem['extra_fields'] as $extraFieldKey => $extraFieldValue) {
+                            if (is_array($extraFieldValue) && isset( $extraFieldValue['identifier'] )) {
+                                $extraFieldValue = $extraFieldValue['identifier'];
+                            }
+                            //$extraFieldKey = \ezfSolrDocumentFieldBase::generateSubattributeFieldName( $attribute->contentClassAttribute(), $extraFieldKey, 'string' );
+                            $extra[$extraFieldKey] = $extraFieldValue;
+                        }
                     }
+                    if (isset( $content['extra_fields_attribute_level'] )) {
+                        foreach ($content['extra_fields_attribute_level'] as $extraFieldKey => $extraFieldValue) {
+                            if (is_array($extraFieldValue) && isset( $extraFieldValue['identifier'] )) {
+                                $extraFieldValue = $extraFieldValue['identifier'];
+                            }
+                            //$extraFieldKey = \ezfSolrDocumentFieldBase::generateSubattributeFieldName( $attribute->contentClassAttribute(), $extraFieldKey, 'string' );
+                            $extra[$extraFieldKey] = $extraFieldValue;
+                        }
+                    }
+                    if (!empty($extra)){
+                        $dataItem->addExtra('in_context', $extra);
+                    }
+                    $data[] = $dataItem;
                 }
             }
-            catch( \Exception $e )
-            {
-                \eZDebug::writeError( $e->getMessage() );
-            }
         }
-        $content['content'] = $contents;
+
+        return $data;
+    }
+
+    public function get(eZContentObjectAttribute $attribute)
+    {
+        $content = parent::get($attribute);
+        $content['content'] = $this->parseAttributeContent($attribute);
+
         return $content;
     }
 
-    public function set( $data, PublicationProcess $process )
+    public function set($data, PublicationProcess $process)
     {
-        $data = self::findContents( $data );
+        $data = self::findContents($data);
+
         //@todo handle image and files
-        return empty($data['ids']) ? null : implode( '-', $data['ids'] );
+        return empty( $data['ids'] ) ? null : implode('-', $data['ids']);
     }
 
-    public static function validate( $identifier, $data, eZContentClassAttribute $attribute )
+    public static function validate($identifier, $data, eZContentClassAttribute $attribute)
     {
-        if ( is_array( $data ) )
-        {
-            foreach( $data as $item )
-            {
-                if ( is_array( $item ) )
-                {
+        if (is_array($data)) {
+            foreach ($data as $item) {
+                if (is_array($item)) {
                     if (isset( $data['image'] )) {
                         Image::validate($identifier, $data, $attribute);
                     } elseif (isset( $data['file'] )) {
@@ -89,63 +115,58 @@ class Relations extends Base
                     } else {
                         throw new InvalidInputException('Invalid input', $identifier, array($item));
                     }
-                }
-                else
-                {
-                    try
-                    {
-                        self::gateway()->loadContent( $item );
-                    }
-                    catch( \Exception $e )
-                    {
-                        throw new InvalidInputException( 'Invalid content identifier', $identifier, array( $item ) );
+                } else {
+                    try {
+                        self::gateway()->loadContent($item);
+                    } catch (\Exception $e) {
+                        throw new InvalidInputException('Invalid content identifier', $identifier, array($item));
                     }
                 }
             }
-        }else {
+        } else {
             throw new InvalidInputException('Invalid data', $identifier, $data);
         }
     }
 
-    protected static function findContents( $data )
+    protected static function findContents($data)
     {
         $result = array(
             'images' => array(),
             'files' => array(),
             'ids' => array()
         );
-        foreach( $data as $item )
-        {
-            if ( is_array( $item ) )
-            {
+        foreach ($data as $item) {
+            if (is_array($item)) {
                 if (isset( $data['image'] )) {
                     $result['images'][] = $item;
                 } elseif (isset( $data['file'] )) {
                     $result['files'][] = $item;
                 }
-            }
-            else
-            {
-                $content = self::gateway()->loadContent( $item );
+            } else {
+                $content = self::gateway()->loadContent($item);
                 $result['ids'][] = $content->metadata->id;
             }
         }
+
         return $result;
     }
 
-    public function type( eZContentClassAttribute $attribute )
+    public function type(eZContentClassAttribute $attribute)
     {
-        return array(
+        $data = array(
             'identifier' => 'array of id or remoteId or file or image'
         );
+
+        return $data;
     }
 
     public function toCSVString($content, $language = null)
     {
         $data = array();
-        foreach( $content as $metadata ){
+        foreach ($content as $metadata) {
             $data[] = $metadata['name'][$language];
         }
+
         return implode("\n", $data);
     }
 }

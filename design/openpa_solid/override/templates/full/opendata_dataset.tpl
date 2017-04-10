@@ -34,7 +34,7 @@
 
         {include uri=$openpa.content_infocollection.template}
 
-        {include uri=$openpa.control_children.template}
+        {node_view_gui content_node=$node view=children view_parameters=$view_parameters}
 
     </div>
 

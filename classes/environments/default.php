@@ -41,7 +41,8 @@ class DefaultEnvironmentSettings extends EnvironmentSettings
                 'languages' => $content->metadata->languages,
                 'name' => $content->metadata->name,
                 'parentNodes' => $parentNodes,
-                'link' => $this->requestBaseUri . 'read/' . $content->metadata->id
+                'link' => $this->requestBaseUri . 'read/' . $content->metadata->id,
+                'extra' => $content->metadata->extra
             )
         );
         return $content;
@@ -56,7 +57,8 @@ class DefaultEnvironmentSettings extends EnvironmentSettings
             {
                 $valueContent = $value['content'];
                 if ( $value['datatype'] == 'ezobjectrelationlist'
-                     || $value['datatype'] == 'ezobjectrelation' )
+                     || $value['datatype'] == 'ezobjectrelation'
+                     || $value['datatype'] == 'mugoobjectrelationlist') //@todo usare il loader
                 {
                     $valueContent = array();
                     if ( is_array( $value['content'] ) )
@@ -83,6 +85,9 @@ class DefaultEnvironmentSettings extends EnvironmentSettings
                                     'name' => $item['name'],
                                     'link' => $this->requestBaseUri . 'read/' . $item['id']
                                 );
+                                if (isset($item['extra'])){
+                                    $subContent['extra'] = $item['extra'];
+                                }
                                 $valueContent[] = $subContent;
                             }
                         }
