@@ -41,6 +41,8 @@ class TagRepository
             }
         }
 
+        $message = 'failed';
+
         $tag = null;
         if ($parentTag instanceof eZTagsObject && $parentTag->attribute('main_tag_id') != 0) {
             $parentTag = eZTagsObject::fetchWithMainTranslation($parentTag->attribute('main_tag_id'));            
@@ -122,6 +124,12 @@ class TagRepository
 
     private function buildTagTree(eZTagsObject $tagObject)
     {
+
+        $keywordTranslations = array();
+        foreach($tagObject->getTranslations() as $translation){
+            $keywordTranslations[$translation->attribute('locale')] = $translation->attribute('keyword');
+        }
+
         $tag = new Tag();
         $tag->id = (int)$tagObject->attribute('id');
         $tag->parentId = (int)$tagObject->attribute('parent_id');
@@ -129,6 +137,7 @@ class TagRepository
         $tag->children = $this->getTagChildren($tagObject);
         $tag->synonymsCount = (int)$tagObject->attribute('synonyms_count');
         $tag->languageNameArray = $tagObject->attribute('language_name_array');
+        $tag->keywordTranslations = $keywordTranslations;
         $tag->keyword = $tagObject->attribute('keyword');
         $tag->url = '/tags/id/' . $tagObject->attribute('id');
         $tag->icon = eZTagsTemplateFunctions::getTagIcon($tagObject->getIcon());

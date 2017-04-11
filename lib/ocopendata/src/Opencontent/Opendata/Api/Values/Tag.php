@@ -21,6 +21,8 @@ class Tag implements \JsonSerializable
 
     public $keyword;
 
+    public $keywordTranslations;
+
     public $url;
 
     public $icon;
