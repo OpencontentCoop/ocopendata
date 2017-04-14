@@ -7,8 +7,7 @@ use Opencontent\Opendata\Api\ContentSearch;
 use Opencontent\Opendata\Api\ClassRepository;
 use Opencontent\Opendata\Api\Exception\BaseException;
 use Opencontent\Opendata\Api\Values\ContentClass;
-use Opencontent\Opendata\Api\Structs\ContentCreateStruct;
-use Opencontent\Opendata\Api\Structs\ContentUpdateStruct;
+use Opencontent\Opendata\Api\QueryLanguage\EzFind\ArrayQueryBuilder;
 
 class OCOpenDataController2 extends ezpRestContentController
 {
@@ -53,12 +52,12 @@ class OCOpenDataController2 extends ezpRestContentController
 
     protected function setEnvironment()
     {
-        $environmentIdentifier = $this->request->variables['EnvironmentSettigs'];
+        $environmentIdentifier = $this->request->variables['EnvironmentSettings'];
         $this->currentEnvironment = EnvironmentLoader::loadPreset( $environmentIdentifier );
         $this->currentEnvironment->__set( 'requestBaseUri', $this->getBaseUri() );
         $this->currentEnvironment->__set( 'request', $this->request );
 
-        $this->request->variables['EnvironmentSettigs'] = $this->currentEnvironment;
+        $this->request->variables['EnvironmentSettings'] = $this->currentEnvironment;
 
         $this->contentRepository->setEnvironment( $this->currentEnvironment );
         $this->contentBrowser->setEnvironment( $this->currentEnvironment );
@@ -119,11 +118,18 @@ class OCOpenDataController2 extends ezpRestContentController
 
     protected function doContentSearch()
     {
+        $query = $this->request->variables['Query'];
+        if ($query === null){
+            $query =$this->request->get;
+            $this->contentSearch->setQueryBuilder(
+                new ArrayQueryBuilder()
+            );
+        }
         try
         {
             $this->setEnvironment();
             $result = new ezpRestMvcResult();
-            $search = $this->contentSearch->search( $this->request->variables['Query'] );
+            $search = $this->contentSearch->search( $query );
             $result->variables = (array) $search;
         }
         catch ( Exception $e )

@@ -60,6 +60,20 @@ class Converter implements \OcOpenDataConverterInterface
         $dataset->relationships_as_subject = $this->getRelationshipsAsSubject();
         $dataset->groups = $this->getGroups();
         $dataset->owner_org = $this->getOwnerOrg();
+        $dataset->identifier = $this->organizationBuilder->build()->getCodiceIpa() . '-' . $this->object->attribute('id');
+        $dataset->publisher_name = $this->organizationBuilder->build()->title;
+        $dataset->publisher_identifier = $this->organizationBuilder->build()->getCodiceIpa();
+        $dataset->geographical_geonames_url = $this->getGeoNamesUrl();
+        $dataset->modified = date(DATE_ATOM, time());
+        $dataset->temporal_start = $this->getTemporalStart();
+        $dataset->temporal_end = $this->getTemporalEnd();
+        $dataset->holder_name = $this->organizationBuilder->build()->title;
+        $dataset->holder_identifier = $this->organizationBuilder->build()->getCodiceIpa();
+        $dataset->creator_name = $this->organizationBuilder->build()->title;
+        $dataset->creator_identifier = $this->organizationBuilder->build()->getCodiceIpa();
+        $dataset->issued = date(DATE_ATOM, $this->object->attribute('published'));
+        $dataset->creation_date = date(DATE_ATOM, $this->object->attribute('published'));
+        $dataset->site_url = $this->getSiterUrl();
 
         return $dataset;
     }
@@ -67,6 +81,11 @@ class Converter implements \OcOpenDataConverterInterface
     protected function fixText($string)
     {
         return str_replace(';', '', $string);
+    }
+
+    protected function fixApiUrl($url)
+    {
+        return $this->fixUrl($url);
     }
 
     protected function fixUrl($url)
@@ -101,12 +120,18 @@ class Converter implements \OcOpenDataConverterInterface
 
     /**
      * @param eZContentObject $object
-     * @param Dataset $dataset
+     * @param Dataset|string $dataset
      */
     public function markObjectPushed(eZContentObject $object, $dataset)
     {
-        if ($dataset->getData('id')) {
-            $object->setAttribute('remote_id', $this->getRemotePrefix() . $dataset->getData('id'));
+        $id = null;
+        if ($dataset instanceof Dataset && $dataset->getData('id')){
+            $id = $dataset->getData('id');
+        }elseif (is_string($dataset)){
+            $id = (string)$dataset;
+        }
+        if ($id) {
+            $object->setAttribute('remote_id', $this->getRemotePrefix() . $id);
             $object->store();
         }
     }
@@ -327,7 +352,7 @@ class Converter implements \OcOpenDataConverterInterface
 
     protected function getType()
     {
-        return null;
+        return 'dataset';
     }
 
     protected function getResources()
@@ -389,7 +414,7 @@ class Converter implements \OcOpenDataConverterInterface
                             $data["format"] = \eZFile::suffix($resource['file']->content()->attribute('filepath'));
                         } elseif (isset( $resource['api'] )) {
                             $url = $resource['api']->toString();
-                            $data["url"] = $this->fixUrl($url);
+                            $data["url"] = $this->fixApiUrl($url);
                             $data["resource_type"] = 'api';
                         } elseif (isset( $resource['url'] )) {
                             $url = explode('|', $resource['url']->toString());
@@ -451,10 +476,6 @@ class Converter implements \OcOpenDataConverterInterface
                 );
             }
         }
-        $extras[] = array(
-            'key' => 'Language',
-            'value' => $this->object->currentLanguage()
-        );
 
         return $extras;
     }
@@ -477,6 +498,41 @@ class Converter implements \OcOpenDataConverterInterface
     protected function getOwnerOrg()
     {
         return $this->organizationBuilder->getStoresOrganizationId();
+    }
+
+    protected function getGeoNamesUrl()
+    {
+        return '';
+    }
+
+    protected function getTemporalEnd()
+    {
+        if (isset( $this->dataMap['from_time'] ) && $this->dataMap['from_time']->hasContent()) {
+            return date(DATE_ATOM, $this->dataMap['from_time']->toString());
+        }
+
+        return null;
+    }
+
+    protected function getTemporalStart()
+    {
+        if (isset( $this->dataMap['to_time'] ) && $this->dataMap['to_time']->hasContent()) {
+            return date(DATE_ATOM, $this->dataMap['to_time']->toString());
+        }
+
+        return null;
+    }
+
+    protected function getSiterUrl()
+    {
+        if (isset( $this->dataMap['url_website'] ) && $this->dataMap['url_website']->hasContent()) {
+            $url = explode('|', $this->dataMap['url_website']->toString());
+            $url = $url[0];
+
+            return $this->fixUrl($url);
+        }
+
+        return null;
     }
 
 }

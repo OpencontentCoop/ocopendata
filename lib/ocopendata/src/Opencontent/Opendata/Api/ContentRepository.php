@@ -27,17 +27,6 @@ class ContentRepository
     }
 
     /**
-     * @deprecated
-     *
-     * @return ContentRepository
-     */
-    public function setEnvironment(EnvironmentSettings $environmentSettings)
-    {
-        \eZDebug::writeStrict('Function ContentRepository::setEnvironment has been deprecated in favor of ContentRepository::setCurrentEnvironmentSettings()', 'Deprecation');
-        return $this->setCurrentEnvironmentSettings($environmentSettings);
-    }
-
-    /**
      * @param $content
      * @param bool $ignorePolicies
      *
@@ -119,10 +108,20 @@ class ContentRepository
      *
      * @return $this
      */
-    public function setCurrentEnvironmentSettings(EnvironmentSettings $currentEnvironmentSettings)
+    public function setEnvironment(EnvironmentSettings $currentEnvironmentSettings)
     {
         $this->currentEnvironmentSettings = $currentEnvironmentSettings;
         return $this;
+    }
+
+    /**
+     * Alias of setEnvironment method
+     *
+     * @return ContentRepository
+     */
+    public function setCurrentEnvironmentSettings(EnvironmentSettings $environmentSettings)
+    {
+        return $this->setEnvironment($environmentSettings);
     }
 
     /**

@@ -13,6 +13,7 @@ use eZINI;
 use eZUser;
 use Exception;
 use eZContentClass;
+use Opencontent\Ckan\DatiTrentinoIt\Converter\OpenPA as OpenPAConverter;
 
 class OpenPA implements OcOpendataDatasetGeneratorInterface
 {
@@ -22,74 +23,14 @@ class OpenPA implements OcOpendataDatasetGeneratorInterface
         'container' => 'opendata_datasetcontainer'
     );
 
-    public static $parameters = array(
-        'accordo' => array('Plurale' => 'Accordi', 'Descrizione' => 'Tutti gli accordi'),
-        'convenzione' => array('Plurale' => 'Convenzioni', 'Descrizione' => 'Tutte le convenzioni'),
-        'concessioni' => array('Plurale' => 'Concessioni', 'Descrizione' => 'Elenchi delle concessioni'),
-        'event' => array('Plurale' => 'Eventi', 'Descrizione' => 'Tutti gli eventi'),
-        'procedimento' => array('Plurale' => 'Procedimenti', 'Descrizione' => 'Tutti i procedimenti'),
-        'tasso_assenza' => array('Plurale' => 'Tassi di assenza', 'Descrizione' => 'Tassi di assenza'),
-        'area_tematica' => array('Plurale' => 'Aree tematiche', 'Descrizione' => 'Tutte le aree tematiche'),
-        'associazione' => array('Plurale' => 'Associazioni', 'Descrizione' => 'Tutte le associazioni'),
-        'ente' => array('Plurale' => 'Enti', 'Descrizione' => 'Tutti gli enti'),
-        'ente_controllato' => array('Plurale' => 'Enti controllati', 'Descrizione' => 'Tutti gli enti controllati'),
-        'interpellanza' => array('Plurale' => 'Interpellanze', 'Descrizione' => 'Tutte le interpellanze'),
-        'interrogazione' => array('Plurale' => 'Interrogazioni', 'Descrizione' => 'Tutte le interrogazioni'),
-        'mozione' => array('Plurale' => 'Mozioni', 'Descrizione' => 'Tutte le mozioni'),
-        'sovvenzione_contributo' => array(
-            'Plurale' => 'Sovvenzioni e contributi',
-            'Descrizione' => 'Tutte le sovvenzioni ed i contributi'
-        ),
-        'seduta_consiglio' => array(
-            'Plurale' => 'Sedute di consiglio',
-            'Descrizione' => 'Tutte le sedute di consiglio'
-        ),
-        'rapporto' => array('Plurale' => 'Rapporti', 'Descrizione' => 'Tutti i rapporti'),
-        'albo_elenco' => array('Plurale' => 'Albi ed elenchi', 'Descrizione' => 'Tutti gli albi ed elenchi'),
-        'avviso' => array('Plurale' => 'Avvisi', 'Descrizione' => 'Tutti gli avvisi'),
-        'bando' => array('Plurale' => 'Bandi di gara', 'Descrizione' => 'Tutti i bandi'),
-        'bilancio_di_previsione' => array(
-            'Plurale' => 'Bilanci di previsione',
-            'Descrizione' => 'Tutti i bilanci previsionali'
-        ),
-        'concorso' => array('Plurale' => 'Concorsi', 'Descrizione' => 'Tutti i concorsi'),
-        'conferimento_incarico' => array(
-            'Plurale' => 'Conferimenti di incarico',
-            'Descrizione' => 'Tutti i conferimenti di incarico'
-        ),
-        'consulenza' => array('Plurale' => 'Consulenze', 'Descrizione' => 'Tutte le consulenze'),
-        'decreto_sindacale' => array('Plurale' => 'Decreti sindacali', 'Descrizione' => 'Tutti i decreti sindacali'),
-        'dipendente' => array('Plurale' => 'Dipendenti', 'Descrizione' => 'Tutti i dipendenti'),
-        'disciplinare' => array('Plurale' => 'Disciplinari', 'Descrizione' => 'Tutti i disciplinari'),
-        'documento' => array('Plurale' => 'Documenti', 'Descrizione' => 'Tutti i documenti'),
-        'gruppo_consiliare' => array('Plurale' => 'Gruppi consiliari', 'Descrizione' => 'Tutti i gruppi consiliari'),
-        'modulo' => array('Plurale' => 'Moduli', 'Descrizione' => 'Tutti i moduli'),
-        'organo_politico' => array('Plurale' => 'Organi politici', 'Descrizione' => 'Tutti gli organi politici'),
-        'piano_progetto' => array('Plurale' => 'Piani e progetti', 'Descrizione' => 'Tutti i piani e progetti'),
-        'politico' => array('Plurale' => 'Politici', 'Descrizione' => 'Tutti i politici'),
-        'pubblicazione' => array('Plurale' => 'Pubblicazioni', 'Descrizione' => 'Tutte le pubblicazioni'),
-        'luogo' => array(
-            'Plurale' => 'Luoghi e punti di interesse',
-            'Descrizione' => 'Tutti i luoghi ed i punti di interesse'
-        ),
-        'regolamento' => array('Plurale' => 'Regolamenti', 'Descrizione' => 'Tutti i regolamenti'),
-        'rendiconto' => array('Plurale' => 'Rendiconti', 'Descrizione' => 'Tutti i rendiconti'),
-        'sala_pubblica' => array('Plurale' => 'Sale pubbliche', 'Descrizione' => 'Tutte le sale pubbliche'),
-        'servizio' => array('Plurale' => 'Servizi', 'Descrizione' => 'Tutti i servizi'),
-        'ufficio' => array('Plurale' => 'Uffici', 'Descrizione' => 'Tutti gli uffici'),
-        'servizio_sul_territorio' => array(
-            'Plurale' => 'Servizi sul territorio',
-            'Descrizione' => 'Tutti i servizi sul territorio'
-        ),
-        'statuto' => array('Plurale' => 'Statuti', 'Descrizione' => 'Tutti gli statuti')
-    );
-
     public function createFromClassIdentifier($classIdentifier, $parameters = array(), $dryRun = null)
     {
         $tools = new OCOpenDataTools();
 
-        if ( empty( $parameters ) && isset( self::$parameters[$classIdentifier] )){
-            $parameters = self::$parameters[$classIdentifier];
+        $iniParamaters = eZINI::instance('ocopendata_datasetgenerator.ini')->groups();
+
+        if ( empty( $parameters ) && isset( $iniParamaters[$classIdentifier] )){
+            $parameters = $iniParamaters[$classIdentifier];
         }
 
         //controllo se l'organizzazione è valida
@@ -147,18 +88,17 @@ class OpenPA implements OcOpendataDatasetGeneratorInterface
             $resourceTitle = $parameters['Plurale'];
         }
 
-
         $contentSearch->setEnvironment($contentEnvironment);
         if ($this->anonymousSearch($contentSearch, $undecodeQuery)) {
             $resourceFieldPrefix = 'resource_1_';
-            $attributeList[$resourceFieldPrefix . 'api'] = "http://$siteUrl/api/opendata/v2/content/search/$query";
+            $attributeList[$resourceFieldPrefix . 'api'] = "http://$siteUrl/api/opendata/v2/content/search?" . OpenPAConverter::httpBuildQuery($query);
             $attributeList[$resourceFieldPrefix . 'name'] = $resourceTitle . ' in formato JSON';
             $attributeList[$resourceFieldPrefix . 'description'] = $class->attribute('description');
             $attributeList[$resourceFieldPrefix . 'format'] = 'JSON';
             $attributeList[$resourceFieldPrefix . 'charset'] = 'UTF-8';
 
             $resourceFieldPrefix = 'resource_2_';
-            $attributeList[$resourceFieldPrefix . 'api'] = "http://$siteUrl/exportas/custom/csv_search/$query";;
+            $attributeList[$resourceFieldPrefix . 'api'] = "http://$siteUrl/exportas/custom/csv_search?" . OpenPAConverter::httpBuildQuery($query);
             $attributeList[$resourceFieldPrefix . 'name'] = $resourceTitle . ' in formato CSV';
             $attributeList[$resourceFieldPrefix . 'description'] = $class->attribute('description');
             $attributeList[$resourceFieldPrefix . 'format'] = 'CSV';
@@ -169,7 +109,7 @@ class OpenPA implements OcOpendataDatasetGeneratorInterface
         $resourceFieldPrefix = 'resource_3_';
         $contentSearch->setEnvironment($geoEnvironment);
         if ($this->anonymousSearch($contentSearch, $undecodeQuery)) {
-            $attributeList[$resourceFieldPrefix . 'api'] = "http://$siteUrl/api/opendata/v2/geo/search/$query";
+            $attributeList[$resourceFieldPrefix . 'api'] = "http://$siteUrl/api/opendata/v2/geo/search?" . OpenPAConverter::httpBuildQuery($query);
             $attributeList[$resourceFieldPrefix . 'name'] = $resourceTitle . ' in formato GeoJSON';
             $attributeList[$resourceFieldPrefix . 'description'] = $class->attribute('description');
             $attributeList[$resourceFieldPrefix . 'format'] = 'GeoJSON';

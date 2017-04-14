@@ -11,17 +11,25 @@ $script = eZScript::instance(array(
 $script->startup();
 
 $options = $script->getOptions(
-    '[id:][show][push][delete][purge][generate_from_class:][dry-run][repush_all]',
+    '[id:][show][push][delete][purge][unlink][generate_from_class:][generate_all][dry-run][push_all][delete_all][purge_all][unlink_all][archive_all]',
     '',
     array(
-        'generate_from_class' => 'Genera un oggetto dataset in eZ dato p\'identificativo di classe specificato',
-        'dry-run' => 'Verifica l\azione ma non la esegue',
+        'dry-run' => "Verifica l'azione ma non la esegue",
+
         'id' => 'eZ Content Object id',
         'show' => 'Mostra le info sul dataset',
         'push' => 'Salva o aggiorna il dataset in Ckan',
-        'delete' => 'Marca il dataset come \'deleted\' in Ckan',
+        'delete' => "Marca il dataset come 'deleted' in Ckan",
         'purge' => 'Elimina il dataset da Ckan',
-        'repush_all' => 'Aggiorna tutti i dataset in ckan'
+        'unlink' => 'Elimina il riferimento al Ckan remoto',
+
+        'push_all' => 'Invia tutti i dataset locali in Ckan',
+        'delete_all' => 'Elimina da Ckan tutti i dataset locali',
+        'purge_all' => 'Elimina da Ckan tutti i dataset locali',
+        'unlink_all' => 'Elimina i riferimenti a Ckan remoto da tutti i dataset locali',
+        'archive_all' => 'Salva i riferimenti al Ckan remoto di tutti i dataset locali',
+        'generate_from_class' => "Genera un oggetto dataset in eZ dato l'identificativo di classe specificato",
+        'generate_all' => "Genera un oggetto dataset in eZ per ciascuna classe specificata nel file ocopendata_datasetgenerator.ini"
     )
 );
 $script->initialize();
@@ -37,21 +45,75 @@ try {
     print_r($tools->getSettings());
     $cli->notice();
 
-    if ($options['repush_all']) {
-        foreach( $tools->getDatasetObjects() as $object ){
-            $cli->notice($object->attribute('name') . ' ',false);
-            if (!$options['dry-run']) {
-                try{
-                    $tools->pushObject($object);
-                    $cli->warning('OK');
-                }catch(Exception $e){
+    if ($options['push_all']) {
+
+        function recursivePush(OCOpenDataTools $tools, eZContentObject $object, eZCLI $cli, $level = 0)
+        {
+            try {
+                $tools->pushObject($object);
+                $cli->warning('OK');
+            } catch (Exception $e) {
+                if ($e instanceof OCOpenDataRequestException && $e->getResponseCode() == '404' && $level == 0) {
+                    $tools->getConverter()->markObjectDeleted($object, null);
+                    recursivePush($tools, $object, $cli, 1);
+                } else {
                     $cli->error('KO ' . $e->getMessage());
                 }
-            }else{
+            }
+        }
+
+        foreach ($tools->getDatasetObjects() as $object) {
+            $cli->notice($object->attribute('id') . ' ' . $object->attribute('name') . ' ', false);
+            if (!$options['dry-run']) {
+                recursivePush($tools, $object, $cli, 1);
+            } else {
                 $cli->notice();
             }
         }
+
+    } elseif ($options['delete_all'] || $options['purge_all']) {
+
+        foreach ($tools->getDatasetObjects() as $object) {
+            $cli->notice($object->attribute('id') . ' ' . $object->attribute('name') . ' ', false);
+            if (!$options['dry-run']) {
+                try {
+                    $tools->deleteObject($object, $options['purge_all']);
+                    $cli->warning('OK');
+                } catch (Exception $e) {
+                    if ($e instanceof OCOpenDataRequestException && $e->getResponseCode() == '404') {
+                        $tools->getConverter()->markObjectDeleted($object, null);
+                        $cli->warning('OK');
+                    } else {
+                        $cli->error('KO ' . $e->getMessage());
+                    }
+                }
+            } else {
+                $cli->notice();
+            }
+        }
+
+    } elseif ($options['archive_all']) {
+
+        $tools->archiveDatasetIdList();
+
+    } elseif ($options['unlink_all']) {
+
+        foreach ($tools->getDatasetObjects() as $object) {
+            $cli->notice($object->attribute('id') . ' ' . $object->attribute('name') . ' ', false);
+            if (!$options['dry-run']) {
+                try {
+                    $tools->getConverter()->markObjectDeleted($object, null);
+                    $cli->warning('OK');
+                } catch (Exception $e) {
+                    $cli->error('KO ' . $e->getMessage());
+                }
+            } else {
+                $cli->notice();
+            }
+        }
+
     } elseif ($options['generate_from_class']) {
+
         $generator = $tools->getDatasetGenerator();
         if ($generator instanceof OcOpendataDatasetGeneratorInterface) {
             $object = $generator->createFromClassIdentifier(
@@ -67,6 +129,32 @@ try {
         } else {
             throw new Exception('Generator not found');
         }
+
+    } elseif ($options['generate_all']) {
+
+        $generator = $tools->getDatasetGenerator();
+        if ($generator instanceof OcOpendataDatasetGeneratorInterface) {
+            $groups = eZINI::instance('ocopendata_datasetgenerator.ini')->groups();
+            foreach (array_keys($groups) as $classIdentifier) {
+                try {
+                    $object = $generator->createFromClassIdentifier(
+                        $classIdentifier,
+                        array(),
+                        $options['dry-run'] !== null
+                    );
+                    if (!$options['dry-run']) {
+                        $cli->warning("Generato/aggiornato $classIdentifier " . $object->attribute('id'));
+                    } else {
+                        $cli->warning('Ok');
+                    }
+                } catch (Exception $e) {
+                    $cli->error($e->getMessage());
+                }
+            }
+        } else {
+            throw new Exception('Generator not found');
+        }
+
 
     } else {
 
@@ -118,6 +206,15 @@ try {
         if ($options['purge']) {
             if (!$options['dry-run']) {
                 $tools->deleteObject($object, true);
+                $cli->warning('Purge OK');
+            } else {
+                $cli->warning('Ok');
+            }
+        }
+
+        if ($options['unlink']) {
+            if (!$options['dry-run']) {
+                $tools->getConverter()->markObjectDeleted($object, null);
                 $cli->warning('Purge OK');
             } else {
                 $cli->warning('Ok');

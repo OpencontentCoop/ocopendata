@@ -37,7 +37,7 @@ class OCOpenDataProvider extends ezpRestApiProvider
             ),
             'openData2create' => new ezpRestVersionedRoute(
                 new OcOpenDataRoute(
-                    '/:EnvironmentSettigs/create',
+                    '/:EnvironmentSettings/create',
                     'OCOpenDataController2',
                     'contentCreate',
                     array(),
@@ -46,7 +46,7 @@ class OCOpenDataProvider extends ezpRestApiProvider
             ),
             'openData2update' => new ezpRestVersionedRoute(
                 new OcOpenDataRoute(
-                    '/:EnvironmentSettigs/update',
+                    '/:EnvironmentSettings/update',
                     'OCOpenDataController2',
                     'contentUpdate',
                     array(),
@@ -55,7 +55,7 @@ class OCOpenDataProvider extends ezpRestApiProvider
             ),
             'openData2delete' => new ezpRestVersionedRoute(
                 new OcOpenDataRoute(
-                    '/:EnvironmentSettigs/delete',
+                    '/:EnvironmentSettings/delete',
                     'OCOpenDataController2',
                     'contentDelete',
                     array(),
@@ -73,79 +73,53 @@ class OCOpenDataProvider extends ezpRestApiProvider
             )
         );
 
-        foreach( EnvironmentLoader::getAvailablePresetIdentifiers() as $identifier )
-        {
-            if ( EnvironmentLoader::needAccess( $identifier ) )
-            {
-                $routes["openData2{$identifier}Read"] = new ezpRestVersionedRoute(
-                    new OcOpenDataRoute(
-                        "/{$identifier}/read/:ContentObjectIdentifier",
-                        'OCOpenDataController2',
-                        'protectedRead',
-                        array(
-                            'EnvironmentSettigs' => $identifier
-                        ),
-                        'http-get'
-                    ), 2
-                );
-                $routes["openData2{$identifier}Search"] = new ezpRestVersionedRoute(
-                    new OcOpenDataRoute(
-                        "/{$identifier}/search/:Query",
-                        'OCOpenDataController2',
-                        'protectedSearch',
-                        array(
-                            'EnvironmentSettigs' => $identifier
-                        ),
-                        'http-get'
-                    ), 2
-                );
-                $routes["openData2{$identifier}Browse"] = new ezpRestVersionedRoute(
-                    new ezpMvcRegexpRoute(
-                        '@^/'.$identifier.'/browse/(?P<ContentNodeIdentifier>\w+)@',
-                        'OCOpenDataController2',
-                        'protectedBrowse',
-                        array(
-                            'EnvironmentSettigs' => $identifier
-                        )
-                    ), 2
-                );
-            }
-            else
-            {
-                $routes["openData2{$identifier}Read"] = new ezpRestVersionedRoute(
-                    new OcOpenDataRoute(
-                        "/{$identifier}/read/:ContentObjectIdentifier",
-                        'OCOpenDataController2',
-                        'anonymousRead',
-                        array(
-                            'EnvironmentSettigs' => $identifier
-                        ),
-                        'http-get'
-                    ), 2
-                );
-                $routes["openData2{$identifier}Search"] = new ezpRestVersionedRoute(
-                    new OcOpenDataRoute(
-                        "/{$identifier}/search/:Query",
-                        'OCOpenDataController2',
-                        'anonymousSearch',
-                        array(
-                            'EnvironmentSettigs' => $identifier
-                        )
-                    ), 2
-                );
-                $routes["openData2{$identifier}Browse"] = new ezpRestVersionedRoute(
-                    new ezpMvcRegexpRoute(
-                        '@^/'.$identifier.'/browse/(?P<ContentNodeIdentifier>\w+)@',
-                        'OCOpenDataController2',
-                        'anonymousBrowse',
-                        array(
-                            'EnvironmentSettigs' => $identifier
-                        ),
-                        'http-get'
-                    ), 2
-                );
-            }
+        foreach (EnvironmentLoader::getAvailablePresetIdentifiers() as $identifier) {
+            $routes["openData2{$identifier}Read"] = new ezpRestVersionedRoute(
+                new OcOpenDataRoute(
+                    "/{$identifier}/read/:ContentObjectIdentifier",
+                    'OCOpenDataController2',
+                    EnvironmentLoader::needAccess($identifier) ? 'protectedRead' : 'anonymousRead',
+                    array(
+                        'EnvironmentSettings' => $identifier
+                    ),
+                    'http-get'
+                ), 2
+            );
+            $routes["openData2{$identifier}SearchGetQuery"] = new ezpRestVersionedRoute(
+                new OcOpenDataRoute(
+                    "/{$identifier}/search",
+                    'OCOpenDataController2',
+                    EnvironmentLoader::needAccess($identifier) ? 'protectedSearch' : 'anonymousSearch',
+                    array(
+                        'EnvironmentSettings' => $identifier,
+                        'Query' => null
+                    ),
+                    'http-get'
+                ), 2
+            );
+            $routes["openData2{$identifier}Search"] = new ezpRestVersionedRoute(
+                new OcOpenDataRoute(
+                    "/{$identifier}/search/:Query",
+                    'OCOpenDataController2',
+                    EnvironmentLoader::needAccess($identifier) ? 'protectedSearch' : 'anonymousSearch',
+                    array(
+                        'EnvironmentSettings' => $identifier
+                    ),
+                    'http-get'
+                ), 2
+            );
+            $routes["openData2{$identifier}Browse"] = new ezpRestVersionedRoute(
+                new ezpMvcRegexpRoute(
+                    '@^/' . $identifier . '/browse/(?P<ContentNodeIdentifier>\w+)@',
+                    'OCOpenDataController2',
+                    EnvironmentLoader::needAccess($identifier) ? 'protectedBrowse' : 'anonymousBrowse',
+                    array(
+                        'EnvironmentSettings' => $identifier
+                    )
+                ), 2
+            );
         }
+
         return $routes;
     }
 
@@ -161,6 +135,7 @@ class OCOpenDataProvider extends ezpRestApiProvider
                 ), 2
             )
         );
+
         return $routes;
     }
 
@@ -249,7 +224,7 @@ class OCOpenDataProvider extends ezpRestApiProvider
         );
 
         $routes['openDataClassList'] = new ezpRestVersionedRoute(
-            new ezpMvcRailsRoute( '/content/classList', 'OCOpenDataController', 'listClasses' ), 1
+            new ezpMvcRailsRoute('/content/classList', 'OCOpenDataController', 'listClasses'), 1
         );
         $routes['openDataInstantiatedClassList'] = new ezpRestVersionedRoute(
             new ezpMvcRailsRoute(
@@ -260,17 +235,17 @@ class OCOpenDataProvider extends ezpRestApiProvider
         );
 
         $routes['openDataHelp'] = new ezpRestVersionedRoute(
-            new ezpMvcRailsRoute( '/', 'OCOpenDataController', 'help' ), 1
+            new ezpMvcRailsRoute('/', 'OCOpenDataController', 'help'), 1
         );
         $routes['openDataHelpList'] = new ezpRestVersionedRoute(
-            new ezpMvcRailsRoute( '/help', 'OCOpenDataController', 'helpList' ), 1
+            new ezpMvcRailsRoute('/help', 'OCOpenDataController', 'helpList'), 1
         );
 
         $routes['openDataDataset'] = new ezpRestVersionedRoute(
-            new ezpMvcRailsRoute( '/dataset', 'OCOpenDataController', 'datasetList' ), 1
+            new ezpMvcRailsRoute('/dataset', 'OCOpenDataController', 'datasetList'), 1
         );
         $routes['openDataDatasetView'] = new ezpRestVersionedRoute(
-            new ezpMvcRailsRoute( '/dataset/:datasetId', 'OCOpenDataController', 'datasetView' ), 1
+            new ezpMvcRailsRoute('/dataset/:datasetId', 'OCOpenDataController', 'datasetView'), 1
         );
 
         return $routes;

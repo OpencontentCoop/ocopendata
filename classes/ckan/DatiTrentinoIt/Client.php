@@ -2,7 +2,7 @@
 
 namespace Opencontent\Ckan\DatiTrentinoIt;
 
-use Exception;
+use OCOpenDataRequestException as Exception;
 
 class Client implements \OcOpenDataClientInterface
 {
@@ -183,29 +183,14 @@ class Client implements \OcOpenDataClientInterface
         // Check HTTP response code
         if ( ( $info['http_code'] !== 200 && $info['http_code'] !== 201 ) )
         {
-            $response = $this->parseResponse( $response, 'json' );
-            $errorList = array(
-                $method . ' ' . $this->baseUrl . $url,
-                $info['http_code'] . ': ' . $this->httpStatusCodes[$info['http_code']]
-            );
-            if ( isset( $response['error'] ) )
-            {
-                foreach( $response['error'] as $key => $error )
-                {
-                    if ( $key != 'data' )
-                    {
-                        if ( is_array( $error ) )
-                        {
-                            $errorList[] = $key . ': ' . implode( ' ', $error );
-                        }
-                        else
-                        {
-                            $errorList[] = $key . ': ' . $error;
-                        }
-                    }
-                }
-            }
-            throw new Exception( implode( ' ', $errorList ) );
+            \eZDebug::writeError(var_export($response, 1), __METHOD__);
+
+            $error = new Exception("Error in request $method to $url");
+            $error->setResponseCode((int)$info['http_code']);
+            $error->setResponseCodeMessage($this->httpStatusCodes[$info['http_code']]);
+            $error->setResponse($response);
+
+            throw $error;
         }
 
         // Determine how to parse
@@ -251,7 +236,7 @@ class Client implements \OcOpenDataClientInterface
      * @return bool|mixed
      * @throws Exception
      */
-    public function pushOrganization( $organization )
+    public function pushOrganization( $organization, $forceWithId = null )
     {
         $result = null;
         try
@@ -260,16 +245,15 @@ class Client implements \OcOpenDataClientInterface
         }
         catch ( Exception $e )
         {
-
         }
 
-        if ( $result )
+        if ( $result || $forceWithId)
         {
-            $organization->id = $result->id;
+            $organization->id = $result ? $result->id : $forceWithId;
 
             $data = $this->makeRequest(
                 'POST',
-                'action/organization_update?id=' . $result->id,
+                'action/organization_update?id=' . $organization->id,
                 json_encode( $organization )
             );
         }

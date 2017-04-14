@@ -51,11 +51,30 @@ class OCOpenDataTools
 
     protected $currentEndpointIdentifier;
 
-    public function __construct(array $organizationParameters = null)
+    public function __construct($alias = null)
     {
         $this->openDataIni = eZINI::instance('ocopendata.ini');
+        if ($alias === null) {
+            $alias = $this->openDataIni->variable('CkanSettings', 'Alias');
+        }
+        try{
+            $this->setCurrentEndpointIdentifier($alias);
+        }catch(Exception $e){
+            eZDebug::writeError($e->getMessage(), __METHOD__);
+        }
 
-        $alias = $this->openDataIni->variable('CkanSettings', 'Alias');
+    }
+
+    /**
+     * @return string
+     */
+    public function getCurrentEndpointIdentifier()
+    {
+        return $this->currentEndpointIdentifier;
+    }
+
+    public function setCurrentEndpointIdentifier($alias)
+    {
         $this->currentEndpointIdentifier = $alias;
 
         if (!$this->openDataIni->hasGroup($alias)) {
@@ -93,18 +112,10 @@ class OCOpenDataTools
             }
         }
 
-        $this->organizationBuilder = new $organizationBuilderClassName($organizationParameters);
+        $this->organizationBuilder = new $organizationBuilderClassName();
         $this->client = new $clientClassName($apiKey, $baseUrl, $apiVersion);
         $this->converter = new $converterClassName();
         $this->converter->setOrganizationBuilder($this->organizationBuilder);
-    }
-
-    /**
-     * @return string
-     */
-    public function getCurrentEndpointIdentifier()
-    {
-        return $this->currentEndpointIdentifier;
     }
 
     public function getClient()
@@ -159,7 +170,7 @@ class OCOpenDataTools
             return $returnData;
         } catch (Exception $e) {
             eZDebug::writeError($e->getMessage() . ' on object id #' . $object->attribute('id'), __METHOD__);
-            throw new Exception($e->getMessage());
+            throw $e;
         }
     }
 
@@ -176,7 +187,7 @@ class OCOpenDataTools
             return $returnData;
         } catch (Exception $e) {
             eZDebug::writeError($e->getMessage() . ' on object id #' . $object->attribute('id'), __METHOD__);
-            throw new Exception($e->getMessage());
+            throw $e;
         }
     }
 
@@ -213,7 +224,7 @@ class OCOpenDataTools
             return $returnData;
         } catch (Exception $e) {
             eZDebug::writeError($e->getMessage() . ' on organization', __METHOD__);
-            throw new Exception($e->getMessage());
+            throw $e;
         }
     }
 
@@ -583,5 +594,68 @@ class OCOpenDataTools
         }
         return $objects;
     }
+
+    public function archiveDatasetIdList()
+    {
+        $organizationId = $this->getOrganizationBuilder()->getStoresOrganizationId();
+        $data = array(
+            'org' => $organizationId
+        );
+        $currentSettingsId = $this->getCurrentEndpointIdentifier();
+        foreach ($this->getDatasetObjects() as $object) {
+            try {
+                $datasetId = $this->getConverter()->getDatasetId($object);
+                $data[$object->attribute('id')] = $datasetId;
+            } catch (Exception $e) {
+                eZDebug::writeError($object->attribute('id') . ':  ' . $e->getMessage(), __METHOD__);
+            }
+        }
+
+        $jsonStoreData = json_encode($data);
+        $data = eZSiteData::fetchByName('ckan_' . $currentSettingsId);
+        if (!$data instanceof eZSiteData) {
+            eZDB::instance()->query("INSERT INTO ezsite_data ( name, value ) values( 'ckan_$currentSettingsId', '$jsonStoreData' )");
+        }else{
+            $data->setAttribute('value', $jsonStoreData);
+            $data->store();
+        }
+    }
+
+    public function getArchivedDatasetIdList($currentSettingsId)
+    {
+        $idList = array();
+        $data = eZSiteData::fetchByName('ckan_' . $currentSettingsId);
+        if ($data instanceof eZSiteData){
+            $idList = json_decode($data->attribute('value'), true);
+        };
+        return $idList;
+    }
+
+    public function restoreArchivedDatasetIdList()
+    {
+        $currentSettingsId = $this->getCurrentEndpointIdentifier();
+        $idList = $this->getArchivedDatasetIdList($currentSettingsId);
+        foreach($idList as $organizationId => $objectsId){
+            $this->organizationBuilder->storeOrganizationPushedId($organizationId);
+            foreach($objectsId as $objectId => $datasetId){
+                $object = eZContentObject::fetch((int)$objectId);
+                if ($object instanceof eZContentObject){
+                    $this->converter->markObjectPushed($object, $datasetId);
+                }
+            }
+        }
+    }
+
+    public function getAllArchivedDatasetIdList()
+    {
+        $data = array();
+        $aliasList = (array)$this->openDataIni->variable('CkanSettings', 'AliasList');
+        foreach($aliasList as $alias){
+            $data[$alias] = $this->getArchivedDatasetIdList($alias);
+        }
+        return $data;
+    }
+
+
 
 }

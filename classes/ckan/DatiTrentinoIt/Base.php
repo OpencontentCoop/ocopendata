@@ -37,6 +37,7 @@ class Base implements \JsonSerializable
             },
             ARRAY_FILTER_USE_BOTH
         );
+        ksort($vars);
 
         return $vars;
     }

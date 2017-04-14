@@ -3,11 +3,11 @@
 namespace Opencontent\QueryLanguage;
 
 use Opencontent\QueryLanguage\Converter\StringQueryConverter;
+use Opencontent\QueryLanguage\Converter\QueryConverter;
 use Opencontent\QueryLanguage\Parser;
 use Opencontent\QueryLanguage\Parser\TokenFactory;
 use Opencontent\QueryLanguage\Parser\Item;
 use SplObjectStorage;
-use Opencontent\QueryLanguage\Converter\QueryConverter;
 
 class Query
 {

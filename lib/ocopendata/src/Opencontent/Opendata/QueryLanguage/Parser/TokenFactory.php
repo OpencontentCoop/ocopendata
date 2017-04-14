@@ -2,7 +2,7 @@
 
 namespace Opencontent\QueryLanguage\Parser;
 
-abstract class TokenFactory
+class TokenFactory
 {
     protected $fields;
 

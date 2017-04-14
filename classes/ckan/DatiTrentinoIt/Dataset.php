@@ -137,29 +137,65 @@ class Dataset extends Base
      */
     public $owner_org;
 
+    public $identifier;
+
+    public $frequency = "UPDATE_CONT";
+
+    public $theme = "REGI";
+
+    public $geographical_name = "ITA-TRT";
+
+    public $geographical_geonames_url;
+
+    public $license_title = "Creative Commons Attribution 4.0";
+
+    public $license_url = "http://creativecommons.org/licenses/by/4.0/it/";
+
+    public $language = "ITA";
+
+    public $publisher_name;
+
+    public $publisher_identifier;
+
+    public $modified;
+
+    public $holder_name;
+
+    public $holder_identifier;
+
+    public $creator_name;
+
+    public $creator_identifier;
+
+    public $temporal_start;
+
+    public $temporal_end;
+
+    public $creation_date;
+
+    public $site_url;
+
+    public $encoding = 'UTF-8';
+
+    public $issued;
+
+    public $conforms_to = "conforme a REST/JSON";
+
     public static function getCustomFieldKeys()
     {
         return array(
-            "Codifica Caratteri",
-            "Copertura Temporale (Data di inizio)",
-            "Copertura Temporale (Data di fine)",
-            "Aggiornamento",
-            "Copertura Geografica",
-            "Titolare",
-            "Data di pubblicazione",
-            "Data di creazione",
-            "Data di aggiornamento",
+//            "Codifica Caratteri",
+//            "Copertura Temporale (Data di inizio)",
+//            "Copertura Temporale (Data di fine)",
+//            "Aggiornamento",
+//            "Copertura Geografica",
+//            "Titolare",
+//            "Data di pubblicazione",
+//            "Data di creazione",
+//            "Data di aggiornamento",
             "Descrizione campi",
-            "URL sito",
+//            "URL sito",
         );
-    }
-
-    public function setCustomField( $key, $value )
-    {
-        if ( in_array( $key, $this->customFields ) )
-            $this->{$key} = $value;
-        else
-            throw new \Exception( "Custom field $key not available" );
     }
 
     public static function fromArray( array $data )

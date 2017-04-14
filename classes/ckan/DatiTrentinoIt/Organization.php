@@ -75,4 +75,39 @@ class Organization extends Base
      */
     public $users;
 
+    public $email;
+
+    public $telephone;
+
+    public $site;
+
+    public function hasExtra($fieldKey, $returnValue = false)
+    {
+        if (is_array($this->extras)){
+            foreach($this->extras as $extra){
+                if ($extra['key'] == $fieldKey){
+                    return $returnValue? $extra['value'] : true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public function getExtra($fieldKey)
+    {
+        return $this->hasExtra($fieldKey, true);
+    }
+
+    public function setCodiceIpa($ipa)
+    {
+        $this->setData('codice_ipa', $ipa);
+
+        return $this;
+    }
+
+    public function getCodiceIpa()
+    {
+        return $this->getData('codice_ipa');
+    }
 }

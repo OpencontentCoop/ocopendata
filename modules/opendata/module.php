@@ -3,18 +3,7 @@
 $Module = array( 'name' => 'OpenData' );
 
 $ViewList = array();
-$ViewList['push'] = array(
-    'functions' => array( 'push' ),
-    'script' => 'push.php',
-    'params' => array( 'ObjectID' ),
-    'unordered_params' => array()
-);
-$ViewList['view'] = array(
-    'functions' => array( 'view' ),
-    'script' => 'view.php',
-    'params' => array( 'ObjectID' ),
-    'unordered_params' => array()
-);
+
 $ViewList['import'] = array(
     'functions' => array( 'import' ),
     'script' => 'import.php',
@@ -57,8 +46,6 @@ $FunctionList['api'] = array();
 $FunctionList['console'] = array();
 $FunctionList['analyzer'] = array();
 $FunctionList['datatable'] = array();
-$FunctionList['push'] = array();
-$FunctionList['view'] = array();
 $FunctionList['import'] = array();
 
 $presetList = array();

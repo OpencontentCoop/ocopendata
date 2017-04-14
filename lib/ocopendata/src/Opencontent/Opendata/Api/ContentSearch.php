@@ -4,7 +4,7 @@ namespace Opencontent\Opendata\Api;
 
 use Opencontent\Opendata\Api\Gateway\FileSystem;
 use Opencontent\Opendata\Api\Gateway\SolrStorage;
-use Opencontent\Opendata\Api\QueryLanguage\EzFind\QueryBuilder as EzFindQueryBuilder;
+use Opencontent\Opendata\Api\QueryLanguage\EzFind\QueryBuilder;
 use Opencontent\Opendata\Api\Values\Content;
 use Opencontent\Opendata\Api\Values\ContentData;
 use Opencontent\Opendata\Api\Values\Metadata;
@@ -12,7 +12,6 @@ use Opencontent\Opendata\Api\Values\SearchResults;
 use Exception;
 use eZSolr;
 use ezfSearchResultInfo;
-use ezfSolrDocumentFieldBase;
 use ArrayObject;
 
 class ContentSearch
@@ -20,24 +19,28 @@ class ContentSearch
     /**
      * @var string
      */
-    protected $query;
+    private $query;
 
     /**
      * @var EnvironmentSettings
      */
-    protected $currentEnvironmentSettings;
+    private $currentEnvironmentSettings;
 
-    public function setEnvironment( EnvironmentSettings $environmentSettings )
+    /**
+     * @var QueryBuilder
+     */
+    private $queryBuilder;
+
+    public function __construct()
     {
-        $this->currentEnvironmentSettings = $environmentSettings;
+        $this->queryBuilder = new QueryBuilder();
     }
 
     public function search( $query, array $limitation = null )
     {
         $this->query = $query;
 
-        $builder = new EzFindQueryBuilder();
-        $queryObject = $builder->instanceQuery( $query );
+        $queryObject = $this->queryBuilder->instanceQuery( $query );
         $ezFindQueryObject = $queryObject->convert();
 
         if ( !$ezFindQueryObject instanceof ArrayObject )
@@ -45,7 +48,7 @@ class ContentSearch
             throw new \RuntimeException( "Query builder did not return a valid query" );
         }
 
-        $ezFindQueryObject = $this->currentEnvironmentSettings->filterQuery( $ezFindQueryObject, $builder );
+        $ezFindQueryObject = $this->currentEnvironmentSettings->filterQuery( $ezFindQueryObject, $this->queryBuilder );
         $ezFindQuery = $ezFindQueryObject->getArrayCopy();
 
         //$ezFindQuery['Filter'][] = ezfSolrDocumentFieldBase::generateMetaFieldName('installation_id') . ':' . eZSolr::installationID();
@@ -161,7 +164,7 @@ class ContentSearch
             $searchResults->facets = $facets;
         }
 
-        return $this->currentEnvironmentSettings->filterSearchResult( $searchResults, $ezFindQueryObject, $builder );
+        return $this->currentEnvironmentSettings->filterSearchResult( $searchResults, $ezFindQueryObject, $this->queryBuilder );
     }
 
     /**
@@ -173,11 +176,15 @@ class ContentSearch
     }
 
     /**
-     * @param string $query
+     * @param $query
+     *
+     * @return $this
      */
     public function setQuery($query)
     {
         $this->query = $query;
+
+        return $this;
     }
 
     /**
@@ -189,12 +196,49 @@ class ContentSearch
     }
 
     /**
-     * @param EnvironmentSettings $currentEnvironmentSettings
+     * @param EnvironmentSettings $environmentSettings
+     *
+     * @return $this
+     */
+    public function setEnvironment( EnvironmentSettings $environmentSettings )
+    {
+        $this->currentEnvironmentSettings = $environmentSettings;
+
+        return $this;
+    }
+
+    /**
+     * Alias of method setEnvironment
+     *
+     * @param $currentEnvironmentSettings
+     *
+     * @return $this
      */
     public function setCurrentEnvironmentSettings($currentEnvironmentSettings)
     {
         $this->currentEnvironmentSettings = $currentEnvironmentSettings;
+
+        return $this;
     }
 
+    /**
+     * @return QueryBuilder
+     */
+    public function getQueryBuilder()
+    {
+        return $this->queryBuilder;
+    }
+
+    /**
+     * @param QueryBuilder $queryBuilder
+     *
+     * @return ContentSearch
+     */
+    public function setQueryBuilder($queryBuilder)
+    {
+        $this->queryBuilder = $queryBuilder;
+
+        return $this;
+    }
 
 }
