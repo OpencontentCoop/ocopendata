@@ -21,9 +21,9 @@ class OpenPA implements OcOpendataOrganizationBuilderInterface
         if ($this->instance === null) {
             $instance = \OpenPAInstance::current();
 
-            //        if ( !$instance->isLive() ){
-            //            throw new \Exception( "L'istanza corrente non è in produzione" );
-            //        }
+            if ( !$instance->isLive() ){
+                throw new \Exception( "L'istanza corrente non è in produzione" );
+            }
 
             if ($instance->getType() != 'comune_standard' && $instance->getType() != 'comune_new_design') {
                 throw new \Exception("L'istanza corrente non è un comune");

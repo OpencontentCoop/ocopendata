@@ -11,7 +11,7 @@ $script = eZScript::instance(array(
 $script->startup();
 
 $options = $script->getOptions(
-    '[id:][show][push][delete][purge][unlink][generate_from_class:][generate_all][dry-run][push_all][delete_all][purge_all][unlink_all][archive_all]',
+    '[id:][show][push][delete][purge][unlink][generate_from_class:][generate_all][dry-run][push_all][delete_all][purge_all][unlink_all][archive_all][link_all]',
     '',
     array(
         'dry-run' => "Verifica l'azione ma non la esegue",
@@ -27,6 +27,7 @@ $options = $script->getOptions(
         'delete_all' => 'Elimina da Ckan tutti i dataset locali',
         'purge_all' => 'Elimina da Ckan tutti i dataset locali',
         'unlink_all' => 'Elimina i riferimenti a Ckan remoto da tutti i dataset locali',
+        'link_all' => 'Reimposta i riferimenti dal Ckan remoto a tutti i dataset locali',
         'archive_all' => 'Salva i riferimenti al Ckan remoto di tutti i dataset locali',
         'generate_from_class' => "Genera un oggetto dataset in eZ dato l'identificativo di classe specificato",
         'generate_all' => "Genera un oggetto dataset in eZ per ciascuna classe specificata nel file ocopendata_datasetgenerator.ini"
@@ -112,6 +113,8 @@ try {
             }
         }
 
+        $tools->archiveDatasetIdList();
+
     } elseif ($options['generate_from_class']) {
 
         $generator = $tools->getDatasetGenerator();
@@ -155,6 +158,67 @@ try {
             throw new Exception('Generator not found');
         }
 
+    } elseif ($options['link_all']) {
+
+        $currentSettingsId = $tools->getCurrentEndpointIdentifier();
+        $cli->warning($currentSettingsId);
+
+        $organizationId = $tools->getOrganizationBuilder()->getStoresOrganizationId();
+        $data = array(
+            'org' => $organizationId
+        );
+
+        $settings = $tools->getSettings();
+        $baseUrl = $settings['BaseUrl'];
+        $apiVersion = $settings['ApiVersion'];
+        $baseUrl = sprintf( $baseUrl, $apiVersion );
+
+        $remoteData = file_get_contents($baseUrl . "action/organization_show?id={$organizationId}&include_datasets=1");
+        $remoteDataDecoded = $remoteData ? json_decode($remoteData,1) : array();
+
+        $suggestions = array();
+        if (isset($remoteDataDecoded["result"]["packages"])){
+            foreach($remoteDataDecoded["result"]["packages"] as $package){
+                $suggestions[$package['title']] = $package['id'];
+            }
+        }
+
+        foreach( $tools->getDatasetObjects() as $object) {
+            $suggest = isset($suggestions[$object->attribute('name')]) ? $suggestions[$object->attribute('name')] : 'empty';
+            $output = new ezcConsoleOutput();
+            $opts = new ezcConsoleQuestionDialogOptions();
+            $opts->text = "Inserisci id dataset per " . $object->attribute('name');
+            $opts->showResults = true;
+            $opts->validator = new ezcConsoleQuestionDialogTypeValidator(ezcConsoleQuestionDialogTypeValidator::TYPE_STRING, $suggest);
+            $question = new ezcConsoleQuestionDialog( $output, $opts );
+            $datasetId = ezcConsoleDialogViewer::displayDialog( $question );
+            if ($datasetId !== 'empty'){
+                $data[$object->attribute('id')] = $datasetId;
+            }
+        }
+
+        print_r($data);
+
+        $output = new ezcConsoleOutput();
+        $question = ezcConsoleQuestionDialog::YesNoQuestion(
+            $output,
+            "Salvo i dati?",
+            "y"
+        );
+        if ( ezcConsoleDialogViewer::displayDialog( $question ) == "y" ){
+            $jsonStoreData = json_encode($data);
+            $data = eZSiteData::fetchByName('ckan_' . $currentSettingsId);
+            if (!$data instanceof eZSiteData) {
+                eZDB::instance()->query("INSERT INTO ezsite_data ( name, value ) values( 'ckan_$currentSettingsId', '$jsonStoreData' )");
+            }else{
+                $data->setAttribute('value', $jsonStoreData);
+                $data->store();
+            }
+
+            $tools->restoreArchivedDatasetIdList();
+        }
+
+        print_r($tools->getArchivedDatasetIdList($currentSettingsId));
 
     } else {
 

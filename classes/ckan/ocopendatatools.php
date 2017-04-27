@@ -210,7 +210,7 @@ class OCOpenDataTools
         }
         if ( strpos($object->attribute('remote_id'), 'nockan' ) !== false ){
             throw new Exception('Can not validate object: the remote id contains \'nockan\'');
-        }        
+        }
         return $object;
     }
 
@@ -635,11 +635,12 @@ class OCOpenDataTools
     {
         $currentSettingsId = $this->getCurrentEndpointIdentifier();
         $idList = $this->getArchivedDatasetIdList($currentSettingsId);
-        foreach($idList as $organizationId => $objectsId){
-            $this->organizationBuilder->storeOrganizationPushedId($organizationId);
-            foreach($objectsId as $objectId => $datasetId){
+        foreach($idList as $objectId => $datasetId){
+            if ($objectId == 'org') {
+                $this->organizationBuilder->storeOrganizationPushedId($datasetId);
+            }else {
                 $object = eZContentObject::fetch((int)$objectId);
-                if ($object instanceof eZContentObject){
+                if ($object instanceof eZContentObject) {
                     $this->converter->markObjectPushed($object, $datasetId);
                 }
             }

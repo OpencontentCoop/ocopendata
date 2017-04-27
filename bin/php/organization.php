@@ -11,11 +11,12 @@ $script = eZScript::instance(array(
 $script->startup();
 
 $options = $script->getOptions(
-    '[show][push][delete][purge][refresh_internal_id]',
+    '[show][push][delete][purge][refresh_internal_id][unlink]',
     '',
     array(
         'show' => 'Mostra le info sull\'organizzazione',
         'push' => 'Salva o marca come \'active\' l\'organizzazione in Ckan',
+        'unlink' => 'Elimina il riferimento al Ckan remoto',
         'delete' => 'Marca l\'organizzazione come \'deleted\' in Ckan',
         'purge' => 'Elimina l\'organizzazione in Ckan',
         'refresh_internal_id' => "Risalva l'id remoto in locale cercando l'organizzazione in base al nome"
@@ -93,6 +94,11 @@ try {
         if ($options['purge']) {
             $tools->deleteOrganization(true);
             $cli->warning('Purge OK');
+        }
+
+        if ($options['unlink']) {
+            $tools->getOrganizationBuilder()->removeStoresOrganizationId();
+            $cli->warning('Unlink OK');
         }
     }
 

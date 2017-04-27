@@ -3,6 +3,7 @@
 use Opencontent\Opendata\Api\ContentSearch;
 use Opencontent\Opendata\Api\ClassRepository;
 use Opencontent\Opendata\Api\AttributeConverterLoader;
+use Opencontent\Opendata\Api\QueryLanguage\EzFind\ArrayQueryBuilder;
 
 class SearchQueryCSVExporter extends AbstarctExporter
 {
@@ -53,6 +54,12 @@ class SearchQueryCSVExporter extends AbstarctExporter
         $this->contentSearch = new ContentSearch();
         $this->contentSearch->setEnvironment($currentEnvironment);
         $this->queryString = $queryString;
+
+        if (!$this->queryString){
+            $arrayQueryBuilder = new ArrayQueryBuilder();
+            $this->queryString = (string)$arrayQueryBuilder->instanceQuery($_GET);
+        }
+
         $this->filename = uniqid('export_');
 
         $this->classRepository = new ClassRepository();
