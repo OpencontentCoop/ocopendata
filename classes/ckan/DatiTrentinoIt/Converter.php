@@ -64,15 +64,17 @@ class Converter implements \OcOpenDataConverterInterface
         $dataset->publisher_name = $this->organizationBuilder->build()->title;
         $dataset->publisher_identifier = $this->organizationBuilder->build()->getCodiceIpa();
         $dataset->geographical_geonames_url = $this->getGeoNamesUrl();
-        $dataset->modified = date(DATE_ATOM, time());
         $dataset->temporal_start = $this->getTemporalStart();
         $dataset->temporal_end = $this->getTemporalEnd();
         $dataset->holder_name = $this->organizationBuilder->build()->title;
         $dataset->holder_identifier = $this->organizationBuilder->build()->getCodiceIpa();
         $dataset->creator_name = $this->organizationBuilder->build()->title;
         $dataset->creator_identifier = $this->organizationBuilder->build()->getCodiceIpa();
-        $dataset->issued = date(DATE_ATOM, $this->object->attribute('published'));
-        $dataset->creation_date = date(DATE_ATOM, $this->object->attribute('published'));
+
+        $dataset->issued = date("Y-m-d", $this->object->attribute('published'));
+        $dataset->creation_date = date("Y-m-d", $this->object->attribute('published'));
+        $dataset->modified = date("Y-m-d", time());
+
         $dataset->site_url = $this->getSiterUrl();
 
         return $dataset;
@@ -151,13 +153,13 @@ class Converter implements \OcOpenDataConverterInterface
 
             case 'Copertura Temporale (Data di inizio)':
                 if (isset( $this->dataMap['from_time'] ) && $this->dataMap['from_time']->hasContent()) {
-                    return date(DATE_ATOM, $this->dataMap['from_time']->toString());
+                    return date(DATE_ISO8601, $this->dataMap['from_time']->toString());
                 }
                 break;
 
             case 'Copertura Temporale (Data di fine)':
                 if (isset( $this->dataMap['to_time'] ) && $this->dataMap['to_time']->hasContent()) {
-                    return date(DATE_ATOM, $this->dataMap['to_time']->toString());
+                    return date(DATE_ISO8601, $this->dataMap['to_time']->toString());
                 }
                 break;
 
@@ -214,11 +216,11 @@ class Converter implements \OcOpenDataConverterInterface
 
             case 'Data di creazione':
             case 'Data di pubblicazione':
-                return date(DATE_ATOM, $this->object->attribute('published'));
+                return date(DATE_ISO8601, $this->object->attribute('published'));
                 break;
 
             case 'Data di aggiornamento':
-                return date(DATE_ATOM, $this->object->attribute('modified'));
+                return date(DATE_ISO8601, $this->object->attribute('modified'));
                 break;
 
             case 'URL sito':
@@ -508,7 +510,7 @@ class Converter implements \OcOpenDataConverterInterface
     protected function getTemporalEnd()
     {
         if (isset( $this->dataMap['from_time'] ) && $this->dataMap['from_time']->hasContent()) {
-            return date(DATE_ATOM, $this->dataMap['from_time']->toString());
+            return date(DATE_ISO8601, $this->dataMap['from_time']->toString());
         }
 
         return null;
@@ -517,7 +519,7 @@ class Converter implements \OcOpenDataConverterInterface
     protected function getTemporalStart()
     {
         if (isset( $this->dataMap['to_time'] ) && $this->dataMap['to_time']->hasContent()) {
-            return date(DATE_ATOM, $this->dataMap['to_time']->toString());
+            return date(DATE_ISO8601, $this->dataMap['to_time']->toString());
         }
 
         return null;
