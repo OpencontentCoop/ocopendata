@@ -114,11 +114,13 @@
     $(function() {ldelim}
         var analyzerEndpoint = "{'opendata/analyzer'|ezurl(no)}/";
         {if $use_current_user}
+            var internal = true;
             var contentEndpoint = "{'opendata/api/content/read'|ezurl(no)}/";
             var searchEndpoint = "{'opendata/api/content/search'|ezurl(no)}/";
             var geoEndpoint = "{'opendata/api/geo/search'|ezurl(no)}/";
 			var classEndpoint = "{'opendata/api/classes'|ezurl(no)}/";
         {else}
+            var internal = false;
             var contentEndpoint = "/api/opendata/v2/content/read/";
             var searchEndpoint = "/api/opendata/v2/content/search/";
             var geoEndpoint = "/api/opendata/v2/geo/search/";
@@ -358,9 +360,10 @@
             var content = '<strong>API /content</strong>:<br/> <a href="'+url+'"><code>'+decodeURIComponent(searchQuery)+'</code></a>';
             if ( results.length > 0 ) {
                 content += '<h3>Visualizzati ' + results.length + ' su ' +data.totalCount+ ' risultati ';
-                if ( data.nextPageQuery !== null )
-                    content += '<a href="#" data-query="'+data.nextPageQuery+'" class="search">(pagina successiva)</a></h3>';
-                else
+                if ( data.nextPageQuery !== null ) {
+                    var prefix = internal ? searchEndpoint : '';
+                    content += '<a href="#" data-query="' + prefix + data.nextPageQuery + '" class="search">(pagina successiva)</a></h3>';
+                }else
                     content += '</h3>';
                 content += '<div style="max-height: 400px; overflow: scroll;"><ul class="list-group">';
                 $.each(results, function(){
