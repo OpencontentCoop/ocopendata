@@ -101,7 +101,7 @@ class ContentClass
         }
 
         /** @var eZContentClassAttribute[] $attributes */
-        $attributes = $contentClass->dataMap();
+        $attributes = (array)$contentClass->dataMap();
         foreach ( $attributes as $attribute )
         {
             $converter = AttributeConverterLoader::load(

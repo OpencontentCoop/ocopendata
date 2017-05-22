@@ -130,6 +130,20 @@ class PayloadBuilder extends \ArrayObject
         }
     }
 
+    public function hasData($identifier, $language = null)
+    {
+        if ($language == null){
+            foreach($this['metadata']['languages'] as $_language){
+                if ($language == $_language){
+                    return isset($this['data'][$language][$identifier]);
+                }
+            }
+            return false;
+        }else{
+            return isset($this['data'][$language][$identifier]);
+        }
+    }
+
     public function getData($identifier = null, $language = null)
     {
         if ($identifier == null){

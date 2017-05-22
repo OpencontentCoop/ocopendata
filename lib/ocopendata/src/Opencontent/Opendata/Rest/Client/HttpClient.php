@@ -48,6 +48,11 @@ class HttpClient
         $this->apiEndPointBase = rtrim($apiEndPointBase, '/');
     }
 
+    public function getServer()
+    {
+        return $this->server;
+    }
+
     public function setProxy(
         $proxy,
         $proxyPort,
@@ -87,6 +92,7 @@ class HttpClient
         unset( $data['metadata']['class'] );
         unset( $data['metadata']['sectionIdentifier'] );
         unset( $data['metadata']['ownerId'] );
+        unset( $data['metadata']['ownerName'] );
         unset( $data['metadata']['mainNodeId'] );
         unset( $data['metadata']['published'] );
         unset( $data['metadata']['modified'] );
@@ -100,6 +106,11 @@ class HttpClient
     public function read($id)
     {
         return $this->request('GET', $this->buildUrl('/read/' . $id));
+    }
+
+    public function browse($nodeId, $limit = 10, $offset = 0)
+    {
+        return $this->request('GET', $this->buildUrl("/browse/$nodeId?limit=$limit&offset=$offset"));
     }
 
     public function update($data)
@@ -233,6 +244,7 @@ class HttpClient
         if ($payloadFilterClosure instanceof \Closure){
             $payload = $payloadFilterClosure($payload, $this, $repository);
         }
+
         return $repository->createUpdate((array)$payload);
     }
 }
