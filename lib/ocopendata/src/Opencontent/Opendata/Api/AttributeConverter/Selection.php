@@ -19,7 +19,12 @@ class Selection extends Base
 
     public function set($data, PublicationProcess $process)
     {
-        return \eZStringUtils::implodeStr((array)$data, '|');
+        $data = (array)$data;
+        if (empty($data)){
+            return " ";
+        }else{
+            return \eZStringUtils::implodeStr((array)$data, '|');
+        }
     }
 
     public static function validate($identifier, $data, eZContentClassAttribute $attribute)
