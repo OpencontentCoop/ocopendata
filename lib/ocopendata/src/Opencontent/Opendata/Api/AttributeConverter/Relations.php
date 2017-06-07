@@ -57,9 +57,23 @@ class Relations extends Base
 
     public function set( $data, PublicationProcess $process )
     {
-        $data = self::findContents( $data );
-        //@todo handle image and files
-        return empty($data['ids']) ? null : implode( '-', $data['ids'] );
+        $results = array();
+        foreach( $data as $item )
+        {
+            if ( is_array( $item ) )
+            {
+                if (isset( $data['image'] )) {
+                    $result['images'][] = $item;
+                } elseif (isset( $data['file'] )) {
+                    $result['files'][] = $item;
+                }
+            }
+            else
+            {
+                $results []= self::findContent($item);
+            }
+        }
+        return empty($results['ids']) ? null : implode( '-', $results['ids'] );
     }
 
     public static function validate( $identifier, $data, eZContentClassAttribute $attribute )
@@ -70,17 +84,17 @@ class Relations extends Base
             {
                 if ( is_array( $item ) )
                 {
-                    if (isset( $data['image'] )) {
-                        Image::validate($identifier, $data, $attribute);
-                    } elseif (isset( $data['file'] )) {
-                        File::validate($identifier, $data, $attribute);
-                    } elseif (isset( $data['remoteId'] )) {
+                    if (isset( $item['image'] )) {
+                        Image::validate($identifier, $item, $attribute);
+                    } elseif (isset( $item['file'] )) {
+                        File::validate($identifier, $item, $attribute);
+                    } elseif (isset( $item['remoteId'] )) {
                         try {
                             self::gateway()->loadContent($data['remoteId']);
                         } catch (\Exception $e) {
                             throw new InvalidInputException('Invalid content identifier', $identifier, array($item));
                         }
-                    } elseif (isset( $data['id'] )) {
+                    } elseif (isset( $item['id'] )) {
                         try {
                             self::gateway()->loadContent($data['id']);
                         } catch (\Exception $e) {
@@ -107,31 +121,79 @@ class Relations extends Base
         }
     }
 
-    protected static function findContents( $data )
+    protected static function findContent( $item )
     {
-        $result = array(
-            'images' => array(),
-            'files' => array(),
-            'ids' => array()
-        );
-        foreach( $data as $item )
+        $content = self::gateway()->loadContent( $item );
+        return $content->metadata->id;
+    }
+
+    protected function uploadFile( $item )
+    {
+        if (isset($item['image']))
         {
-            if ( is_array( $item ) )
-            {
-                if (isset( $data['image'] )) {
-                    $result['images'][] = $item;
-                } elseif (isset( $data['file'] )) {
-                    $result['files'][] = $item;
-                }
+            $data = $item['image'];
+        }
+        else
+        {
+            $data = $item['file'];
+        }
+
+
+        $remoteID = md5($data);
+        $node = false;
+        $object = eZContentObject::fetchByRemoteID($remoteID);
+        if ($object instanceof eZContentObject) {
+            $node = $object->attribute('main_node');
+        }
+        $name = $item['name'];
+        $fileStored = $this->getTemporaryFilePath($item['filename'], $item['url'], $data);
+        if ($fileStored !== null) {
+            $result = array();
+            $upload = new eZContentUpload();
+            $uploadFile = $upload->handleLocalFile($result, $fileStored, 'auto', $node, $name);
+            if (isset($result['contentobject']) && (!$object instanceof eZContentObject)) {
+                $object = $result['contentobject'];
+                $object->setAttribute('remote_id', $remoteID);
+                $object->store();
+            } elseif (isset($result['errors']) && !empty($result['errors'])) {
+                throw new Exception(implode(', ', $result['errors']));
             }
-            else
-            {
-                $content = self::gateway()->loadContent( $item );
-                $result['ids'][] = $content->metadata->id;
+            if ($object instanceof eZContentObject) {
+                $objectIDs[] = $object->attribute('id');
+                //$this->removeObjects[] = $object;
+            } else {
+                throw new Exception('Errore caricando ' . var_export($file, 1) . ' ' . $fileStored);
             }
         }
-        return $result;
+
+
     }
+
+    protected function getTemporaryFilePath($filename, $url = null, $fileEncoded = null)
+    {
+        $data = null;
+        if ($fileEncoded !== null) {
+            $binary = base64_decode($fileEncoded);
+            eZFile::create($filename, self::tempDir(), $binary);
+            $data = self::tempDir() . $filename;
+        }
+        elseif ($url !== null) {
+            $binary = eZHTTPTool::getDataByURL($url);
+            eZFile::create($filename, self::tempDir(), $binary);
+            $data = self::tempDir() . $filename;
+        }
+        return $data;
+    }
+
+    protected static function tempDir()
+    {
+        //return sys_get_temp_dir()  . eZSys::fileSeparator();
+        $path = eZDir::path(array(eZSys::cacheDirectory(), 'tmp'), true);
+        eZDir::mkdir($path);
+
+        return $path;
+    }
+
 
     public function type( eZContentClassAttribute $attribute )
     {
