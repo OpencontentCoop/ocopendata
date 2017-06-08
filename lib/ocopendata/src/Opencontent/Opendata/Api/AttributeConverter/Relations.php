@@ -12,6 +12,12 @@ use Opencontent\Opendata\Api\Gateway\FileSystem;
 use Opencontent\Opendata\Api\PublicationProcess;
 use Opencontent\Opendata\Api\Values\Content;
 use Opencontent\Opendata\Api\Values\Metadata;
+use eZContentUpload;
+use eZSys;
+use eZFile;
+use eZHTTPTool;
+use eZURI;
+use eZDir;
 
 class Relations extends Base
 {
@@ -62,18 +68,14 @@ class Relations extends Base
         {
             if ( is_array( $item ) )
             {
-                if (isset( $data['image'] )) {
-                    $result['images'][] = $item;
-                } elseif (isset( $data['file'] )) {
-                    $result['files'][] = $item;
-                }
+                $results []= self::uploadFile($item);
             }
             else
             {
                 $results []= self::findContent($item);
             }
         }
-        return empty($results['ids']) ? null : implode( '-', $results['ids'] );
+        return empty($results) ? null : implode( '-', $results );
     }
 
     public static function validate( $identifier, $data, eZContentClassAttribute $attribute )
@@ -127,6 +129,11 @@ class Relations extends Base
         return $content->metadata->id;
     }
 
+    /**
+     * @param $item
+     * @return mixed|null
+     * @throws \Exception
+     */
     protected function uploadFile( $item )
     {
         if (isset($item['image']))
@@ -137,7 +144,6 @@ class Relations extends Base
         {
             $data = $item['file'];
         }
-
 
         $remoteID = md5($data);
         $node = false;
@@ -156,17 +162,16 @@ class Relations extends Base
                 $object->setAttribute('remote_id', $remoteID);
                 $object->store();
             } elseif (isset($result['errors']) && !empty($result['errors'])) {
-                throw new Exception(implode(', ', $result['errors']));
+                throw new \Exception(implode(', ', $result['errors']));
             }
             if ($object instanceof eZContentObject) {
-                $objectIDs[] = $object->attribute('id');
+                return $object->attribute('id');
                 //$this->removeObjects[] = $object;
             } else {
-                throw new Exception('Errore caricando ' . var_export($file, 1) . ' ' . $fileStored);
+                throw new \Exception('Errore caricando ' . var_export($item, 1) . ' ' . $fileStored);
             }
         }
-
-
+        return null;
     }
 
     protected function getTemporaryFilePath($filename, $url = null, $fileEncoded = null)
