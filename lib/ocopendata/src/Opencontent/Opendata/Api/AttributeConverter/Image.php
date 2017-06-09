@@ -72,7 +72,7 @@ class Image extends File
         }
         if ( is_array( $data ) && isset( $data['image'] ) )
         {
-            $data['file'] = $data['image'];
+            $data['url'] = $data['image'];
         }
         parent::validate( $identifier, $data, $attribute );
         if ( isset( $data['alt'] ) && settype( $data['alt'], 'string' ) !== true )

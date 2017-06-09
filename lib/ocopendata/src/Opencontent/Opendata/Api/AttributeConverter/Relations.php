@@ -149,27 +149,30 @@ class Relations extends Base
         $node = false;
         $object = eZContentObject::fetchByRemoteID($remoteID);
         if ($object instanceof eZContentObject) {
-            //$node = $object->attribute('main_node');
             return $object->attribute('id');
         }
+
         $name = $item['name'];
         $fileStored = $this->getTemporaryFilePath($item['filename'], $item['url'], $data);
         if ($fileStored !== null) {
+
             $result = array();
             $upload = new eZContentUpload();
-            $uploadFile = $upload->handleLocalFile($result, $fileStored, 'auto', $node, $name);
+            $upload->handleLocalFile($result, $fileStored, 'auto', $node, $name);
+
             if (isset($result['contentobject']) && (!$object instanceof eZContentObject)) {
+                /** @var eZContentObject $object */
                 $object = $result['contentobject'];
                 $object->setAttribute('remote_id', $remoteID);
                 $object->store();
             } elseif (isset($result['errors']) && !empty($result['errors'])) {
-                throw new \Exception(implode(', ', $result['errors']));
+                throw new \Exception("Error creating {$item['name']} from {$item['url']}:" . implode(', ', $result['errors']));
             }
+
             if ($object instanceof eZContentObject) {
                 return $object->attribute('id');
-                //$this->removeObjects[] = $object;
             } else {
-                throw new \Exception('Errore caricando ' . var_export($item, 1) . ' ' . $fileStored);
+                throw new \Exception("Error creating {$item['name']} from {$item['url']} ($fileStored)");
             }
         }
         return null;
@@ -193,7 +196,6 @@ class Relations extends Base
 
     protected static function tempDir()
     {
-        //return sys_get_temp_dir()  . eZSys::fileSeparator();
         $path = eZDir::path(array(eZSys::cacheDirectory(), 'tmp'), true);
         eZDir::mkdir($path);
 
