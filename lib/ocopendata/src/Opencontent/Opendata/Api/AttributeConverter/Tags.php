@@ -15,12 +15,23 @@ class Tags extends Base
     public function get( eZContentObjectAttribute $attribute )
     {
         $content = parent::get( $attribute );
-        $content['content'] = explode(', ', $attribute->metaData() );
+        $tagsList = explode(', ', $attribute->metaData() );
+        $tags = array();
+        foreach ($tagsList as $tag) {
+            if (!empty(trim($tag))){
+                $tags[] = $tag;
+            }
+        }
+        $content['content'] = $tags;
         return $content;
     }
 
     public function set( $data, PublicationProcess $process )
     {
+        if (empty($data)){
+            return null;
+        }
+
         $tagIDs = array();
         $tagKeywords = array();
         $tagParents = array();
