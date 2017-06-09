@@ -149,7 +149,8 @@ class Relations extends Base
         $node = false;
         $object = eZContentObject::fetchByRemoteID($remoteID);
         if ($object instanceof eZContentObject) {
-            $node = $object->attribute('main_node');
+            //$node = $object->attribute('main_node');
+            return $object->attribute('id');
         }
         $name = $item['name'];
         $fileStored = $this->getTemporaryFilePath($item['filename'], $item['url'], $data);

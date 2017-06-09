@@ -25,7 +25,7 @@ class StateRepository
             }
         }
         // FIXME: da errore se passo stateIdentifiers vuoto --> da capire
-        //throw new NotFoundException( $identifier, 'State' );
+        throw new NotFoundException( $identifier, 'State' );
     }
 
     public function defaultStates()
