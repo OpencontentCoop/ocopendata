@@ -204,6 +204,11 @@ class SearchQueryCSVExporter extends AbstarctExporter
                 }
                     break;
 
+                case 'ezuser': {
+                    $stringData[$key] = $field['content']['login'] . '|' . $field['content']['email'];
+                }
+                    break;
+
                 case 'ezobjectrelation':
                 case 'ezobjectrelationlist': {
                     $stringData[$key] = $converter->toCSVString($field['content'], $this->language);
@@ -233,8 +238,7 @@ class SearchQueryCSVExporter extends AbstarctExporter
                 $this->handlePaginateDownload();
 
             } elseif ($this->count > self::MAX_DIRECT_DOWNLOAD_ITEMS ||
-                      eZINI::instance('ocopendata.ini')->variable('GeneralSettings', 'ForcePaginateDownload') == 'enabled') {
-
+                eZINI::instance('ocopendata.ini')->variable('GeneralSettings', 'ForcePaginateDownload') == 'enabled') {
                 $this->startPaginateDownload();
 
             } else {
