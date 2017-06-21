@@ -5,18 +5,14 @@ namespace Opencontent\Opendata\Api\AttributeConverter;
 use eZContentObjectAttribute;
 use eZContentClassAttribute;
 use eZContentObject;
-use Opencontent\Opendata\Api\ContentRepository;
-use Opencontent\Opendata\Api\EnvironmentSettings;
 use Opencontent\Opendata\Api\Exception\InvalidInputException;
 use Opencontent\Opendata\Api\Gateway\FileSystem;
 use Opencontent\Opendata\Api\PublicationProcess;
-use Opencontent\Opendata\Api\Values\Content;
 use Opencontent\Opendata\Api\Values\Metadata;
 use eZContentUpload;
 use eZSys;
 use eZFile;
 use eZHTTPTool;
-use eZURI;
 use eZDir;
 
 class Relations extends Base
@@ -157,8 +153,9 @@ class Relations extends Base
         if ($fileStored !== null) {
             $result = array();
             $upload = new eZContentUpload();
-            $uploadFile = $upload->handleLocalFile($result, $fileStored, 'auto', $node, $name);
+            $upload->handleLocalFile($result, $fileStored, 'auto', $node, $name);
             if (isset($result['contentobject']) && (!$object instanceof eZContentObject)) {
+                /** @var eZContentObject $object */
                 $object = $result['contentobject'];
                 $object->setAttribute('remote_id', $remoteID);
                 $object->store();
@@ -167,7 +164,6 @@ class Relations extends Base
             }
             if ($object instanceof eZContentObject) {
                 return $object->attribute('id');
-                //$this->removeObjects[] = $object;
             } else {
                 throw new \Exception('Errore caricando ' . var_export($item, 1) . ' ' . $fileStored);
             }
