@@ -149,6 +149,12 @@ class SearchQueryCSVExporter extends AbstarctExporter
                 $this->classFields[$field['identifier']] = $header;
             }
                 break;
+
+            case 'ezuser': {
+                $header = array('username','email');
+                $this->classFields[$field['identifier']] = $header;
+            }
+                break;
         }
 
         return $header;
@@ -204,14 +210,20 @@ class SearchQueryCSVExporter extends AbstarctExporter
                 }
                     break;
 
-                case 'ezuser': {
-                    $stringData[$key] = $field['content']['login'] . '|' . $field['content']['email'];
-                }
-                    break;
-
                 case 'ezobjectrelation':
                 case 'ezobjectrelationlist': {
                     $stringData[$key] = $converter->toCSVString($field['content'], $this->language);
+                }
+                    break;
+
+                case 'ezuser': {
+                    foreach ($this->classFields[$identifier] as $columnIdentifier) {
+                            if ($columnIdentifier == 'username'){
+                                $stringData[$key . '.' . $columnIdentifier] = $field['content']['login'];
+                            }elseif ($columnIdentifier == 'email'){
+                                $stringData[$key . '.' . $columnIdentifier] = $field['content']['email'];
+                            }
+                        }
                 }
                     break;
 
