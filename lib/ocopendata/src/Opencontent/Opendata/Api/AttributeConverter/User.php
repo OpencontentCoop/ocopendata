@@ -22,8 +22,10 @@ class User extends Base
             /** @var eZUser $user */
             $user = $attribute->content();
             $content['content'] = array(
-                'login' => $user->Login,
-                'email' => $user->Email
+                'login'                => $user->Login,
+                'email'                => $user->Email,
+                'login_count'          => $user->loginCount(),
+                'last_visit_timestamp' => $user->lastVisit()
             );
         }
         return $content;
@@ -31,7 +33,7 @@ class User extends Base
 
     public function set( $data, PublicationProcess $process )
     {
-        return $data['login'] . '|' . $data['email'];
+        return $data['login'] . '|' . $data['email']. '|' . $data['login_count']. '|' . $data['last_visit_timestamp'];
     }
 
     public static function validate( $identifier, $data, eZContentClassAttribute $attribute )
@@ -62,8 +64,10 @@ class User extends Base
         return array(
             'identifier' => 'user',
             'format' => array(
-                'login' => 'string',
-                'email' => 'string'
+                'login'                => 'string',
+                'email'                => 'string',
+                'login_count'          => 'string',
+                'last_visit_timestamp' => 'string',
             )
         );
     }
