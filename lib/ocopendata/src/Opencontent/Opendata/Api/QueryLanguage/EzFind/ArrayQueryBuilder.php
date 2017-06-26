@@ -55,7 +55,7 @@ class ArrayQueryBuilder extends QueryBuilder
             if ($isFilter) {
                 return "$field $operator $string";
             } else {
-                return "$field $string";
+                return "$field '$string'";
             }
         }
         throw new \Exception("Wrong parameter ", var_export($value, 1));
