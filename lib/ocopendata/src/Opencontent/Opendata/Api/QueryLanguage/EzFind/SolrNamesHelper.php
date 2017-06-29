@@ -32,6 +32,11 @@ class SolrNamesHelper
         $this->tokenFactory = $tokenFactory;
     }
 
+    public function reset()
+    {
+        $this->availableFieldDefinitions = new \ArrayObject($this->originalAvailableFieldDefinitions);
+    }
+
     /**
      * Se è presente un parametro di classe restringe il campo degli attributi a disposizione
      *

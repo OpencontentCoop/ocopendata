@@ -87,6 +87,12 @@ class QueryBuilder extends BaseQueryBuilder
         );
     }
 
+    public function instanceQuery( $string )
+    {
+        $this->solrNamesHelper->reset();
+        return parent::instanceQuery($string);
+    }
+
     public function getSolrNamesHelper()
     {
         return $this->solrNamesHelper;
