@@ -6,6 +6,7 @@ use eZContentObject;
 use eZContentObjectAttribute;
 use eZSection;
 use eZContentLanguage;
+use Opencontent\Opendata\Api\ClassRepository;
 use Opencontent\Opendata\Api\Exception\OutOfRangeException;
 use Opencontent\Opendata\Api\AttributeConverterLoader;
 use eZUser;
@@ -536,6 +537,9 @@ class Content
         global $eZContentObjectDataMapCache;
         global $eZContentObjectContentObjectCache;
 
+        $classRepository = new ClassRepository();
+        $class = $classRepository->load($this->metadata->classIdentifier);
+
         $object = new eZContentObject(array(
             'id' => $this->metadata->id,
             'section_id' => $this->metadata->sectionId,
@@ -561,6 +565,12 @@ class Content
         );
         $data = array();
         foreach ($this->data[$languageCode] as $identifier => $field) {
+
+            $identifierExists = array_search($identifier, array_column($class->fields, 'identifier'));
+            if (!$identifierExists){
+                continue;
+            }
+
             $attribute = new eZContentObjectAttribute(array(
                 'id' => $field['id'],
                 'contentobject_id' => $this->metadata->id,
