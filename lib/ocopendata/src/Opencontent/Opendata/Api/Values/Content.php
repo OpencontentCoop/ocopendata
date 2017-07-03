@@ -566,7 +566,7 @@ class Content
         $data = array();
         foreach ($this->data[$languageCode] as $identifier => $field) {
 
-            $identifierExists = array_search($identifier, array_column($class->fields, 'identifier'));
+            $identifierExists = in_array($identifier, array_column($class->fields, 'identifier'));
             if (!$identifierExists){
                 continue;
             }
