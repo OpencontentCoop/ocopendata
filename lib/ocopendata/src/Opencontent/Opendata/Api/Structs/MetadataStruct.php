@@ -299,6 +299,9 @@ class MetadataStruct implements \ArrayAccess
             } else {
                 $node = eZContentObjectTreeNode::fetchByRemoteID($nodeId);
                 if ($node instanceof eZContentObjectTreeNode) {
+                    if (!$node->attribute('is_container')){
+                        $this->throwException("Node '{$nodeId}' is not container");
+                    }
                     $this->parentTreeNodes[] = $node;
                     $normalizedParentNodes[] = (int)$node->attribute( 'node_id' );
                 } else {
@@ -306,6 +309,8 @@ class MetadataStruct implements \ArrayAccess
                 }
             }
         }
+
+        $this->parentNodes = $normalizedParentNodes;
 
         //publish date if is passed or nowdate
         if ($this->published == null){
@@ -316,9 +321,6 @@ class MetadataStruct implements \ArrayAccess
         if ($this->modified == null){
             $this->modified = time();
         }
-
-        $this->parentNodes = $normalizedParentNodes;
-
     }
 
     public function validateOnCreate()
