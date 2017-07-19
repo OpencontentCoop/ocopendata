@@ -14,7 +14,11 @@ class DefaultEnvironmentSettings extends EnvironmentSettings
         $content = $this->overrideIdentifier( $content );
         $content = $this->flatData( $content );
         $content = $this->filterMetaData( $content );
-        return parent::filterContent( $content );
+
+        $contentArray = $content->jsonSerialize();
+        unset($contentArray['extradata']);
+
+        return $contentArray;
     }
 
     protected function filterMetaData( Content $content )

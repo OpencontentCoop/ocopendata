@@ -30,6 +30,11 @@ class Content
     public $data;
 
     /**
+     * @var ExtraData
+     */
+    public $extraData;
+
+    /**
      * @var array
      */
     private static $limitationsNodeIds = array();
@@ -72,9 +77,18 @@ class Content
             $data = array();
         }
 
+        if (is_object($this->extraData) && method_exists($this->extraData, 'jsonSerialize')) {
+            $extraData = $this->extraData->jsonSerialize();
+        } elseif (is_array($this->extraData)) {
+            $extraData = $this->extraData;
+        } else {
+            $extraData = array();
+        }
+
         return array(
             'metadata' => $metadata,
-            'data' => $data
+            'data' => $data,
+            'extradata' => $extraData,
         );
     }
 
@@ -109,6 +123,8 @@ class Content
             }
         }
         $content->data = new ContentData($attributes);
+
+        $content->extraData = ExtraData::createFromEzContentObject($contentObject);
 
         return $content;
     }
