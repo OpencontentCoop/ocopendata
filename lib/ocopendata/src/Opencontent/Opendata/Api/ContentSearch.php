@@ -7,6 +7,7 @@ use Opencontent\Opendata\Api\Gateway\SolrStorage;
 use Opencontent\Opendata\Api\QueryLanguage\EzFind\QueryBuilder;
 use Opencontent\Opendata\Api\Values\Content;
 use Opencontent\Opendata\Api\Values\ContentData;
+use Opencontent\Opendata\Api\Values\ExtraData;
 use Opencontent\Opendata\Api\Values\Metadata;
 use Opencontent\Opendata\Api\Values\SearchResults;
 use Exception;
@@ -114,6 +115,9 @@ class ContentSearch
                     $content = new Content();
                     $content->metadata = new Metadata((array)$contentArray['metadata']);
                     $content->data = new ContentData((array)$contentArray['data']);
+                    if (isset($contentArray['extradata'])){
+                        $content->extraData = new ExtraData((array)$contentArray['extradata']);
+                    }
                 } else {
                     $content = $fileSystemGateway->loadContent((int)$id);
                 }

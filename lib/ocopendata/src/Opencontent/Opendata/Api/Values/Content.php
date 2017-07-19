@@ -85,11 +85,16 @@ class Content
             $extraData = array();
         }
 
-        return array(
+        $value = array(
             'metadata' => $metadata,
-            'data' => $data,
-            'extradata' => $extraData,
+            'data' => $data
         );
+
+        if (!empty($extraData)){
+            $value['extradata'] = $extraData;
+        }
+
+        return $value;
     }
 
     /**
