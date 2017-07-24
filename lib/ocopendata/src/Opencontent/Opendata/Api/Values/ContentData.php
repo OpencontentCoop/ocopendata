@@ -2,7 +2,7 @@
 
 namespace Opencontent\Opendata\Api\Values;
 
-class ContentData implements \IteratorAggregate, \ArrayAccess
+class ContentData implements \IteratorAggregate, \ArrayAccess, \JsonSerializable
 {
     protected $data = array();
 
