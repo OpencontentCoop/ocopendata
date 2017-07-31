@@ -208,7 +208,11 @@ class HttpClient
         curl_close($ch);
 
         $headers = substr($data, 0, $info['header_size']);
-        $body = substr($data, -$info['download_content_length']);
+        if ($info['download_content_length'] > 0) {
+            $body = substr($data, -$info['download_content_length']);
+        } else {
+            $body = substr($data, $info['header_size']);
+        }
 
         return $this->parseResponse($info, $headers, $body);
     }
@@ -233,6 +237,7 @@ class HttpClient
         if (!in_array($info['http_code'], array(100, 200, 201, 202))) {
             throw new \Exception("Unknown error");
         }
+
         $data = json_decode($body, true);
 
         return $data;

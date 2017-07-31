@@ -35,6 +35,7 @@ class Tags extends Base
         $tagIDs = array();
         $tagKeywords = array();
         $tagParents = array();
+        $tagLanguages = array();
 
         foreach ((array)$data as $keyword) {
 
@@ -44,18 +45,22 @@ class Tags extends Base
                 $tagIDs[] = $keywordsFound[0]->ID;
                 $tagKeywords[] = $keywordsFound[0]->Keyword;
                 $tagParents[] = $keywordsFound[0]->ParentID;
+                $tagLanguages[] = \eZLocale::currentLocaleCode();
             }else{
                 $tagIDs[] = 0;
                 $tagKeywords[] = $keyword;
                 $tagParents[] = 0;
+                $tagLanguages[] = \eZLocale::currentLocaleCode();
             }
         }
 
         $tagIDs = implode( '|#', $tagIDs );
         $tagKeywords = implode( '|#', $tagKeywords );
         $tagParents = implode( '|#', $tagParents );
+        $tagLanguages = implode( '|#', $tagLanguages );
 
-        $data = $tagIDs . '|#' . $tagKeywords . '|#' . $tagParents;
+        $data = $tagIDs . '|#' . $tagKeywords . '|#' . $tagParents . '|#' . $tagLanguages;
+
         return parent::set( $data, $process );
     }
 
