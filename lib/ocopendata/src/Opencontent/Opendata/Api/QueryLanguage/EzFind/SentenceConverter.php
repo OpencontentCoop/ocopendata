@@ -96,7 +96,7 @@ class SentenceConverter
 
         if ( !isset( $fieldNames ) )
         {
-            $fieldNames = $this->solrNamesHelper->generateFieldNames( $field );
+            $fieldNames = $this->solrNamesHelper->generateFieldNames( $field, 'filter' );
         }
 
         switch ( $operator )
