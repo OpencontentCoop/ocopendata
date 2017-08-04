@@ -52,6 +52,9 @@ class ContentSearch
         $ezFindQuery = $ezFindQueryObject->getArrayCopy();
 
         //$ezFindQuery['Filter'][] = ezfSolrDocumentFieldBase::generateMetaFieldName('installation_id') . ':' . eZSolr::installationID();
+        if (is_array($limitation) && empty( $limitation )) {
+            $ezFindQuery['Filter'][] = \ezfSolrDocumentFieldBase::generateMetaFieldName('installation_id') . ':' . \eZSolr::installationID();
+        }
         $ezFindQuery['Limitation'] = $limitation;
         $ezFindQuery['AsObjects'] = false;
         $ezFindQuery['FieldsToReturn'] = array(SolrStorage::getSolrIdentifier());
@@ -115,7 +118,7 @@ class ContentSearch
                     $content = new Content();
                     $content->metadata = new Metadata((array)$contentArray['metadata']);
                     $content->data = new ContentData((array)$contentArray['data']);
-                    if (isset($contentArray['extradata'])){
+                    if (isset( $contentArray['extradata'] )) {
                         $content->extraData = new ExtraData((array)$contentArray['extradata']);
                     }
                 } else {
@@ -132,7 +135,7 @@ class ContentSearch
 
                 if ($filterFields !== null) {
                     $this->filterFields($filterFieldsResult, $content, $filterFields, $filterLanguages);
-                }else{
+                } else {
                     $searchResults->searchHits[] = $content;
                 }
 
@@ -275,11 +278,11 @@ class ContentSearch
             $groupIdentifier = $parts[0];
             $fieldIdentifier = $parts[1];
 
-            if ($combine){
+            if ($combine) {
                 $fieldName = $fieldIdentifier;
                 $fieldIdentifiers[] = $fieldIdentifier;
-            }else{
-                $fieldName = isset($fieldNameParts[1]) ? $fieldNameParts[1] : null;
+            } else {
+                $fieldName = isset( $fieldNameParts[1] ) ? $fieldNameParts[1] : null;
             }
 
             if ($groupIdentifier == 'metadata' && isset( $content['metadata'][$fieldIdentifier] )) {
@@ -287,23 +290,23 @@ class ContentSearch
                     $item = null;
                     if (count($languages) == 1 || $combine) {
                         $item = trim($content['metadata'][$fieldIdentifier][$languages[0]]);
-                    }else{
+                    } else {
                         $item = array();
-                        foreach($languages as $language){
-                            $item[$language] = isset($content['metadata'][$fieldIdentifier][$language]) ? $content['metadata'][$fieldIdentifier][$language] : null;
+                        foreach ($languages as $language) {
+                            $item[$language] = isset( $content['metadata'][$fieldIdentifier][$language] ) ? $content['metadata'][$fieldIdentifier][$language] : null;
                         }
                     }
 
-                    if ($fieldName){
+                    if ($fieldName) {
                         $data[$fieldName] = $item;
-                    }else{
+                    } else {
                         $data = $item;
                     }
                 } else {
-                    $item = isset($content['metadata'][$fieldIdentifier]) ? $content['metadata'][$fieldIdentifier] : null;
-                    if ($fieldName){
+                    $item = isset( $content['metadata'][$fieldIdentifier] ) ? $content['metadata'][$fieldIdentifier] : null;
+                    if ($fieldName) {
                         $data[$fieldName] = $item;
-                    }else{
+                    } else {
                         $data = $item;
                     }
 
@@ -312,16 +315,16 @@ class ContentSearch
 
                 $item = null;
                 if (count($languages) == 1 || $combine) {
-                    $item = isset($content['data'][$languages[0]][$fieldIdentifier]) ? $content['data'][$languages[0]][$fieldIdentifier] : null;
-                }else{
+                    $item = isset( $content['data'][$languages[0]][$fieldIdentifier] ) ? $content['data'][$languages[0]][$fieldIdentifier] : null;
+                } else {
                     $item = array();
-                    foreach($languages as $language){
-                        $item[$language] = isset($content['data'][$languages][$fieldIdentifier]) ? $content['data'][$languages][$fieldIdentifier] : null;
+                    foreach ($languages as $language) {
+                        $item[$language] = isset( $content['data'][$languages][$fieldIdentifier] ) ? $content['data'][$languages][$fieldIdentifier] : null;
                     }
                 }
-                if ($fieldName){
+                if ($fieldName) {
                     $data[$fieldName] = $item;
-                }else{
+                } else {
                     $data = $item;
                 }
             }
@@ -329,7 +332,7 @@ class ContentSearch
 
         if ($combine) {
             $filterFieldsResult[$data[$fieldIdentifiers[0]]] = $data[$fieldIdentifiers[1]];
-        }else{
+        } else {
             $filterFieldsResult[] = $data;
         }
     }
