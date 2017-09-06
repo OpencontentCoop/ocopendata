@@ -55,12 +55,6 @@ class SearchQueryCSVExporter extends AbstarctExporter
         $this->contentSearch->setEnvironment($currentEnvironment);
         $this->queryString = $queryString;
 
-
-        echo '<pre>';
-        print_r($queryString);
-        print_r($_GET);
-        echo '</pre>';
-
         if (!$this->queryString){
             $arrayQueryBuilder = new ArrayQueryBuilder();
             $this->queryString = (string)$arrayQueryBuilder->instanceQuery($_GET);
