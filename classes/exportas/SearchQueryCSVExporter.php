@@ -42,6 +42,7 @@ class SearchQueryCSVExporter extends AbstarctExporter
 
     public function __construct($parentNodeId, $queryString)
     {
+        $http = eZHTTPTool::instance();
         $this->functionName = 'csv';
 
         $this->ini = eZINI::instance('exportas.ini');
@@ -55,7 +56,7 @@ class SearchQueryCSVExporter extends AbstarctExporter
         $this->contentSearch->setEnvironment($currentEnvironment);
         $this->queryString = $queryString;
 
-        if (!$this->queryString){
+        if (!$this->queryString && !$http->hasGetVariable('download_id')){
             $arrayQueryBuilder = new ArrayQueryBuilder();
             $this->queryString = (string)$arrayQueryBuilder->instanceQuery($_GET);
         }
@@ -66,7 +67,6 @@ class SearchQueryCSVExporter extends AbstarctExporter
 
         $this->language = eZLocale::currentLocaleCode();
 
-        $http = eZHTTPTool::instance();
         if ($http->hasGetVariable('download_id')){
             $this->downloadId = $http->getVariable('download_id');
             $this->filename = $this->downloadId;
