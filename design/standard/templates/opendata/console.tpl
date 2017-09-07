@@ -7,7 +7,7 @@
 
     <title>OCQL Console</title>
 
-    <link href="//getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
     <script src="//code.jquery.com/jquery-1.12.0.min.js" type="application/javascript"></script>
     <link rel="stylesheet" href="/extension/ocopendata/design/standard/stylesheets/leaflet.css" />
@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
 
     <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-    <script src="//getbootstrap.com/dist/js/bootstrap.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="/extension/ocopendata/design/standard/javascript/leaflet.js"></script>
     <script src="/extension/ocopendata/design/standard/javascript/leaflet.markercluster.js"></script>
     <script src="/extension/ocopendata/design/standard/javascript/leaflet.makimarkers.js"></script>
