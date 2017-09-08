@@ -13,7 +13,7 @@ class Date extends Base
     {
         $content = parent::get($attribute);
         $date = $content['content'];
-        $content['content'] = ( (int)$date > 0 ) ? date('c', (int)$date) : null;
+        $content['content'] = ( (int)$date != 0 ) ? date('c', (int)$date) : null;
 
         return $content;
     }
