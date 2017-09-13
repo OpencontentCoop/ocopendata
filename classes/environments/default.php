@@ -75,14 +75,11 @@ class DefaultEnvironmentSettings extends EnvironmentSettings
                                     'id' => $item['id'],
                                     'remoteId' => $item['remoteId'],
                                     'classIdentifier' => $item['classIdentifier'],
-                                    'class' => str_replace(
-                                                   '/content',
-                                                   '/classes',
-                                                   $this->requestBaseUri
-                                               ) . $item['classIdentifier'],
+                                    'class' => str_replace('/content', '/classes', $this->requestBaseUri) . $item['classIdentifier'],
                                     'languages' => $item['languages'],
                                     'name' => $item['name'],
-                                    'link' => $this->requestBaseUri . 'read/' . $item['id']
+                                    'link' => $this->requestBaseUri . 'read/' . $item['id'],
+                                    'mainNodeId' => $item['mainNodeId']
                                 );
                                 $valueContent[] = $subContent;
                             }
