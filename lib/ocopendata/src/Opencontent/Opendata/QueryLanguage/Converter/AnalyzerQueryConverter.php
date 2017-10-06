@@ -21,98 +21,81 @@ class AnalyzerQueryConverter implements QueryConverter
      */
     protected $convertedQuery = array();
 
-    public function setQuery( Query $query )
+    public function setQuery(Query $query)
     {
         $this->query = $query;
     }
 
     public function convert()
     {
-        if ( $this->query instanceof Query )
-        {
-            foreach ( $this->query->getFilters() as $item )
-            {
-                $this->parseItem( $item );
+        if ($this->query instanceof Query) {
+            foreach ($this->query->getFilters() as $item) {
+                $this->parseItem($item);
             }
 
-            foreach ( $this->query->getParameters() as $parameters )
-            {
-                $this->parseItem( $parameters );
+            foreach ($this->query->getParameters() as $parameters) {
+                $this->parseItem($parameters);
             }
         }
 
         return $this->convertedQuery;
     }
 
-    protected function parseItem( Item $item )
+    protected function parseItem(Item $item)
     {
-        if ( $item->hasSentences() )
-        {
+        if ($item->hasSentences()) {
             $convertedItems = array();
             $clause = false;
-            if ( (string)$item->clause !== '' )
-            {
+            if ((string)$item->clause !== '') {
                 $clause = array(
                     'type' => 'clause',
                     'value' => (string)$item->clause
                 );
             }
 
-            foreach ( $item->getSentences() as $sentence )
-            {
-                if ( $sentence instanceof Parameter )
-                {
+            foreach ($item->getSentences() as $sentence) {
+                if ($sentence instanceof Parameter) {
                     $convertedItems[] = array(
                         'type' => 'parameter',
                         'key' => (string)$sentence->getKey(),
                         'value' => $sentence->stringValue(),
-                        'format' => is_array( $sentence->getValue() ) ? 'array' : 'string'
+                        'format' => is_array($sentence->getValue()) ? 'array' : 'string'
                     );
-                }
-                else
-                {
+                } else {
                     $convertedItems[] = array(
                         'type' => 'filter',
                         'field' => (string)$sentence->getField(),
                         'operator' => (string)$sentence->getOperator(),
                         'value' => $sentence->stringValue(),
-                        'format' => is_array( $sentence->getValue() ) ? 'array' : 'string'
+                        'format' => is_array($sentence->getValue()) ? 'array' : 'string'
                     );
                 }
             }
 
-            if ( $item->hasChildren() )
-            {
+            if ($item->hasChildren()) {
                 $convertedItems[] = array(
                     'type' => 'parenthesis',
                     'value' => '('
                 );
-                $countConvertedItems = count( $convertedItems );
-                foreach( $convertedItems as $index => $convertedItem )
-                {
+                $countConvertedItems = count($convertedItems);
+                foreach ($convertedItems as $index => $convertedItem) {
                     $this->convertedQuery[] = $convertedItem;
-                    if ( is_array( $clause ) && ($index+1) < $countConvertedItems )
-                    {
+                    if (is_array($clause) && ( $index + 1 ) < $countConvertedItems) {
                         $this->convertedQuery[] = $clause;
                     }
                 }
-                foreach ( $item->getChildren() as $child )
-                {
-                    $this->parseItem( $child );
+                foreach ($item->getChildren() as $child) {
+                    $this->parseItem($child);
                 }
                 $this->convertedQuery[] = array(
                     'type' => 'parenthesis',
                     'value' => ')'
                 );
-            }
-            else
-            {
-                $countConvertedItems = count( $convertedItems );
-                foreach( $convertedItems as $index => $convertedItem )
-                {
+            } else {
+                $countConvertedItems = count($convertedItems);
+                foreach ($convertedItems as $index => $convertedItem) {
                     $this->convertedQuery[] = $convertedItem;
-                    if ( is_array( $clause ) && ($index+1) < $countConvertedItems )
-                    {
+                    if (is_array($clause) && ( $index + 1 ) < $countConvertedItems) {
                         $this->convertedQuery[] = $clause;
                     }
                 }

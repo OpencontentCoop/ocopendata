@@ -18,7 +18,7 @@ class FragmentCollection implements Iterator, Countable
      */
     protected $tokenFactory;
 
-    public function __construct( TokenFactory $tokenFactory )
+    public function __construct(TokenFactory $tokenFactory)
     {
         $this->tokenFactory = $tokenFactory;
     }
@@ -26,199 +26,186 @@ class FragmentCollection implements Iterator, Countable
     /**
      * @param Fragment|FragmentCollection $fragment
      */
-    public function add( $fragment )
+    public function add($fragment)
     {
-        if ( $fragment->isValid() )
-        {
-            if ( $fragment instanceof Fragment )
-                $this->filterFragment( $fragment );
-            else
-                $this->filterFragmentCollection( $fragment );
+        if ($fragment->isValid()) {
+            if ($fragment instanceof Fragment) {
+                $this->filterFragment($fragment);
+            } else {
+                $this->filterFragmentCollection($fragment);
+            }
         }
     }
 
     public function isValid()
     {
         $currentClause = null;
-        foreach( $this->fragments as $item )
-        {
-            if ( $item instanceof Clause )
-            {
-                if ( $currentClause === null )
-                {
+        foreach ($this->fragments as $item) {
+            if ($item instanceof Clause) {
+                if ($currentClause === null) {
                     $currentClause = (string)$item;
-                }
-                elseif( $currentClause != (string)$item )
-                {
-                    throw new Exception( "Syntax error ambiguous clause in \"{$this}\"" );
+                } elseif ($currentClause != (string)$item) {
+                    throw new Exception("Syntax error ambiguous clause in \"{$this}\"");
                 }
             }
         }
+
         return $this->count() > 0;
     }
 
 
-    protected function filterFragmentCollection( FragmentCollection $collection )
+    protected function filterFragmentCollection(FragmentCollection $collection)
     {
         $this->fragments[] = $collection;
     }
 
-    protected function filterFragment( Fragment $fragment )
+    protected function filterFragment(Fragment $fragment)
     {
-        if ( $fragment->count() > 1 )
-        {
+        if ($fragment->count() > 1) {
             $first = $fragment->first();
-            if ( $first instanceof Token )
-            {
-                if ( $first->isClause() )
-                {
+            if ($first instanceof Token) {
+                if ($first->isClause()) {
                     $fragment->removeFirst();
-                    $this->filterToken( $first );
-                    $this->filterFragment( $fragment );
+                    $this->filterToken($first);
+                    $this->filterFragment($fragment);
 
                     return;
-                }
-                elseif( !$first->isField() && !$first->isParameter() )
-                {
-                    throw new Exception( "Syntax error \"{$fragment}\": first token is not a field nor parameter" );
+                } elseif (!$first->isField() && !$first->isParameter()) {
+                    throw new Exception("Syntax error \"{$fragment}\": first token is not a field nor parameter");
                 }
             }
 
             $last = $fragment->last();
-            if ( $last instanceof Token && $last->isClause() )
-            {
+            if ($last instanceof Token && $last->isClause()) {
                 $fragment->removeLast();
-                $this->filterFragment( $fragment );
-                $this->filterToken( $last );
+                $this->filterFragment($fragment);
+                $this->filterToken($last);
+
                 return;
             }
 
             $buffer = 0;
-            foreach( $fragment as $index => $token )
-            {
-                if ( $token->isClause())
-                {
-                    $this->filterFragment( Fragment::fromArray( $fragment->slice( $buffer, $index ), $this->tokenFactory ) );
-                    $this->filterToken( $token );
-                    $slice = Fragment::fromArray( $fragment->slice( ++$index, $fragment->count() ), $this->tokenFactory );
-                    $this->filterFragment( $slice );
+            foreach ($fragment as $index => $token) {
+                if ($token->isClause()) {
+                    $this->filterFragment(Fragment::fromArray($fragment->slice($buffer, $index), $this->tokenFactory));
+                    $this->filterToken($token);
+                    $slice = Fragment::fromArray($fragment->slice(++$index, $fragment->count()), $this->tokenFactory);
+                    $this->filterFragment($slice);
+
                     return;
                 }
-                if ( $token->isParameter() && (string) $first != (string) $token )
-                {
-                    $this->filterFragment( Fragment::fromArray( $fragment->slice( $buffer, $index ), $this->tokenFactory ) );
-                    $slice = Fragment::fromArray( $fragment->slice( $index, $fragment->count() ), $this->tokenFactory );
-                    $this->filterFragment( $slice );
+                if ($token->isParameter() && (string)$first != (string)$token) {
+                    $this->filterFragment(Fragment::fromArray($fragment->slice($buffer, $index), $this->tokenFactory));
+                    $slice = Fragment::fromArray($fragment->slice($index, $fragment->count()), $this->tokenFactory);
+                    $this->filterFragment($slice);
+
                     return;
                 }
             }
 
-            if ( $fragment->count() == 3 )
-            {
+            if ($fragment->count() == 3) {
                 $sentence = new Sentence();
-                foreach( $fragment as $token )
-                {
-                    if ( $token->isField() )
-                        $sentence->setField( $token );
+                foreach ($fragment as $token) {
+                    if ($token->isField()) {
+                        $sentence->setField($token);
+                    }
 
-                    if ( $token->isOperator() )
-                        $sentence->setOperator( $token );
+                    if ($token->isOperator()) {
+                        $sentence->setOperator($token);
+                    }
 
-                    if ( $token->isValue() )
-                        $sentence->setValue( $token );
+                    if ($token->isValue()) {
+                        $sentence->setValue($token);
+                    }
 
                 }
-                if ( !$sentence->isValid() )
-                    throw new Exception( "Syntax error in sentence \"{$fragment}\"" );
+                if (!$sentence->isValid()) {
+                    throw new Exception("Syntax error in sentence \"{$fragment}\"");
+                }
                 $this->fragments[] = $sentence;
-            }
-            elseif ( $fragment->count() == 2 )
-            {
+            } elseif ($fragment->count() == 2) {
                 $parameter = new Parameter();
-                foreach( $fragment as $token )
-                {
-                    if ( $token->isParameter() )
-                        $parameter->setKey( $token );
+                foreach ($fragment as $token) {
+                    if ($token->isParameter()) {
+                        $parameter->setKey($token);
+                    }
 
-                    if ( $token->isValue() )
-                        $parameter->setValue( $token );
+                    if ($token->isValue()) {
+                        $parameter->setValue($token);
+                    }
                 }
-                if ( !$parameter->isValid() )
-                {
-                    throw new Exception( "Syntax error in parameter \"{$fragment}\"" );
+                if (!$parameter->isValid()) {
+                    throw new Exception("Syntax error in parameter \"{$fragment}\"");
                 }
                 $this->fragmentParameters[] = $parameter;
+            } else {
+                throw new Exception("Syntax error fragment in \"{$fragment}\"");
             }
-            else
-                throw new Exception( "Syntax error fragment in \"{$fragment}\"" );
-        }
-        elseif ( $fragment->count() == 1 )
-        {
-            $this->filterToken( $fragment->last() );
-        }
-        else
-            throw new Exception( "Syntax error fragment in \"{$fragment}\"" );
-    }
-
-    protected function filterToken( Token $token )
-    {
-        if ( $token->isClause() )
-        {
-            $this->fragments[] = new Clause( (string)$token );
+        } elseif ($fragment->count() == 1) {
+            $this->filterToken($fragment->last());
+        } else {
+            throw new Exception("Syntax error fragment in \"{$fragment}\"");
         }
     }
 
-    public function addRaw( $data )
+    protected function filterToken(Token $token)
     {
-        if ( is_string( $data ) )
-        {
-            $this->add( new Fragment( $data, $this->tokenFactory ) );
+        if ($token->isClause()) {
+            $this->fragments[] = new Clause((string)$token);
         }
-        else
-        {
-            $collection = new FragmentCollection( $this->tokenFactory );
-            foreach( $data as $item )
-                $collection->addRaw( $item );
-            $this->add( $collection );
+    }
+
+    public function addRaw($data)
+    {
+        if (is_string($data)) {
+            $this->add(new Fragment($data, $this->tokenFactory));
+        } else {
+            $collection = new FragmentCollection($this->tokenFactory);
+            foreach ($data as $item) {
+                $collection->addRaw($item);
+            }
+            $this->add($collection);
         }
     }
 
     public function count()
     {
-        return count( $this->fragments );
+        return count($this->fragments);
     }
 
     public function getFragments()
     {
-        return self::fromArray( $this->fragments, $this->tokenFactory, $this->fragmentParameters );
+        return self::fromArray($this->fragments, $this->tokenFactory, $this->fragmentParameters);
     }
 
     public function getFragmentParameters()
     {
-        foreach( $this->fragments as $fragment )
-        {
-            if ( $fragment instanceof FragmentCollection )
-                $this->fragmentParameters = array_merge( $this->fragmentParameters, $fragment->getFragmentParameters() );
+        foreach ($this->fragments as $fragment) {
+            if ($fragment instanceof FragmentCollection) {
+                $this->fragmentParameters = array_merge($this->fragmentParameters, $fragment->getFragmentParameters());
+            }
         }
+
         return $this->fragmentParameters;
     }
 
-    public static function fromArray( $fragments, TokenFactory $tokenFactory, $fragmentParameters = array() )
+    public static function fromArray($fragments, TokenFactory $tokenFactory, $fragmentParameters = array())
     {
-        $instance = new FragmentCollection( $tokenFactory );
+        $instance = new FragmentCollection($tokenFactory);
         $instance->fragments = $fragments;
         $instance->fragmentParameters = $fragmentParameters;
+
         return $instance;
     }
 
     public function __toString()
     {
         $stringArray = array();
-        foreach( $this->fragments as $fragment )
-        {
+        foreach ($this->fragments as $fragment) {
             $stringArray[] = (string)$fragment;
         }
-        return '( ' . implode( ' ', $stringArray ) . ' )';
+
+        return '( ' . implode(' ', $stringArray) . ' )';
     }
 
     public function current()

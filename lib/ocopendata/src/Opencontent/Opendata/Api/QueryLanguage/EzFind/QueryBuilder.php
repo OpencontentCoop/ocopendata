@@ -8,11 +8,11 @@ use Opencontent\QueryLanguage\QueryBuilder as BaseQueryBuilder;
 
 class QueryBuilder extends BaseQueryBuilder
 {
-    public $fields = array(
+    protected $fields = array(
         'q'
     );
 
-    public $metaFields = array(
+    protected $metaFields = array(
         'id',
         'remote_id',
         'name',
@@ -24,7 +24,7 @@ class QueryBuilder extends BaseQueryBuilder
         'owner_id'
     );
 
-    public $parameters = array(
+    protected $parameters = array(
         'sort',
         'geosort',
         'limit',
@@ -36,7 +36,7 @@ class QueryBuilder extends BaseQueryBuilder
         'language'
     );
 
-    public $operators = array(
+    protected $operators = array(
         '=',
         '!=',
         'in',
@@ -47,9 +47,13 @@ class QueryBuilder extends BaseQueryBuilder
         '!range'
     );
 
-    public $functionFields = array(
+    protected $functionFields = array(
         'calendar',
         'raw'
+    );
+
+    protected $customSubFields = array(
+        'tag_ids' => 'sint'
     );
 
     protected $solrNamesHelper;
@@ -59,29 +63,25 @@ class QueryBuilder extends BaseQueryBuilder
         $classRepository = new ClassRepository();
         $availableFieldDefinitions = $classRepository->listAttributesGroupedByIdentifier();
 
-//        echo '<pre>';
-//        print_r( $availableFieldDefinitions );
-//        die();
-
         $this->fields = array_merge(
             $this->fields,
-            array_keys( $availableFieldDefinitions )
+            array_keys($availableFieldDefinitions)
         );
 
-        $this->tokenFactory = new TokenFactory(
-            $this->fields,
-            $this->metaFields,
-            $this->functionFields,
-            $this->operators,
-            $this->parameters,
-            $this->clauses
-        );
+        $this->tokenFactory = new TokenFactory();
+        $this->tokenFactory->setFunctionFields($this->functionFields)
+                           ->setMetaFields($this->metaFields)
+                           ->setCustomSubFields($this->customSubFields)
+                           ->setFields($this->fields)
+                           ->setOperators($this->operators)
+                           ->setParameters($this->parameters)
+                           ->setClauses($this->clauses);
 
-        $this->solrNamesHelper = new SolrNamesHelper( $availableFieldDefinitions, $this->tokenFactory );
+        $this->solrNamesHelper = new SolrNamesHelper($availableFieldDefinitions, $this->tokenFactory);
 
-        $sentenceConverter = new SentenceConverter( $this->solrNamesHelper );
+        $sentenceConverter = new SentenceConverter($this->solrNamesHelper);
 
-        $parameterConverter = new ParameterConverter( $this->solrNamesHelper );
+        $parameterConverter = new ParameterConverter($this->solrNamesHelper);
 
         $this->converter = new QueryConverter(
             $sentenceConverter,
@@ -89,15 +89,48 @@ class QueryBuilder extends BaseQueryBuilder
         );
     }
 
-    public function instanceQuery( $string )
+    public function instanceQuery($string)
     {
         $this->solrNamesHelper->reset();
+
         return parent::instanceQuery($string);
     }
 
     public function getSolrNamesHelper()
     {
         return $this->solrNamesHelper;
+    }
+
+    /**
+     * @return array
+     */
+    public function getFunctionFields()
+    {
+        return $this->functionFields;
+    }
+
+    /**
+     * @param array $functionFields
+     */
+    public function setFunctionFields($functionFields)
+    {
+        $this->functionFields = $functionFields;
+    }
+
+    /**
+     * @return array
+     */
+    public function getCustomSubFields()
+    {
+        return $this->customSubFields;
+    }
+
+    /**
+     * @param array $customSubFields
+     */
+    public function setCustomSubFields($customSubFields)
+    {
+        $this->customSubFields = $customSubFields;
     }
 
 }

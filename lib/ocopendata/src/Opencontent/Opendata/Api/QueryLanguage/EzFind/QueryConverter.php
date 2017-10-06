@@ -34,12 +34,12 @@ class QueryConverter implements QueryConverterInterface
     public function __construct(
         SentenceConverter $sentenceConverter,
         ParameterConverter $parameterConverter
-    ){
+    ) {
         $this->parameterConverter = $parameterConverter;
         $this->sentenceConverter = $sentenceConverter;
     }
 
-    public function setQuery( Query $query )
+    public function setQuery(Query $query)
     {
         $this->query = $query;
     }
@@ -49,82 +49,73 @@ class QueryConverter implements QueryConverterInterface
      */
     public function convert()
     {
-        if ( $this->query instanceof Query )
-        {
+        if ($this->query instanceof Query) {
             $this->convertedQuery = new ArrayObject(
-                array( '_query' => null )
+                array('_query' => null)
             );
-            $this->parameterConverter->setCurrentConvertedQuery( $this->convertedQuery );
-            $this->sentenceConverter->setCurrentConvertedQuery( $this->convertedQuery );
+            $this->parameterConverter->setCurrentConvertedQuery($this->convertedQuery);
+            $this->sentenceConverter->setCurrentConvertedQuery($this->convertedQuery);
 
             $this->convertParameters();
             $this->convertFilters();
 
-            if ( isset( $this->convertedQuery['Filter'] ) && empty( $this->convertedQuery['Filter'] ) )
-            {
+            if (isset( $this->convertedQuery['Filter'] ) && empty( $this->convertedQuery['Filter'] )) {
                 unset( $this->convertedQuery['Filter'] );
             }
         }
+
         return $this->convertedQuery;
     }
 
     protected function convertFilters()
     {
         $filters = array();
-        foreach ( $this->query->getFilters() as $item )
-        {
-            $filter = $this->parseItem( $item );
-            if ( !empty( $filter ) && $filter !== null )
-            {
-                if ( is_array( $filter ) && count( $filter ) == 1 )
-                    $filter = array_pop( $filter );
+        foreach ($this->query->getFilters() as $item) {
+            $filter = $this->parseItem($item);
+            if (!empty( $filter ) && $filter !== null) {
+                if (is_array($filter) && count($filter) == 1) {
+                    $filter = array_pop($filter);
+                }
                 $filters[] = $filter;
             }
         }
-        if ( !empty( $filters ) )
-        {
+        if (!empty( $filters )) {
             $this->convertedQuery['Filter'] = $filters;
         }
     }
 
     protected function convertParameters()
     {
-        foreach ( $this->query->getParameters() as $parameters )
-        {
-            foreach ( $parameters->getSentences() as $parameter )
-            {
-                if ( $parameter instanceof Parameter )
-                {
-                    $this->parameterConverter->convert( $parameter );
+        foreach ($this->query->getParameters() as $parameters) {
+            foreach ($parameters->getSentences() as $parameter) {
+                if ($parameter instanceof Parameter) {
+                    $this->parameterConverter->convert($parameter);
                 }
             }
         }
     }
 
-    protected function parseItem( Item $item )
+    protected function parseItem(Item $item)
     {
         $filters = array();
-        if ( $item->hasSentences() || $item->clause == 'or' )
-        {
-            if ( $item->clause == 'or' )
-            {
+        if ($item->hasSentences() || $item->clause == 'or') {
+            if ($item->clause == 'or') {
                 $filters[] = (string)$item->clause;
             }
 
-            foreach ( $item->getSentences() as $sentence )
-            {
-                $result = $this->sentenceConverter->convert( $sentence );
-                if ( $result !== null )
+            foreach ($item->getSentences() as $sentence) {
+                $result = $this->sentenceConverter->convert($sentence);
+                if ($result !== null) {
                     $filters[] = $result;
+                }
             }
-            if ( $item->hasChildren() )
-            {
-                foreach ( $item->getChildren() as $child )
-                {
-                    $filters[] = $this->parseItem( $child );
+            if ($item->hasChildren()) {
+                foreach ($item->getChildren() as $child) {
+                    $filters[] = $this->parseItem($child);
                 }
             }
         }
+
         return $filters;
     }
 

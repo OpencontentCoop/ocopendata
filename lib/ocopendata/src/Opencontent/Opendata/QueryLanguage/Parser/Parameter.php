@@ -8,7 +8,7 @@ class Parameter extends Sentence
 
     protected $value;
 
-    public function setKey( Token $data )
+    public function setKey(Token $data)
     {
         $this->key = $data;
     }
@@ -18,7 +18,7 @@ class Parameter extends Sentence
         return $this->key;
     }
 
-    public function setValue( Token $data )
+    public function setValue(Token $data)
     {
         $this->value = $data;
     }

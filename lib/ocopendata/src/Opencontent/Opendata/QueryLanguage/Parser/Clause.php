@@ -6,7 +6,7 @@ class Clause
 {
     protected $clause;
 
-    public function __construct( $clause )
+    public function __construct($clause)
     {
         $this->clause = $clause;
     }

@@ -6,17 +6,16 @@ use Opencontent\QueryLanguage\Converter\Exception;
 use Opencontent\QueryLanguage\Parser\TokenFactory;
 use Opencontent\QueryLanguage\QueryBuilder;
 use Opencontent\QueryLanguage\Query;
-use Opencontent\QueryLanguage\EzFind\SingleClassQueryConverter;
 use eZContentClass;
 use eZContentClassAttribute;
 
 class SingleClassEzFindBuilder extends QueryBuilder
 {
-    public $fields = array(
+    protected $fields = array(
         'q'
     );
 
-    public $metaFields = array(
+    protected $metaFields = array(
         'id',
         'remote_id',
         'name',
@@ -24,14 +23,14 @@ class SingleClassEzFindBuilder extends QueryBuilder
         'modified'
     );
 
-    public $parameters = array(
+    protected $parameters = array(
         'sort',
         'limit',
         'offset',
         'classes'
     );
 
-    public $operators = array(
+    protected $operators = array(
         '=',
         '!=',
         'in',
@@ -52,37 +51,41 @@ class SingleClassEzFindBuilder extends QueryBuilder
      */
     protected $classAttributes;
 
-    public function __construct( $classIdentifier )
+    public function __construct($classIdentifier)
     {
-        $this->class = eZContentClass::fetchByIdentifier( $classIdentifier );
-        if ( !$this->class instanceof eZContentClass )
-        {
-            throw new Exception( "Class $classIdentifier not found" );
+        $this->class = eZContentClass::fetchByIdentifier($classIdentifier);
+        if (!$this->class instanceof eZContentClass) {
+            throw new Exception("Class $classIdentifier not found");
         }
 
         /** @var eZContentClassAttribute[] $attributes */
-        $attributes = eZContentClassAttribute::fetchFilteredList( array( "contentclass_id" => $this->class->ID,
-                                                           "version" => $this->class->Version,
-                                                           "is_searchable" => 1) );
-        foreach ( $attributes as $attribute )
-        {
-            $this->classAttributes[$attribute->attribute( 'identifier' )] = $attribute;
+        $attributes = eZContentClassAttribute::fetchFilteredList(array(
+            "contentclass_id" => $this->class->ID,
+            "version" => $this->class->Version,
+            "is_searchable" => 1
+        ));
+        foreach ($attributes as $attribute) {
+            $this->classAttributes[$attribute->attribute('identifier')] = $attribute;
         }
-        $this->fields = array_merge( $this->fields, $this->metaFields, array_keys( $this->classAttributes ) );
-        $this->converter = new SingleClassQueryConverter( $this->classAttributes, $this->metaFields );
-        $this->tokenFactory = new TokenFactory( $this->fields, $this->operators, $this->parameters, $this->clauses );
+        $this->fields = array_merge($this->fields, $this->metaFields, array_keys($this->classAttributes));
+        $this->converter = new SingleClassQueryConverter($this->classAttributes, $this->metaFields);
+        $this->tokenFactory = new TokenFactory();
+        $this->tokenFactory->setFields($this->fields)
+                           ->setOperators($this->operators)
+                           ->setParameters($this->parameters)
+                           ->setClauses($this->clauses);
     }
 
-    public function instanceQuery( $string )
+    public function instanceQuery($string)
     {
-        $classQuery = new Query( "classes {$this->class->attribute('identifier')}" );
-        $classQuery->setTokenFactory( $this->tokenFactory );
+        $classQuery = new Query("classes {$this->class->attribute('identifier')}");
+        $classQuery->setTokenFactory($this->tokenFactory);
 
-        $query = new Query( $string );
-        $query->setTokenFactory( $this->tokenFactory );
-        $query->setConverter( $this->converter );
+        $query = new Query($string);
+        $query->setTokenFactory($this->tokenFactory);
+        $query->setConverter($this->converter);
 
-        $query->merge( $classQuery );
+        $query->merge($classQuery);
 
         return $query;
     }

@@ -99,16 +99,17 @@ class SolrNamesHelper
         } elseif ($field->data('is_function_field') && $field->data('function') == 'raw') {
             $fieldName = trim(str_replace('raw', '', (string)$field), '[]');
 
-            return array($fieldName=>$fieldName);
+            return array($fieldName => $fieldName);
         }
         throw new Exception("Can not convert field $field");
     }
 
     protected function getMetaFieldName($field, $context)
     {
-        if ((string)$field == 'name' && $context = 'sort'){
+        if ((string)$field == 'name' && $context = 'sort') {
             $field = 'sort_name';
         }
+
         return eZSolr::getMetaFieldName((string)$field, $context);
     }
 
@@ -134,10 +135,10 @@ class SolrNamesHelper
 
     protected function getSubFieldNames(Token $field, Token $subField, $context)
     {
-        if ( $context == 'sort' ){
+        if ($context == 'sort') {
             return $this->getFieldNames($field, $context);
         }
-        
+
         $data = array();
         $dataTypes = $this->getDatatypesByIdentifier((string)$field);
         foreach ($dataTypes as $dataType) {

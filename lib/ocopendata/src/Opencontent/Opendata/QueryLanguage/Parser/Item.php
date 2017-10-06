@@ -23,7 +23,7 @@ class Item
         $this->id = self::$count;
     }
 
-    public function addChild( Item $item )
+    public function addChild(Item $item)
     {
         $this->children[] = $item;
         $this->id = $item->id;
@@ -31,17 +31,18 @@ class Item
 
     public function hasChildren()
     {
-        return count( $this->children ) > 0;
+        return count($this->children) > 0;
     }
 
     public function hasSentences()
     {
-        foreach( $this->children as $child )
-        {
-            if ( $child->hasSentences() )
+        foreach ($this->children as $child) {
+            if ($child->hasSentences()) {
                 return true;
+            }
         }
-        return count( $this->sentences ) > 0;
+
+        return count($this->sentences) > 0;
     }
 
     public function getChildren()
@@ -57,7 +58,7 @@ class Item
         return $this->sentences;
     }
 
-    public function add( Sentence $sentence )
+    public function add(Sentence $sentence)
     {
         $this->sentences[] = $sentence;
     }

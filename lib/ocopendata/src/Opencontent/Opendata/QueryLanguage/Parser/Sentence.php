@@ -92,7 +92,7 @@ class Sentence
 
     public static function parseString($variableValue)
     {
-        $variableValue = trim( $variableValue );
+        $variableValue = trim($variableValue);
         if (strpos($variableValue, '[') === 0) {
             return self::parseArray($variableValue);
         }
@@ -119,7 +119,7 @@ class Sentence
                         }
                     }
                 }
-            }else{
+            } else {
                 $arrayValue = explode(",", $variableValue);
                 $arrayValue = array_map('trim', $arrayValue);
             }
@@ -128,6 +128,7 @@ class Sentence
                     return self::parseArrayAsHash($arrayValue);
                 }
             }
+
             return $arrayValue;
         }
     }
@@ -139,6 +140,7 @@ class Sentence
             @list( $key, $value ) = explode('=>', $item);
             $variableValue[trim($key)] = self::parseString(trim($value));
         }
+
         return $variableValue;
     }
 }

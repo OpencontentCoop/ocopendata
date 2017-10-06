@@ -21,7 +21,7 @@ class DatatableEnvironmentSettings extends DefaultEnvironmentSettings
             $fixData = array();
             foreach($content['data'] as $language => $data){
                 $diff = array_diff($requestNames, array_keys($data));
-                $missing = array_intersect($builder->fields, $diff);
+                $missing = array_intersect($builder->getFields(), $diff);
                 if (!empty($missing)){
                     $data = array_merge($data, array_fill_keys($missing, null));
                 }

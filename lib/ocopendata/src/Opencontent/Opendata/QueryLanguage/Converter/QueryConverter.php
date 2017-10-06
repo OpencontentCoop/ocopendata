@@ -11,7 +11,7 @@ interface QueryConverter
      *
      * @return mixed
      */
-    public function setQuery( Query $query );
+    public function setQuery(Query $query);
 
     /**
      * @return mixed

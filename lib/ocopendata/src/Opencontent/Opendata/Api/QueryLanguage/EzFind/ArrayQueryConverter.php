@@ -65,10 +65,11 @@ class ArrayQueryConverter implements QueryConverterInterface
         }
     }
 
-    private function cleanValue($value){
-        if (is_array($value)){
+    private function cleanValue($value)
+    {
+        if (is_array($value)) {
             return array_map(array($this, 'cleanValue'), $value);
-        }else{
+        } else {
             return trim($value, "'");
         }
     }

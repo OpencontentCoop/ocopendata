@@ -7,13 +7,15 @@ use Opencontent\QueryLanguage\Parser\TokenFactory;
 
 abstract class QueryBuilder
 {
-    public $fields = array();
+    protected $fields = array();
 
-    public $metaFields = array();
+    protected $metaFields = array();
 
-    public $parameters = array();
+    protected $parameters = array();
 
-    public $operators = array();
+    protected $operators = array();
+
+    public $clauses = array('and', 'or');
 
     /**
      * @var TokenFactory
@@ -25,18 +27,16 @@ abstract class QueryBuilder
      */
     protected $converter;
 
-    public $clauses = array( 'and', 'or' );
-
     /**
      * @param $string
      *
      * @return Query
      */
-    public function instanceQuery( $string )
+    public function instanceQuery($string)
     {
-        $query = new Query( (string) $string );
-        $query->setTokenFactory( $this->tokenFactory )
-            ->setConverter( $this->converter );
+        $query = new Query((string)$string);
+        $query->setTokenFactory($this->tokenFactory)
+              ->setConverter($this->converter);
 
         return $query;
     }
@@ -50,11 +50,107 @@ abstract class QueryBuilder
     }
 
     /**
+     * @param TokenFactory $tokenFactory
+     */
+    public function setTokenFactory($tokenFactory)
+    {
+        $this->tokenFactory = $tokenFactory;
+    }
+
+    /**
      * @return QueryConverter
      */
     public function getConverter()
     {
         return $this->converter;
+    }
+
+    /**
+     * @param QueryConverter $converter
+     */
+    public function setConverter($converter)
+    {
+        $this->converter = $converter;
+    }
+
+    /**
+     * @return array
+     */
+    public function getFields()
+    {
+        return $this->fields;
+    }
+
+    /**
+     * @param array $fields
+     */
+    public function setFields($fields)
+    {
+        $this->fields = $fields;
+    }
+
+    /**
+     * @return array
+     */
+    public function getMetaFields()
+    {
+        return $this->metaFields;
+    }
+
+    /**
+     * @param array $metaFields
+     */
+    public function setMetaFields($metaFields)
+    {
+        $this->metaFields = $metaFields;
+    }
+
+    /**
+     * @return array
+     */
+    public function getParameters()
+    {
+        return $this->parameters;
+    }
+
+    /**
+     * @param array $parameters
+     */
+    public function setParameters($parameters)
+    {
+        $this->parameters = $parameters;
+    }
+
+    /**
+     * @return array
+     */
+    public function getOperators()
+    {
+        return $this->operators;
+    }
+
+    /**
+     * @param array $operators
+     */
+    public function setOperators($operators)
+    {
+        $this->operators = $operators;
+    }
+
+    /**
+     * @return array
+     */
+    public function getClauses()
+    {
+        return $this->clauses;
+    }
+
+    /**
+     * @param array $clauses
+     */
+    public function setClauses($clauses)
+    {
+        $this->clauses = $clauses;
     }
 
 }

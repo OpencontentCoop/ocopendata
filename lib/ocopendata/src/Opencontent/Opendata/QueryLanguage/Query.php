@@ -40,33 +40,27 @@ class Query
      */
     protected $parser;
 
-    public function __construct( $string )
+    public function __construct($string)
     {
         $this->originalString = $string;
         $this->filters = new SplObjectStorage();
         $this->parameters = new SplObjectStorage();
-        $this->parser = new Parser( $this );
+        $this->parser = new Parser($this);
     }
 
     public function parse()
     {
-        if ( $this->parser instanceof Parser )
-        {
-            if ( $this->tokenFactory instanceof TokenFactory )
-            {
+        if ($this->parser instanceof Parser) {
+            if ($this->tokenFactory instanceof TokenFactory) {
                 $this->parser
-                    ->setTokenFactory( $this->tokenFactory )
+                    ->setTokenFactory($this->tokenFactory)
                     ->parse();
                 $this->parsed = true;
+            } else {
+                throw new \Exception("TokenFactory not found");
             }
-            else
-            {
-                throw new \Exception( "TokenFactory not found" );
-            }
-        }
-        else
-        {
-            throw new \Exception( "Parser not found" );
+        } else {
+            throw new \Exception("Parser not found");
         }
     }
 
@@ -75,14 +69,12 @@ class Query
      */
     public function convert()
     {
-        if ( $this->parsed === false )
-        {
+        if ($this->parsed === false) {
             $this->parse();
         }
 
-        if ( $this->converter instanceof QueryConverter )
-        {
-            $this->converter->setQuery( $this );
+        if ($this->converter instanceof QueryConverter) {
+            $this->converter->setQuery($this);
 
             return $this->converter->convert();
         }
@@ -93,22 +85,17 @@ class Query
     public function __toString()
     {
         $string = '';
-        try
-        {
-            if ( $this->parsed === false )
-            {
+        try {
+            if ($this->parsed === false) {
                 $this->parse();
             }
 
             $converter = new StringQueryConverter();
-            if ( $converter instanceof QueryConverter )
-            {
-                $converter->setQuery( $this );
+            if ($converter instanceof QueryConverter) {
+                $converter->setQuery($this);
                 $string = $converter->convert();
             }
-        }
-        catch ( \Exception $e )
-        {
+        } catch (\Exception $e) {
             // evita eccezione nel casting (string)
         }
 
@@ -120,32 +107,31 @@ class Query
         return $this->originalString;
     }
 
-    public function setTokenFactory( TokenFactory $tokenFactory )
+    public function setTokenFactory(TokenFactory $tokenFactory)
     {
         $this->tokenFactory = $tokenFactory;
 
         return $this;
     }
 
-    public function setConverter( QueryConverter $converter )
+    public function setConverter(QueryConverter $converter)
     {
         $this->converter = $converter;
 
         return $this;
     }
 
-    public function setParser( Parser $parser )
+    public function setParser(Parser $parser)
     {
         $this->parser = $parser;
 
         return $this;
     }
 
-    public function appendFilter( Item $item )
+    public function appendFilter(Item $item)
     {
-        if ( $item->hasSentences() )
-        {
-            $this->filters->attach( $item, (string)$item );
+        if ($item->hasSentences()) {
+            $this->filters->attach($item, (string)$item);
         }
     }
 
@@ -155,17 +141,16 @@ class Query
     public function getFilters()
     {
         $items = array();
-        foreach ( $this->filters as $item )
-        {
+        foreach ($this->filters as $item) {
             $items[$item->id] = $item;
         }
 
         return $items;
     }
 
-    public function appendParameter( Item $item )
+    public function appendParameter(Item $item)
     {
-        $this->parameters->attach( $item, (string)$item );
+        $this->parameters->attach($item, (string)$item);
     }
 
     /**
@@ -176,60 +161,54 @@ class Query
         return $this->parameters;
     }
 
-    public function setParameter( $key, $value )
+    public function setParameter($key, $value)
     {
         $keyToken = new Parser\Token();
-        $keyToken->setToken( (string)$key );
-        $keyToken->setType( 'value' );
+        $keyToken->setToken((string)$key);
+        $keyToken->setType('value');
 
         $valueToken = new Parser\Token();
-        $valueToken->setToken( (string)$value );
-        $valueToken->setType( 'value' );
+        $valueToken->setToken((string)$value);
+        $valueToken->setType('value');
 
         $done = false;
-        foreach ( $this->getParameters() as $item )
-        {
-            foreach ( $item->getSentences() as $parameter )
-            {
-                if ( $parameter instanceof Parser\Parameter
-                     && (string)$parameter->getKey() == $key
-                )
-                {
-                    $parameter->setValue( $valueToken );
+        foreach ($this->getParameters() as $item) {
+            foreach ($item->getSentences() as $parameter) {
+                if ($parameter instanceof Parser\Parameter
+                    && (string)$parameter->getKey() == $key
+                ) {
+                    $parameter->setValue($valueToken);
                     $done = true;
                 }
             }
         }
-        if ( !$done )
-        {
+        if (!$done) {
 
             $newParameter = new Parser\Parameter();
-            $newParameter->setKey( $keyToken );
-            $newParameter->setValue( $valueToken );
+            $newParameter->setKey($keyToken);
+            $newParameter->setValue($valueToken);
 
             $newItem = new Item();
-            $newItem->add( $newParameter );
+            $newItem->add($newParameter);
 
-            $this->appendParameter( $newItem );
+            $this->appendParameter($newItem);
         }
 
         return $this;
     }
 
-    public function merge( Query $query )
+    public function merge(Query $query)
     {
         $query->parse();
 
-        foreach ( $query->getFilters() as $item )
-        {
-            $item->id = uniqid( 'merged', $item->id );
-            $this->appendFilter( $item );
+        foreach ($query->getFilters() as $item) {
+            $item->id = uniqid('merged', $item->id);
+            $this->appendFilter($item);
         }
 
-        foreach ( $query->getParameters() as $item )
-        {
-            $item->id = uniqid( 'merged', $item->id );
-            $this->appendParameter( $item );
+        foreach ($query->getParameters() as $item) {
+            $item->id = uniqid('merged', $item->id);
+            $this->appendParameter($item);
         }
     }
 }

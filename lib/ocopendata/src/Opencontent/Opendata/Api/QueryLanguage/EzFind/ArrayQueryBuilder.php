@@ -26,11 +26,11 @@ class ArrayQueryBuilder extends QueryBuilder
             }
         }
 
-        if (empty($this->normalized)){
+        if (empty( $this->normalized )) {
             throw new \Exception("Wrong parameters");
         }
 
-        return implode( ' and ', $this->normalized);
+        return implode(' and ', $this->normalized);
     }
 
     private function stringify($field, $value, $isFilter = true)

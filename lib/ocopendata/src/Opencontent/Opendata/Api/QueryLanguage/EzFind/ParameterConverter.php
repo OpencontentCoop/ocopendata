@@ -101,11 +101,10 @@ class ParameterConverter extends SentenceConverter
                 if (!in_array($order, array('asc', 'desc'))) {
                     throw new Exception("Can not convert sort order value: $order");
                 }
-                if ( $field == 'name' ) {
-                    $fieldNames = array( 'sort_name' );
-                }
-                elseif ( $field == 'score' ) {
-                    $fieldNames = array( 'score' );
+                if ($field == 'name') {
+                    $fieldNames = array('sort_name');
+                } elseif ($field == 'score') {
+                    $fieldNames = array('score');
                 } else {
                     $fieldNames = $this->solrNamesHelper->generateSortNames($field);
                 }
@@ -196,40 +195,39 @@ class ParameterConverter extends SentenceConverter
 
         foreach ($value as $item) {
 
-            $item = self::parseFacetQueryValue( $item );
+            $item = self::parseFacetQueryValue($item);
 
-            switch( $item['field'] )
-            {
-                case 'author':
-                {
-                    $fields = array( \eZSolr::getMetaFieldName( 'owner_id', 'facet' ) );
-                } break;
+            switch ($item['field']) {
+                case 'author': {
+                    $fields = array(\eZSolr::getMetaFieldName('owner_id', 'facet'));
+                }
+                    break;
 
-                case 'class':
-                {
-                    $fields = array( \eZSolr::getMetaFieldName( 'class_identifier', 'facet' ) );
-                } break;
+                case 'class': {
+                    $fields = array(\eZSolr::getMetaFieldName('class_identifier', 'facet'));
+                }
+                    break;
 
-//                case 'installation':
-//                {
-//                    $fields = array( \eZSolr::getMetaFieldName( 'installation_id', 'facet' ) );
-//                } break;
+                //                case 'installation':
+                //                {
+                //                    $fields = array( \eZSolr::getMetaFieldName( 'installation_id', 'facet' ) );
+                //                } break;
 
-                case 'translation':
-                {
-                    $fields = array( \eZSolr::getMetaFieldName( 'language_code', 'facet' ) );
-                } break;
+                case 'translation': {
+                    $fields = array(\eZSolr::getMetaFieldName('language_code', 'facet'));
+                }
+                    break;
 
-                default:
-                {
+                default: {
                     $fields = $this->solrNamesHelper->generateFieldNames($item['field'], 'filter');
-                } break;
+                }
+                    break;
             }
 
             foreach ($fields as $field) {
                 $facets[] = array(
                     'field' => $field,
-                    'name'=> $item['field'],
+                    'name' => $item['field'],
                     'limit' => $item['limit'],
                     'offset' => $item['offset'],
                     'sort' => $item['sort']
@@ -239,12 +237,13 @@ class ParameterConverter extends SentenceConverter
         $this->convertedQuery['Facet'] = $facets;
     }
 
-    public static function parseFacetQueryValue( $item )
+    public static function parseFacetQueryValue($item)
     {
-        $item = trim( $item, "'" );
-        @list( $field, $sort, $limit, $offset ) = explode( '|', $item );
+        $item = trim($item, "'");
+        @list( $field, $sort, $limit, $offset ) = explode('|', $item);
+
         return array(
-            'field'=> $field,
+            'field' => $field,
             'limit' => $limit ? $limit : 100,
             'offset' => $offset ? $offset : 0,
             'sort' => $sort ? $sort : 'count'
@@ -265,8 +264,9 @@ class ParameterConverter extends SentenceConverter
         if (!is_array($value)) {
             $value = array($value);
         }
-        $value = array_map(function($value){
+        $value = array_map(function ($value) {
             $value = trim($value, "''");
+
             return trim($value);
         }, $value);
 

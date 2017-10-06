@@ -21,10 +21,10 @@ try
 {
     $factory = new \Opencontent\Opendata\Api\QueryLanguage\EzFind\QueryBuilder();
     $tokenFactory = $factory->getTokenFactory();
-    $fields = $factory->fields;
-    $metaFields = $factory->metaFields;
-    $operators = $factory->operators;
-    $parameters = $factory->parameters;
+    $fields = $factory->getFields();
+    $metaFields = $factory->getMetaFields();
+    $operators = $factory->getOperators();
+    $parameters = $factory->getParameters();
     $tokens = array_unique( array_merge( $fields, $parameters, $operators ) );
     sort( $tokens );
 

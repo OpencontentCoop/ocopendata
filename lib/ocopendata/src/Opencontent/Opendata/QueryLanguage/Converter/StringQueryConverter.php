@@ -20,53 +20,48 @@ class StringQueryConverter implements QueryConverter
      */
     protected $convertedQuery = array();
 
-    public function setQuery( Query $query )
+    public function setQuery(Query $query)
     {
         $this->query = $query;
     }
 
     public function convert()
     {
-        if ( $this->query instanceof Query )
-        {
-            foreach ( $this->query->getFilters() as $item )
-            {
-                $this->convertedQuery[] = $this->parseItem( $item );
+        if ($this->query instanceof Query) {
+            foreach ($this->query->getFilters() as $item) {
+                $this->convertedQuery[] = $this->parseItem($item);
             }
 
-            foreach ( $this->query->getParameters() as $parameters )
-            {
-                $this->convertedQuery[] = $this->parseItem( $parameters );
+            foreach ($this->query->getParameters() as $parameters) {
+                $this->convertedQuery[] = $this->parseItem($parameters);
             }
         }
 
-        return implode( self::SEPARATOR, $this->convertedQuery );
+        return implode(self::SEPARATOR, $this->convertedQuery);
     }
 
-    protected function parseItem( Item $item )
+    protected function parseItem(Item $item)
     {
         $query = '';
-        if ( $item->hasSentences() )
-        {
+        if ($item->hasSentences()) {
             $queryItems = array();
-            foreach ( $item->getSentences() as $sentence )
-            {
-                $queryItems[] = (string) $sentence;
+            foreach ($item->getSentences() as $sentence) {
+                $queryItems[] = (string)$sentence;
             }
-            if ( $item->hasChildren() )
-            {
-                foreach ( $item->getChildren() as $child )
-                {
-                    $queryItems[] = '( ' . $this->parseItem( $child ) . ' )';
+            if ($item->hasChildren()) {
+                foreach ($item->getChildren() as $child) {
+                    $queryItems[] = '( ' . $this->parseItem($child) . ' )';
                 }
             }
 
             $separator = self::SEPARATOR;
-            if ( (string)$item->clause != '' )
+            if ((string)$item->clause != '') {
                 $separator = self::SEPARATOR . (string)$item->clause . self::SEPARATOR;
+            }
 
-            $query = implode( $separator, $queryItems );
+            $query = implode($separator, $queryItems);
         }
+
         return $query;
     }
 }
