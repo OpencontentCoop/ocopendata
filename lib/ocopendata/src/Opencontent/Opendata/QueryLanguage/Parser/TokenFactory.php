@@ -38,12 +38,16 @@ class TokenFactory
     {
         if ($this->isField($token)) {
             $this->setIsField($token);
+
         } elseif ($this->isClause($token)) {
             $this->setIsClause($token);
+
         } elseif ($this->isParameter($token)) {
             $this->setIsParameter($token);
+
         } elseif ($this->isOperator($token)) {
             $this->setIsOperator($token);
+
         } else {
             $token->setType('value');
         }
