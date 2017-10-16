@@ -4,8 +4,14 @@ namespace Opencontent\QueryLanguage\Parser;
 
 class Parameter extends Sentence
 {
+    /**
+     * @var Token
+     */
     protected $key;
 
+    /**
+     * @var Token
+     */
     protected $value;
 
     public function setKey(Token $data)

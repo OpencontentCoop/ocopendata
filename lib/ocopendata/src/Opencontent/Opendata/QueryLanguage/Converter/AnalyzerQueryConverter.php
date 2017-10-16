@@ -58,16 +58,20 @@ class AnalyzerQueryConverter implements QueryConverter
                     $convertedItems[] = array(
                         'type' => 'parameter',
                         'key' => (string)$sentence->getKey(),
+                        'key_data' => $sentence->getKey()->data(),
                         'value' => $sentence->stringValue(),
-                        'format' => is_array($sentence->getValue()) ? 'array' : 'string'
+                        'format' => is_array($sentence->getValue()) ? 'array' : 'string',
+                        '_toString' => (string)$sentence
                     );
                 } else {
                     $convertedItems[] = array(
                         'type' => 'filter',
                         'field' => (string)$sentence->getField(),
+                        'field_data' => $sentence->getField()->data(),
                         'operator' => (string)$sentence->getOperator(),
                         'value' => $sentence->stringValue(),
-                        'format' => is_array($sentence->getValue()) ? 'array' : 'string'
+                        'format' => is_array($sentence->getValue()) ? 'array' : 'string',
+                        '_toString' => (string)$sentence
                     );
                 }
             }
