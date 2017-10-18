@@ -24,17 +24,17 @@
             {/if}
         {undef $name_parts}
     {/foreach}
-    
+
     {def $style = 'col-even'
          $has_content = false()}
-    
+
     {foreach $resource_attributes as $attribute}
         {if $attribute.has_content}
             {set $has_content = true()}
             {break}
         {/if}
     {/foreach}
-    
+
     {if $has_content}
     <div class="opendata_resource oggetti-correlati">
         <div class="border-header border-box box-trans-blue box-allegati-header">
@@ -70,7 +70,7 @@
         </div>
     </div>
     {/if}
-    
-    
+
+
     {undef $resource_attributes $style $has_content}
 {/for}

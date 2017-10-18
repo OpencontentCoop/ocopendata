@@ -3,4 +3,6 @@
 [ModuleSettings]
 ExtensionRepositories[]=ocopendata
 ModuleList[]=opendata
+ModuleList[]=ckan
+
 */ ?>

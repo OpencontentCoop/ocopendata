@@ -101,13 +101,14 @@ class OCOpenDataApiNode implements ArrayAccess
                                'SearchLimit' => 1,
                                'Filter' => array( 'or', 'meta_name_t:"' . $this->metadata['objectName'] . '"' ),
                                'SearchSubTreeArray' => array( $parentNodeID ) );
-
+        
         $search = $searchEngine->search( '', $searchParams);
         if ( $search['SearchCount'] > 0 )
         {            
             throw new Exception( "Sembra che esista già un oggetto con nome \"{$this->metadata['objectName']}\" in {$parentNodeID}" );
         }        
         
+
         $params                     = array();        
         $params['class_identifier'] = $this->metadata['classIdentifier'];
         $params['remote_id']        = $localRemoteIdPrefix . $this->metadata['objectRemoteId'];
@@ -206,24 +207,39 @@ class OCOpenDataApiNode implements ArrayAccess
         {
             foreach ( $fieldArray['value'] as $item )
             {
-                try
-                {
-                    $remoteApiNode = OCOpenDataApiNode::fromLink( $item['link'] );
-                    if ( !$remoteApiNode instanceof OCOpenDataApiNode )
-                    {
-                        throw new Exception( "Api node not found" );
+                try{
+                    
+                    // Nella variabile $link imposto il link all'oggetto
+                    $link = '';
+                    if( is_array($item) ){
+                        if( array_key_exists ( 'link' , $item ) && substr( $item['link'], 0, 4 ) === "http" ){
+                            $link = $item['link'];
+                        }
                     }
-                    if ( $isUpdate )
-                    {
-                        $newObject = $remoteApiNode->updateContentObject();
+                    else if( substr( $item, 0, 4 ) === "http" ){
+                        $link = $item;
                     }
-                    else
-                    {
-                        $newObject = $remoteApiNode->createContentObject( $parentNodeID );
-                    }
-                    if ( $newObject instanceof eZContentObject )
-                    {
-                        $data[] = $newObject->attribute( 'id' );
+                    
+                    if($link != "" && strpos( $link, "/api/" ) !== false ){
+                        
+                        $remoteApiNode = OCOpenDataApiNode::fromLink( $link );
+                        
+                        if ( !$remoteApiNode instanceof OCOpenDataApiNode )
+                        {
+                            throw new Exception( "Api node not found" );
+                        }
+                        if ( $isUpdate )
+                        {
+                            $newObject = $remoteApiNode->updateContentObject();
+                        }
+                        else
+                        {
+                            $newObject = $remoteApiNode->createContentObject( $parentNodeID );
+                        }
+                        if ( $newObject instanceof eZContentObject )
+                        {
+                            $data[] = $newObject->attribute( 'id' );
+                        }
                     }
                 }
                 catch ( Exception $e )

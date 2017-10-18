@@ -2,25 +2,21 @@
      $oggetti_senza_label = openpaini( 'GestioneAttributi', 'oggetti_senza_label' )
      $attributi_senza_link = openpaini( 'GestioneAttributi', 'attributi_senza_link' )
      $attributi_da_evidenziare = openpaini( 'GestioneAttributi', 'attributi_da_evidenziare' )}
-     
+
 <div class="attributi-base">
 	{def $style='col-odd'}
    	{foreach $node.object.contentobject_attributes as $attribute}
-		
+
         {if $attribute.contentclass_attribute_identifier|begins_with( 'resource' )}
             {skip}
         {/if}
-        
+
         {if and( $attribute.has_content, $attribute.content|ne('0') )}
-		
+
         	{if $attributi_da_escludere|contains( $attribute.contentclass_attribute_identifier )|not()}
-                
-                {if and( flip_exists( $attribute.contentobject_id ), $attribute.contentclass_attribute_identifier|eq( 'file' ) )}
-                    {set $oggetti_senza_label = $oggetti_senza_label|append( $attribute.contentclass_attribute_identifier )}
-                {/if}
-				
+
                 {if $style|eq( 'col-even' )}{set $style = 'col-odd'}{else}{set $style = 'col-even'}{/if}
-				
+
                 {if $oggetti_senza_label|contains( $attribute.contentclass_attribute_identifier )|not()}
 				   <div class="{$style} col float-break attribute-{$attribute.contentclass_attribute_identifier}">
 						<div class="col-title"><span class="label">{$attribute.contentclass_attribute_name}</span></div>
@@ -43,7 +39,7 @@
 					</div></div>
 				   </div>
 				{/if}
-			{/if} 		
+			{/if}
 		{/if}
 	{/foreach}
 </div>
