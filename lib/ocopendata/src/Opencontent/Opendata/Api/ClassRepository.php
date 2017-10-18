@@ -61,19 +61,13 @@ class ClassRepository
         ksort( $classList );
 
         $db = eZDB::instance();
-        $counts = $db->arrayQuery(
-            'SELECT contentclass_id, count(contentclass_id) AS count ' .
-            'FROM ezcontentobject ' .
+        $list = $db->arrayQuery(
+            'SELECT contentclass_id, identifier, serialized_name_list, count(contentclass_id) AS count ' .
+            'FROM ezcontentobject INNER JOIN ezcontentclass ON ezcontentobject.contentclass_id = ezcontentclass.id ' .
             'WHERE contentclass_id IN (' . implode( ',', $classList ) . ') ' .
             'AND status = ' . eZContentObject::STATUS_PUBLISHED . ' ' .
             'GROUP BY contentclass_id'
         );
-
-        $countList = array();
-        foreach ( $counts as $count )
-        {
-            $countList[$count['contentclass_id']] = (int)$count['count'];
-        }
 
         $classIdentifierBlackList = array();
         if ( EnvironmentLoader::ini()->hasVariable(
@@ -86,15 +80,18 @@ class ClassRepository
             );
         }
 
-        foreach ( $classList as $identifier => $id )
-        {
-            if ( !in_array( $identifier, $classIdentifierBlackList ) )
-            {
+        $nameList = new \eZContentClassNameList();
+        foreach ($list as $item) {
+            if (!in_array($item['identifier'], $classIdentifierBlackList)) {
+                $nameList->initFromSerializedList($item['serialized_name_list']);
                 $classes[] = array(
-                    'identifier' => $identifier,
-                    'contents' => isset( $countList[$id] ) ? $countList[$id] : 0
+                    'name' => $nameList->name(),
+                    'nameList' => $nameList->NameList,
+                    'identifier' => $item['identifier'],
+                    'contents' => (int)$item['count']
                 );
             }
+            $countList[$count['contentclass_id']] = (int)$count['count'];
         }
 
         return $classes;

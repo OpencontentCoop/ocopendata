@@ -95,6 +95,9 @@ class PublicationProcess
 
             // publish
             $publisher = \SQLIContentPublisher::getInstance();
+            $publisherOptions = new \SQLIContentPublishOptions();
+            $publisherOptions->modification_check = false;
+            $publisher->setOptions($publisherOptions);
             $publisher->publish($content);
 
             // handle error

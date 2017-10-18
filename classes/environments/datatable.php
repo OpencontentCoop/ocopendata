@@ -17,7 +17,6 @@ class DatatableEnvironmentSettings extends DefaultEnvironmentSettings
             $requestNames[] = $column['name'];
         }
 
-        $hits = array();
         foreach($searchResults->searchHits as &$content){
             $fixData = array();
             foreach($content['data'] as $language => $data){

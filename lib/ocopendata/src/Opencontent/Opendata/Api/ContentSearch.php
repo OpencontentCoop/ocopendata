@@ -7,6 +7,7 @@ use Opencontent\Opendata\Api\Gateway\SolrStorage;
 use Opencontent\Opendata\Api\QueryLanguage\EzFind\QueryBuilder;
 use Opencontent\Opendata\Api\Values\Content;
 use Opencontent\Opendata\Api\Values\ContentData;
+use Opencontent\Opendata\Api\Values\ExtraData;
 use Opencontent\Opendata\Api\Values\Metadata;
 use Opencontent\Opendata\Api\Values\SearchResults;
 use Exception;
@@ -36,107 +37,111 @@ class ContentSearch
         $this->queryBuilder = new QueryBuilder();
     }
 
-    public function search( $query, array $limitation = null )
+    public function search($query, array $limitation = null)
     {
         $this->query = $query;
 
-        $queryObject = $this->queryBuilder->instanceQuery( $query );
+        $queryObject = $this->queryBuilder->instanceQuery($query);
         $ezFindQueryObject = $queryObject->convert();
 
-        if ( !$ezFindQueryObject instanceof ArrayObject )
-        {
-            throw new \RuntimeException( "Query builder did not return a valid query" );
+        if (!$ezFindQueryObject instanceof ArrayObject) {
+            throw new \RuntimeException("Query builder did not return a valid query");
         }
 
-        $ezFindQueryObject = $this->currentEnvironmentSettings->filterQuery( $ezFindQueryObject, $this->queryBuilder );
+        $ezFindQueryObject = $this->currentEnvironmentSettings->filterQuery($ezFindQueryObject, $this->queryBuilder);
         $ezFindQuery = $ezFindQueryObject->getArrayCopy();
 
         //$ezFindQuery['Filter'][] = ezfSolrDocumentFieldBase::generateMetaFieldName('installation_id') . ':' . eZSolr::installationID();
+        if (is_array($limitation) && empty( $limitation )) {
+            $ezFindQuery['Filter'][] = \ezfSolrDocumentFieldBase::generateMetaFieldName('installation_id') . ':' . \eZSolr::installationID();
+        }
         $ezFindQuery['Limitation'] = $limitation;
         $ezFindQuery['AsObjects'] = false;
-        $ezFindQuery['FieldsToReturn'] = array( SolrStorage::getSolrIdentifier() );
+        $ezFindQuery['FieldsToReturn'] = array(SolrStorage::getSolrIdentifier());
+
+        $filterFields = isset( $ezFindQuery['_filterFields'] ) ? $ezFindQuery['_filterFields'] : null;
+        unset( $ezFindQuery['_filterFields'] );
+
+        $filterLanguages = isset( $ezFindQuery['_filterLanguages'] ) ? $ezFindQuery['_filterLanguages'] : null;
+        unset( $ezFindQuery['_filterLanguages'] );
 
         $solr = new eZSolr();
         $rawResults = @$solr->search(
             $ezFindQuery['_query'],
             $ezFindQuery
         );
-        if ( $rawResults['SearchExtras'] instanceof ezfSearchResultInfo )
-        {
-            if ( $rawResults['SearchExtras']->attribute( 'hasError' ) )
-            {
-                $error = $rawResults['SearchExtras']->attribute( 'error' );
-                if ( is_array( $error ) )
-                {
+        if ($rawResults['SearchExtras'] instanceof ezfSearchResultInfo) {
+            if ($rawResults['SearchExtras']->attribute('hasError')) {
+                $error = $rawResults['SearchExtras']->attribute('error');
+                if (is_array($error)) {
                     $error = (string)$error['msg'];
                 }
-                throw new \RuntimeException( $error );
+                throw new \RuntimeException($error);
             }
         }
 
         $searchResults = new SearchResults();
-        if ( $this->currentEnvironmentSettings->__get( 'debug' ) == true )
-        {
+        $filterFieldsResult = array();
+
+        if ($this->currentEnvironmentSettings->__get('debug') == true) {
             $searchResults->query = array(
                 'string' => (string)$queryObject,
                 'eZFindQuery' => $ezFindQuery
             );
 
-            if ( $rawResults['SearchExtras'] instanceof ezfSearchResultInfo )
-            {
+            if ($rawResults['SearchExtras'] instanceof ezfSearchResultInfo) {
                 $searchResults->query['responseHeader'] = $rawResults['SearchExtras']->attribute(
                     'responseHeader'
                 );
             }
-        }
-        else
-        {
+        } else {
             $searchResults->query = (string)$queryObject;
         }
 
         $searchResults->totalCount = (int)$rawResults['SearchCount'];
 
-        if ( ( $ezFindQuery['SearchLimit'] + $ezFindQuery['SearchOffset'] ) < $searchResults->totalCount )
-        {
+        if (( $ezFindQuery['SearchLimit'] + $ezFindQuery['SearchOffset'] ) < $searchResults->totalCount) {
             $nextPageQuery = clone $queryObject;
-            $nextPageQuery->setParameter( 'offset', ( $ezFindQuery['SearchLimit'] + $ezFindQuery['SearchOffset'] ) );
+            $nextPageQuery->setParameter('offset', ( $ezFindQuery['SearchLimit'] + $ezFindQuery['SearchOffset'] ));
             $searchResults->nextPageQuery = (string)$nextPageQuery;
         }
 
         $fileSystemGateway = new FileSystem();
         $contentRepository = new ContentRepository();
-        $contentRepository->setEnvironment( $this->currentEnvironmentSettings );
+        $contentRepository->setEnvironment($this->currentEnvironmentSettings);
 
-        foreach ( $rawResults['SearchResult'] as $resultItem )
-        {
+        foreach ($rawResults['SearchResult'] as $resultItem) {
             $id = isset( $resultItem['meta_id_si'] ) ? $resultItem['meta_id_si'] : isset( $resultItem['id_si'] ) ? $resultItem['id_si'] : $resultItem['id'];
-            try
-            {
-                if ( isset( $resultItem['data_map']['opendatastorage'] ) )
-                {
+            try {
+                if (isset( $resultItem['data_map']['opendatastorage'] )) {
                     $contentArray = $resultItem['data_map']['opendatastorage'];
                     $content = new Content();
-                    $content->metadata = new Metadata( (array)$contentArray['metadata'] );
-                    $content->data = new ContentData( (array)$contentArray['data'] );
-                }
-                else
-                {
-                    $content = $fileSystemGateway->loadContent( (int)$id );
+                    $content->metadata = new Metadata((array)$contentArray['metadata']);
+                    $content->data = new ContentData((array)$contentArray['data']);
+                    if (isset( $contentArray['extradata'] )) {
+                        $content->extraData = new ExtraData((array)$contentArray['extradata']);
+                    }
+                } else {
+                    $content = $fileSystemGateway->loadContent((int)$id);
                 }
 
                 $ignorePolicies = false;
-                if (is_array($limitation)){
-                    if (empty($limitation) || ( isset($limitation['accessWord']) && $limitation['accessWord'] == 'yes') ){
+                if (is_array($limitation)) {
+                    if (empty( $limitation ) || ( isset( $limitation['accessWord'] ) && $limitation['accessWord'] == 'yes' )) {
                         $ignorePolicies = true;
                     }
                 }
-                $content = $contentRepository->read( $content, $ignorePolicies );
-                $searchResults->searchHits[] = $content;
-            }
-            catch ( Exception $e )
-            {
+                $content = $contentRepository->read($content, $ignorePolicies);
+
+                if ($filterFields !== null) {
+                    $this->filterFields($filterFieldsResult, $content, $filterFields, $filterLanguages);
+                } else {
+                    $searchResults->searchHits[] = $content;
+                }
+
+            } catch (Exception $e) {
                 $content = new Content();
-                $content->metadata = new Metadata( array( 'id' => $id ) );
+                $content->metadata = new Metadata(array('id' => $id));
                 $content->data = new ContentData(
                     array(
                         '_error' => $e->getMessage(),
@@ -146,15 +151,14 @@ class ContentSearch
             }
         }
 
-        if ( isset( $ezFindQuery['Facet'] )
-             && is_array( $ezFindQuery['Facet'] )
-             && !empty( $ezFindQuery['Facet'] )
-             && $rawResults['SearchExtras'] instanceof ezfSearchResultInfo)
-        {
+        if (isset( $ezFindQuery['Facet'] )
+            && is_array($ezFindQuery['Facet'])
+            && !empty( $ezFindQuery['Facet'] )
+            && $rawResults['SearchExtras'] instanceof ezfSearchResultInfo
+        ) {
             $facets = array();
             $facetResults = $rawResults['SearchExtras']->attribute('facet_fields');
-            foreach( $ezFindQuery['Facet'] as $index => $facetDefinition )
-            {
+            foreach ($ezFindQuery['Facet'] as $index => $facetDefinition) {
                 $facetResult = $facetResults[$index];
                 $facets[] = array(
                     'name' => $facetDefinition['name'],
@@ -164,7 +168,12 @@ class ContentSearch
             $searchResults->facets = $facets;
         }
 
-        return $this->currentEnvironmentSettings->filterSearchResult( $searchResults, $ezFindQueryObject, $this->queryBuilder );
+        if ($filterFields !== null) {
+            return $filterFieldsResult;
+        }
+
+        return $this->currentEnvironmentSettings->filterSearchResult($searchResults, $ezFindQueryObject,
+            $this->queryBuilder);
     }
 
     /**
@@ -200,7 +209,7 @@ class ContentSearch
      *
      * @return $this
      */
-    public function setEnvironment( EnvironmentSettings $environmentSettings )
+    public function setEnvironment(EnvironmentSettings $environmentSettings)
     {
         $this->currentEnvironmentSettings = $environmentSettings;
 
@@ -241,4 +250,90 @@ class ContentSearch
         return $this;
     }
 
+    private function filterFields(&$filterFieldsResult, $content, array $fields, array $languages = null)
+    {
+        $data = array();
+
+        if (!$languages) {
+            $languages = $content['metadata']['languages'];
+        }
+
+        $combine = false;
+
+        if (count($fields) == 1) {
+            reset($fields);
+            $firstKey = key($fields);
+            if (!is_numeric($firstKey)) {
+                $fields = array_values($fields);
+                array_unshift($fields, $firstKey);
+                $combine = true;
+            }
+        }
+
+        $fieldIdentifiers = array();
+        foreach ($fields as $field) {
+
+            $fieldNameParts = explode(' as ', $field);
+            $parts = explode('.', $fieldNameParts[0]);
+            $groupIdentifier = $parts[0];
+            $fieldIdentifier = $parts[1];
+
+            if ($combine) {
+                $fieldName = $fieldIdentifier;
+                $fieldIdentifiers[] = $fieldIdentifier;
+            } else {
+                $fieldName = isset( $fieldNameParts[1] ) ? $fieldNameParts[1] : null;
+            }
+
+            if ($groupIdentifier == 'metadata' && isset( $content['metadata'][$fieldIdentifier] )) {
+                if ($fieldIdentifier == 'name' || $fieldIdentifier == 'ownerName') {
+                    $item = null;
+                    if (count($languages) == 1 || $combine) {
+                        $item = trim($content['metadata'][$fieldIdentifier][$languages[0]]);
+                    } else {
+                        $item = array();
+                        foreach ($languages as $language) {
+                            $item[$language] = isset( $content['metadata'][$fieldIdentifier][$language] ) ? $content['metadata'][$fieldIdentifier][$language] : null;
+                        }
+                    }
+
+                    if ($fieldName) {
+                        $data[$fieldName] = $item;
+                    } else {
+                        $data = $item;
+                    }
+                } else {
+                    $item = isset( $content['metadata'][$fieldIdentifier] ) ? $content['metadata'][$fieldIdentifier] : null;
+                    if ($fieldName) {
+                        $data[$fieldName] = $item;
+                    } else {
+                        $data = $item;
+                    }
+
+                }
+            } elseif ($groupIdentifier == 'data') {
+
+                $item = null;
+                if (count($languages) == 1 || $combine) {
+                    $item = isset( $content['data'][$languages[0]][$fieldIdentifier] ) ? $content['data'][$languages[0]][$fieldIdentifier] : null;
+                } else {
+                    $item = array();
+                    foreach ($languages as $language) {
+                        $item[$language] = isset( $content['data'][$languages][$fieldIdentifier] ) ? $content['data'][$languages][$fieldIdentifier] : null;
+                    }
+                }
+                if ($fieldName) {
+                    $data[$fieldName] = $item;
+                } else {
+                    $data = $item;
+                }
+            }
+        }
+
+        if ($combine) {
+            $filterFieldsResult[$data[$fieldIdentifiers[0]]] = $data[$fieldIdentifiers[1]];
+        } else {
+            $filterFieldsResult[] = $data;
+        }
+    }
 }

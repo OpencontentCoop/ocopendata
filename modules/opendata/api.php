@@ -49,6 +49,10 @@ try
         {
             $data = (array)$contentSearch->search( $Param );
         }
+        elseif ( $Action == 'browse' )
+        {
+            $data = (array)$contentBrowser->browse( $Param );
+        }
     }
 }
 catch( Exception $e )
@@ -59,6 +63,8 @@ catch( Exception $e )
     );
     if ( $Debug )
     {
+        $data['file'] = $e->getFile();
+        $data['line'] = $e->getLine();
         $data['trace'] = $e->getTraceAsString();
     }
 }

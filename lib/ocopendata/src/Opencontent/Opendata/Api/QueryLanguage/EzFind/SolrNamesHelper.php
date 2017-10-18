@@ -106,6 +106,9 @@ class SolrNamesHelper
 
     protected function getMetaFieldName($field, $context)
     {
+        if ((string)$field == 'name' && $context = 'sort'){
+            $field = 'sort_name';
+        }
         return eZSolr::getMetaFieldName((string)$field, $context);
     }
 

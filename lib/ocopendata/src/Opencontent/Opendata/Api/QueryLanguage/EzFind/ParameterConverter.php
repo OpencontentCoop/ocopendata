@@ -56,6 +56,15 @@ class ParameterConverter extends SentenceConverter
                 }
                     break;
 
+                case 'select-fields': {
+                    $this->convertSelect($value);
+                }
+                    break;
+
+                case 'language': {
+                    $this->convertLanguage($value);
+                }
+                    break;
 
                 default:
                     throw new Exception("Can not convert $key parameter");
@@ -240,6 +249,28 @@ class ParameterConverter extends SentenceConverter
             'offset' => $offset ? $offset : 0,
             'sort' => $sort ? $sort : 'count'
         );
+    }
+
+    protected function convertSelect($value)
+    {
+        if (!is_array($value)) {
+            $value = array($value);
+        }
+
+        $this->convertedQuery['_filterFields'] = $value;
+    }
+
+    protected function convertLanguage($value)
+    {
+        if (!is_array($value)) {
+            $value = array($value);
+        }
+        $value = array_map(function($value){
+            $value = trim($value, "''");
+            return trim($value);
+        }, $value);
+
+        $this->convertedQuery['_filterLanguages'] = $value;
     }
 
 }

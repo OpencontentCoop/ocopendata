@@ -50,8 +50,8 @@ class Selection extends Base
 
     public function toCSVString($content, $params = null)
     {
-        if (is_array($content) && isset( $content['value'] )) {
-            return \eZStringUtils::implodeStr((array)$content['value'], '|');
+        if (is_array($content)) {
+            return \eZStringUtils::implodeStr($content, '|');
         }
 
         return '';
