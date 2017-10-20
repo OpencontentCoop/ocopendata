@@ -18,7 +18,8 @@ class Tags extends Base
         $tagsList = explode(', ', $attribute->metaData() );
         $tags = array();
         foreach ($tagsList as $tag) {
-            if (!empty(trim($tag))){
+            $tag = trim($tag);
+            if (!empty($tag)){
                 $tags[] = $tag;
             }
         }
