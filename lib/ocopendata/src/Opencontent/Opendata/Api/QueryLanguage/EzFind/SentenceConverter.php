@@ -150,8 +150,8 @@ class SentenceConverter
         {
             throw new Exception( "Function field 'calendar' requires two parameters (e.g: calendar[from_time, to_time] = [yesterday, today])" );
         }
-        $fromFieldNames = $this->solrNamesHelper->generateSortNames( $fields[0] );
-        $toFieldNames = $this->solrNamesHelper->generateSortNames( $fields[1] );
+        $fromFieldNames = $this->solrNamesHelper->generateFieldNames( $fields[0] );
+        $toFieldNames = $this->solrNamesHelper->generateFieldNames( $fields[1] );
 
         $fieldCouples = array();
         $index = 0;
