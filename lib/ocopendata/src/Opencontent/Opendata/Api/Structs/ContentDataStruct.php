@@ -77,14 +77,14 @@ class ContentDataStruct extends \ArrayObject
                     if (!$update && empty($dataTranslation[$identifier])){
                         if ($isRequired) {
                             $this->throwException("Field $identifier is required");
-                        }elseif($options && $options->attribute('update_null_field') == true){
+                        }elseif($options && $options->isUpdateNullFields() == true){
                             $this[$language][$identifier] = null;
                         }
                     }
                 } elseif (!$update) {
                     if ($isRequired) {
                         $this->throwException("Field $identifier is required");
-                    }elseif($options && $options->attribute('update_null_field') == true){
+                    }elseif($options && $options->isUpdateNullFields() == true){
                         $this[$language][$identifier] = null;
                     }
                 }

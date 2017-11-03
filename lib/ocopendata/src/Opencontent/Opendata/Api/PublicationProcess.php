@@ -62,8 +62,12 @@ class PublicationProcess
             foreach ($this->currentStruct->data as $language => $values) {
                 if ($language == $mainLanguage) {
                     foreach ($values as $identifier => $data) {
-                        if (is_null($data) && $this->currentStruct->options->attribute('update_null_field') == true){
-                            $content->fields->{$identifier} = null;
+                        if (is_null($data)){
+                            if ($this->currentStruct->options->isCopyPrevVersionField($identifier)) {
+                                $content->fields->{$identifier} = (string)$content->fields->{$identifier};
+                            }elseif ($this->currentStruct->options->isUpdateNullFields() == true){
+                                $content->fields->{$identifier} = null;
+                            }
                         }else{
                             $content->fields->{$identifier} = $converters[$identifier]->set($data, $this);
                         }
@@ -72,8 +76,12 @@ class PublicationProcess
                 } else {
                     $content->addTranslation($language);
                     foreach ($values as $identifier => $data) {
-                        if (is_null($data) && $this->currentStruct->options->attribute('update_null_field') == true){
-                            $content->fields[$language]->{$identifier} = null;
+                        if (is_null($data)){
+                            if ($this->currentStruct->options->isCopyPrevVersionField($identifier)) {
+                                $content->fields[$language]->{$identifier} = (string)$content->fields[$language]->{$identifier};
+                            }elseif ($this->currentStruct->options->isUpdateNullFields() == true) {
+                                $content->fields[$language]->{$identifier} = null;
+                            }
                         }else {
                             $content->fields[$language]->{$identifier} = $converters[$identifier]->set($data, $this);
                         }
@@ -104,7 +112,7 @@ class PublicationProcess
 
             // publish
             $publisher = \SQLIContentPublisher::getInstance();
-            $publisher->setOptions($this->currentStruct->options);
+            $publisher->setOptions($this->currentStruct->options->getSQLIContentPublishOptions());
             $publisher->publish($content);
 
             // handle error
@@ -125,7 +133,7 @@ class PublicationProcess
             } else {
                 $content->getDraft()->removeThis();
             }
-            throw new \Exception($e->getMessage());
+            throw $e;
         }
     }
 

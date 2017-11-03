@@ -2,7 +2,7 @@
 
 namespace Opencontent\Opendata\Api\Structs;
 
-class PublicationOptions extends \SQLIContentPublishOptions
+class PublicationOptions extends \ezcBaseOptions
 {
     public function __construct( array $options = array() )
     {
@@ -11,8 +11,37 @@ class PublicationOptions extends \SQLIContentPublishOptions
             'modification_check'        => false,
             'copy_prev_version'         => true,
             'update_null_field'         => false, // If true, will update any field in DB, even if data is not set (null)
+            'copy_prev_version_fields'  => array()
         );
 
         parent::__construct( $options );
+    }
+
+    public function __set( $optionName, $optionValue )
+    {
+        if( !array_key_exists( $optionName, $this->properties ) )
+            throw new \ezcBasePropertyNotFoundException( $optionName );
+
+        $this->properties[$optionName] = $optionValue;
+    }
+
+    public function isUpdateNullFields()
+    {
+        return $this->update_null_field == true;
+    }
+
+    public function isCopyPrevVersionField($identifier)
+    {
+        return in_array($identifier, $this->copy_prev_version_fields);
+    }
+
+    public function getSQLIContentPublishOptions()
+    {
+        return new \SQLIContentPublishOptions(array(
+            'parent_node_id'            => $this->parent_node_id,
+            'modification_check'        => $this->modification_check,
+            'copy_prev_version'         => $this->copy_prev_version,
+            'update_null_field'         => $this->update_null_field,
+        ));
     }
 }
