@@ -62,12 +62,21 @@ class PublicationProcess
             foreach ($this->currentStruct->data as $language => $values) {
                 if ($language == $mainLanguage) {
                     foreach ($values as $identifier => $data) {
-                        $content->fields->{$identifier} = $converters[$identifier]->set($data, $this);
+                        if (is_null($data) && $this->currentStruct->options->attribute('update_null_field') == true){
+                            $content->fields->{$identifier} = null;
+                        }else{
+                            $content->fields->{$identifier} = $converters[$identifier]->set($data, $this);
+                        }
+
                     }
                 } else {
                     $content->addTranslation($language);
                     foreach ($values as $identifier => $data) {
-                        $content->fields[$language]->{$identifier} = $converters[$identifier]->set($data, $this);
+                        if (is_null($data) && $this->currentStruct->options->attribute('update_null_field') == true){
+                            $content->fields[$language]->{$identifier} = null;
+                        }else {
+                            $content->fields[$language]->{$identifier} = $converters[$identifier]->set($data, $this);
+                        }
                     }
                 }
             }
@@ -95,9 +104,7 @@ class PublicationProcess
 
             // publish
             $publisher = \SQLIContentPublisher::getInstance();
-            $publisherOptions = new \SQLIContentPublishOptions();
-            $publisherOptions->modification_check = false;
-            $publisher->setOptions($publisherOptions);
+            $publisher->setOptions($this->currentStruct->options);
             $publisher->publish($content);
 
             // handle error

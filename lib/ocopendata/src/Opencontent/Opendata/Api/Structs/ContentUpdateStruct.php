@@ -8,6 +8,10 @@ class ContentUpdateStruct extends ContentCreateStruct
     public function validate()
     {
         $this->metadata->validateOnUpdate();
-        $this->data->validateOnUpdate( $this->metadata );
+        if ($this->options->attribute('update_null_field')){
+            $this->data->validateOnCreate( $this->metadata, $this->options );
+        }else{
+            $this->data->validateOnUpdate( $this->metadata, $this->options );
+        }
     }
 }

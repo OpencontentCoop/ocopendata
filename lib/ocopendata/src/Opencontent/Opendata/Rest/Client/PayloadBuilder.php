@@ -189,8 +189,20 @@ class PayloadBuilder extends \ArrayObject
         }else{
             $this['data'][$language][$identifier] = $value;
         }
+    }
 
+    public function setOptions(array $options)
+    {
+        $this['options'] = $options;
+    }
 
+    public function setOption($key, $value)
+    {
+        if (!isset($this['options']))
+        {
+            $this['options'] = array();
+        }
+        $this['options'][$key] = $value;
     }
 
     protected function filterISODate($value)

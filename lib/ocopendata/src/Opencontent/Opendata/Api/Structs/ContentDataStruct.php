@@ -35,7 +35,7 @@ class ContentDataStruct extends \ArrayObject
             throw new \Exception( $message );
     }
 
-    protected function validate(MetadataStruct $metadata, $update = false)
+    protected function validate(MetadataStruct $metadata, $update = false, PublicationOptions $options = null)
     {
         if (empty($this)){
             $this->throwException("No data found");
@@ -74,28 +74,36 @@ class ContentDataStruct extends \ArrayObject
                     } else {
                         $converter->validateOnUpdate($identifier, $dataTranslation[$identifier], $attribute);
                     }
-                    if (!$update && $isRequired && empty($dataTranslation[$identifier])){
-                        $this->throwException("Field $identifier is required");
+                    if (!$update && empty($dataTranslation[$identifier])){
+                        if ($isRequired) {
+                            $this->throwException("Field $identifier is required");
+                        }elseif($options && $options->attribute('update_null_field') == true){
+                            $this[$language][$identifier] = null;
+                        }
                     }
-                } elseif (!$update && $isRequired) {
-                    $this->throwException("Field $identifier is required");
+                } elseif (!$update) {
+                    if ($isRequired) {
+                        $this->throwException("Field $identifier is required");
+                    }elseif($options && $options->attribute('update_null_field') == true){
+                        $this[$language][$identifier] = null;
+                    }
                 }
             }
         }
     }
 
-    public function validateOnCreate(MetadataStruct $metadata)
+    public function validateOnCreate(MetadataStruct $metadata, PublicationOptions $options = null)
     {
         $this->method = self::METHOD_CREATE;
 
-        $this->validate($metadata, false);
+        $this->validate($metadata, false, $options);
     }
 
-    public function validateOnUpdate(MetadataStruct $metadata)
+    public function validateOnUpdate(MetadataStruct $metadata, PublicationOptions $options = null)
     {
         $this->method = self::METHOD_UPDATE;
 
-        $this->validate($metadata, true);
+        $this->validate($metadata, true, $options);
     }
 
 }

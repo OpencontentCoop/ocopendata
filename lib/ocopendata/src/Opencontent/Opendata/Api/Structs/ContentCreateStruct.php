@@ -16,16 +16,22 @@ class ContentCreateStruct implements \ArrayAccess
      */
     public $data;
 
-    public function __construct(MetadataStruct $metadata, ContentDataStruct $data)
+    /**
+     * @var PublicationOptions
+     */
+    public $options;
+
+    public function __construct(MetadataStruct $metadata, ContentDataStruct $data, PublicationOptions $options = null)
     {
         $this->metadata = $metadata;
         $this->data = $data;
+        $this->options = $options instanceof PublicationOptions ? $options : new PublicationOptions();
     }
 
     public function validate()
     {
         $this->metadata->validateOnCreate();
-        $this->data->validateOnCreate( $this->metadata );
+        $this->data->validateOnCreate( $this->metadata, $this->options );
     }
 
     public static function fromArray(array $array)
@@ -39,9 +45,15 @@ class ContentCreateStruct implements \ArrayAccess
             $data = $array['data'];
         }
 
+        $options = array();
+        if (isset( $array['options'] )) {
+            $options = $array['options'];
+        }
+
         return new static(
             new MetadataStruct($metadata),
-            new ContentDataStruct($data)
+            new ContentDataStruct($data),
+            new PublicationOptions($options)
         );
     }
 
