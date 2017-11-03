@@ -7,9 +7,7 @@ class PublicationOptions extends \ezcBaseOptions
     public function __construct( array $options = array() )
     {
         $this->properties = array(
-            'parent_node_id'            => null,
             'modification_check'        => false,
-            'copy_prev_version'         => true,
             'update_null_field'         => false, // If true, will update any field in DB, even if data is not set (null)
             'copy_prev_version_fields'  => array()
         );
@@ -38,9 +36,9 @@ class PublicationOptions extends \ezcBaseOptions
     public function getSQLIContentPublishOptions()
     {
         return new \SQLIContentPublishOptions(array(
-            'parent_node_id'            => $this->parent_node_id,
+            'parent_node_id'            => null,
             'modification_check'        => $this->modification_check,
-            'copy_prev_version'         => $this->copy_prev_version,
+            'copy_prev_version'         => true,
             'update_null_field'         => $this->update_null_field,
         ));
     }
