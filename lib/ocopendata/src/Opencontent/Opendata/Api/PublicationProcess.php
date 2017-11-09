@@ -66,7 +66,7 @@ class PublicationProcess
                             if ($this->currentStruct->options->isCopyPrevVersionField($identifier)) {
                                 $content->fields->{$identifier} = (string)$content->fields->{$identifier};
                             }elseif ($this->currentStruct->options->isUpdateNullFields() == true){
-                                $content->fields->{$identifier} = null;
+                                $content->fields->{$identifier} = $converters[$identifier]->nullify($data, $this);
                             }
                         }else{
                             $content->fields->{$identifier} = $converters[$identifier]->set($data, $this);
@@ -80,7 +80,7 @@ class PublicationProcess
                             if ($this->currentStruct->options->isCopyPrevVersionField($identifier)) {
                                 $content->fields[$language]->{$identifier} = (string)$content->fields[$language]->{$identifier};
                             }elseif ($this->currentStruct->options->isUpdateNullFields() == true) {
-                                $content->fields[$language]->{$identifier} = null;
+                                $content->fields[$language]->{$identifier} = $converters[$identifier]->nullify($data, $this);
                             }
                         }else {
                             $content->fields[$language]->{$identifier} = $converters[$identifier]->set($data, $this);
@@ -135,6 +135,14 @@ class PublicationProcess
             }
             throw $e;
         }
+    }
+
+    /**
+     * @return ContentCreateStruct
+     */
+    public function getCurrentStruct()
+    {
+        return $this->currentStruct;
     }
 
 }

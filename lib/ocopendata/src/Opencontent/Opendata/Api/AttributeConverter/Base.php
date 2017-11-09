@@ -71,6 +71,11 @@ class Base
         return $data;
     }
 
+    public function nullify($data, PublicationProcess $process)
+    {
+        return null;
+    }
+
     public static function validate($identifier, $data, eZContentClassAttribute $attribute)
     {
         if ($data !== null && $data !== false && !is_string($data)) {
