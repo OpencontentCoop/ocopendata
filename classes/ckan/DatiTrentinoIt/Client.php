@@ -386,6 +386,7 @@ class Client implements \OcOpenDataClientInterface
      */
     public function getLicenseList()
     {
-        throw new Exception( 'Not implemented' );
+        //throw new Exception( 'Not implemented' );
+        return array('CC-BY');
     }
 }

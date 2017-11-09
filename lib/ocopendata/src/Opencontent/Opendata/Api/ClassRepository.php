@@ -62,11 +62,9 @@ class ClassRepository
 
         $db = eZDB::instance();
         $list = $db->arrayQuery(
-            'SELECT contentclass_id, identifier, serialized_name_list, count(contentclass_id) AS count ' .
-            'FROM ezcontentobject INNER JOIN ezcontentclass ON ezcontentobject.contentclass_id = ezcontentclass.id ' .
-            'WHERE contentclass_id IN (' . implode( ',', $classList ) . ') ' .
-            'AND status = ' . eZContentObject::STATUS_PUBLISHED . ' ' .
-            'GROUP BY contentclass_id'
+            'SELECT id, identifier, serialized_name_list ' .
+            'FROM ezcontentclass ' .
+            'WHERE id IN (' . implode( ',', $classList ) . ')'
         );
 
         $classIdentifierBlackList = array();
@@ -88,10 +86,9 @@ class ClassRepository
                     'name' => $nameList->name(),
                     'nameList' => $nameList->NameList,
                     'identifier' => $item['identifier'],
-                    'contents' => (int)$item['count']
+                    'contents' => 0
                 );
             }
-            $countList[$count['contentclass_id']] = (int)$count['count'];
         }
 
         return $classes;
