@@ -119,7 +119,7 @@ class ContentSearch
                     $content->metadata = new Metadata((array)$contentArray['metadata']);
                     $content->data = new ContentData((array)$contentArray['data']);
                     if (isset( $contentArray['extradata'] )) {
-                        $content->extraData = new ExtraData((array)$contentArray['extradata']);
+                        $content->extradata = new ExtraData((array)$contentArray['extradata']);
                     }
                 } else {
                     $content = $fileSystemGateway->loadContent((int)$id);

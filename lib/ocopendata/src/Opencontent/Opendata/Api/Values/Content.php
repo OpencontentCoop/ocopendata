@@ -32,7 +32,7 @@ class Content
     /**
      * @var ExtraData
      */
-    public $extraData;
+    public $extradata;
 
     /**
      * @var array
@@ -77,12 +77,12 @@ class Content
             $data = array();
         }
 
-        if (is_object($this->extraData) && method_exists($this->extraData, 'jsonSerialize')) {
-            $extraData = $this->extraData->jsonSerialize();
-        } elseif (is_array($this->extraData)) {
-            $extraData = $this->extraData;
+        if (is_object($this->extradata) && method_exists($this->extradata, 'jsonSerialize')) {
+            $extradata = $this->extradata->jsonSerialize();
+        } elseif (is_array($this->extradata)) {
+            $extradata = $this->extradata;
         } else {
-            $extraData = array();
+            $extradata = array();
         }
 
         $value = array(
@@ -90,8 +90,8 @@ class Content
             'data' => $data
         );
 
-        if (!empty($extraData)){
-            $value['extradata'] = $extraData;
+        if (!empty($extradata)){
+            $value['extradata'] = $extradata;
         }
 
         return $value;
@@ -129,7 +129,7 @@ class Content
         }
         $content->data = new ContentData($attributes);
 
-        $content->extraData = ExtraData::createFromEzContentObject($contentObject);
+        $content->extradata = ExtraData::createFromEzContentObject($contentObject);
 
         return $content;
     }
