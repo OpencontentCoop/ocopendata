@@ -100,8 +100,13 @@ class PublicationProcess
             }
 
             //publish date
-            $content->getRawContentObject()->setAttribute('published', $this->currentStruct->metadata->published);
-            $content->getRawContentObject()->setAttribute('modified', $this->currentStruct->metadata->modified);
+            //publish date
+            if ($this->currentStruct->metadata->published) {
+                $content->getRawContentObject()->setAttribute('published', $this->currentStruct->metadata->published);
+            }
+            if ($this->currentStruct->metadata->modified) {
+                $content->getRawContentObject()->setAttribute('modified', $this->currentStruct->metadata->modified);
+            }
 
             // force change section (in update mode)
             if ($section instanceof ContentSection && $content->getRawContentObject()->attribute('section_id') !== $section['id']) {

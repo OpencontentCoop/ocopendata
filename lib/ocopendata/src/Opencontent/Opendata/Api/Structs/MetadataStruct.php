@@ -311,16 +311,6 @@ class MetadataStruct implements \ArrayAccess
         }
 
         $this->parentNodes = $normalizedParentNodes;
-
-        //publish date if is passed or nowdate
-        if ($this->published == null){
-            $this->published = time();
-        }
-
-        //modified date if is passed or nowdate
-        if ($this->modified == null){
-            $this->modified = time();
-        }
     }
 
     public function validateOnCreate()
