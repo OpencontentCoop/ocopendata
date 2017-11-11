@@ -42,6 +42,9 @@ class Content
     public function __construct(array $properties = array())
     {
         foreach ($properties as $property => $value) {
+            if ($property == 'extraData'){
+                $property = 'extradata'; //bc
+            }
             if (property_exists($this, $property)) {
                 if ($property == 'metadata' && is_array($value)){
                     $this->$property = new Metadata($value);
