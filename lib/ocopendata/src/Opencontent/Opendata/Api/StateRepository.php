@@ -73,7 +73,7 @@ class StateRepository
 
     public function clearCache()
     {
-        $this->getCacheManager()->purge();
+        $this->getCacheManager()->delete();
     }
 
     public static function retrieveCache( $file, $mtime, $identifier )
