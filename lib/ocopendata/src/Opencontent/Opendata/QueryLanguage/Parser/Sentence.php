@@ -111,7 +111,7 @@ class Sentence
                 $variableValue = str_replace("\'", "$", $variableValue);
                 $parts = explode("'", $variableValue);
                 foreach ($parts as $part) {
-                    if (!empty( $part )) {
+                    if ($part != '') {
                         $value = trim($part);
                         if ($value != ',') {
                             $value = str_replace("$", "'", $value);
