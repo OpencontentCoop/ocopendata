@@ -159,7 +159,7 @@ class SentenceConverter
         {
             $typeParts = explode( '.', $type );
             $type = array_pop( $typeParts );
-            if ( $type != 'date' )
+            if ( $type != 'date' && substr($fieldName, -3) !== '_dt')
             {
                 throw new Exception( "Function field 'calendar' arguments must be a date identifier" );
             }
@@ -174,7 +174,7 @@ class SentenceConverter
         {
             $typeParts = explode( '.', $type );
             $type = array_pop( $typeParts );
-            if ( $type != 'date' )
+            if ( $type != 'date' && substr($fieldName, -3) !== '_dt')
             {
                 throw new Exception( "Function field 'calendar' arguments must be a date identifier" );
             }
