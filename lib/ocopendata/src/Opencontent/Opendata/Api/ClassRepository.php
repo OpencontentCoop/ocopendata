@@ -17,6 +17,8 @@ class ClassRepository
 {
     private static $identifierHash = null;
 
+    private static $classes = array();
+
     /**
      * @param $identifier
      *
@@ -31,13 +33,17 @@ class ClassRepository
 
     protected function internalLoadClass( $identifier )
     {
-        return $this->getCacheManager( $identifier )->processCache(
-            array( __CLASS__, 'retrieveCache' ),
-            array( __CLASS__, 'generateCache' ),
-            null,
-            null,
-            $identifier
-        );
+        if (!isset(self::$classes[$identifier])) {
+            self::$classes[$identifier] = $this->getCacheManager($identifier)->processCache(
+                array(__CLASS__, 'retrieveCache'),
+                array(__CLASS__, 'generateCache'),
+                null,
+                null,
+                $identifier
+            );
+        }
+
+        return self::$classes[$identifier];
     }
 
     protected static function findClass( $identifier )
