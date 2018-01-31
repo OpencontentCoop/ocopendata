@@ -50,7 +50,6 @@ class ContentRepository
     {
         $createStruct = $this->currentEnvironmentSettings->instanceCreateStruct($payload);
         $createStruct->validate();
-        $createStruct->checkAccess(\eZUser::currentUser());
         $publicationProcess = new PublicationProcess($createStruct);
         $contentId = $publicationProcess->publish();
 
@@ -67,7 +66,6 @@ class ContentRepository
     {
         $updateStruct = $this->currentEnvironmentSettings->instanceUpdateStruct($payload);
         $updateStruct->validate();
-        $updateStruct->checkAccess(\eZUser::currentUser());
         $publicationProcess = new PublicationProcess($updateStruct);
         $contentId = $publicationProcess->publish();
 

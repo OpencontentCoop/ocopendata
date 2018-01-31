@@ -374,21 +374,25 @@ class MetadataStruct implements \ArrayAccess
         $this->validate();
     }
 
-    public function checkAccess(\eZUser $user)
+    public function checkAccess()
     {
-        foreach ($this->parentTreeNodes as $parentNode) {
-            $parentObject = $parentNode->object();
-            foreach ($this->languages as $languageCode) {
-                if ($parentObject->checkAccess(
-                        'create',
-                        $this->class->getClassId(),
-                        false,
-                        false,
-                        $languageCode) != '1'
-                ) {
-                    throw new ForbiddenException("'{$this->class->identifier}' in language '$languageCode' in node #{$parentNode->attribute( 'node_id' )}", 'create');
+        if ($this->method == self::METHOD_CREATE){
+            foreach ($this->parentTreeNodes as $parentNode) {
+                $parentObject = $parentNode->object();
+                foreach ($this->languages as $languageCode) {
+                    if ($parentObject->checkAccess(
+                            'create',
+                            $this->class->getClassId(),
+                            false,
+                            false,
+                            $languageCode) != '1'
+                    ) {
+                        throw new ForbiddenException("'{$this->class->identifier}' in language '$languageCode' in node #{$parentNode->attribute( 'node_id' )}", 'create');
+                    }
                 }
             }
+        }elseif (!$this->contentObject->canEdit()){
+            throw new ForbiddenException($this->contentObject->ID, 'edit');
         }
 
         $allowedAssignStateList = $this->getAllowedAssignStateList();
@@ -397,7 +401,6 @@ class MetadataStruct implements \ArrayAccess
                 throw new ForbiddenException( "'{$this->class->identifier}' in state '$stateIdentifier'", 'create');
             }
         }
-
     }
 
     public function offsetExists($property)

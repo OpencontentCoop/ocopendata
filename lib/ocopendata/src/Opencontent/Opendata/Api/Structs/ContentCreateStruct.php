@@ -31,6 +31,7 @@ class ContentCreateStruct implements \ArrayAccess
     public function validate()
     {
         $this->metadata->validateOnCreate();
+        $this->metadata->checkAccess();
         $this->data->validateOnCreate( $this->metadata, $this->options );
     }
 
@@ -55,11 +56,6 @@ class ContentCreateStruct implements \ArrayAccess
             new ContentDataStruct($data),
             new PublicationOptions($options)
         );
-    }
-
-    public function checkAccess( \eZUser $user )
-    {
-        $this->metadata->checkAccess( $user );
     }
 
     public function offsetExists($property)
