@@ -274,7 +274,7 @@ class ContentSearch
         foreach ($fields as $field) {
 
             $fieldNameParts = explode(' as ', $field);
-            $parts = explode('.', $fieldNameParts[0]);
+            $parts = explode('.', $fieldNameParts[0], 2);
             $groupIdentifier = $parts[0];
             $fieldIdentifier = $parts[1];
 
@@ -282,51 +282,22 @@ class ContentSearch
                 $fieldName = $fieldIdentifier;
                 $fieldIdentifiers[] = $fieldIdentifier;
             } else {
-                $fieldName = isset( $fieldNameParts[1] ) ? $fieldNameParts[1] : null;
+                $fieldName = isset( $fieldNameParts[1] ) ? $fieldNameParts[1] : $fieldNameParts[0];
             }
 
-            if ($groupIdentifier == 'metadata' && isset( $content['metadata'][$fieldIdentifier] )) {
-                if ($fieldIdentifier == 'name' || $fieldIdentifier == 'ownerName') {
-                    $item = null;
-                    if (count($languages) == 1 || $combine) {
-                        $item = trim($content['metadata'][$fieldIdentifier][$languages[0]]);
-                    } else {
-                        $item = array();
-                        foreach ($languages as $language) {
-                            $item[$language] = isset( $content['metadata'][$fieldIdentifier][$language] ) ? $content['metadata'][$fieldIdentifier][$language] : null;
-                        }
-                    }
-
-                    if ($fieldName) {
-                        $data[$fieldName] = $item;
-                    } else {
-                        $data = $item;
-                    }
-                } else {
-                    $item = isset( $content['metadata'][$fieldIdentifier] ) ? $content['metadata'][$fieldIdentifier] : null;
-                    if ($fieldName) {
-                        $data[$fieldName] = $item;
-                    } else {
-                        $data = $item;
-                    }
-
+            $item = null;
+            if (count($languages) == 1 || $combine) {
+                $item = self::getValueFromDottedKey($content, "$groupIdentifier.$fieldIdentifier", $languages[0]);
+            } else {
+                $item = array();
+                foreach ($languages as $language) {
+                    $item[$language] = self::getValueFromDottedKey($content, "$groupIdentifier.$fieldIdentifier", $language);
                 }
-            } elseif ($groupIdentifier == 'data') {
-
-                $item = null;
-                if (count($languages) == 1 || $combine) {
-                    $item = isset( $content['data'][$languages[0]][$fieldIdentifier] ) ? $content['data'][$languages[0]][$fieldIdentifier] : null;
-                } else {
-                    $item = array();
-                    foreach ($languages as $language) {
-                        $item[$language] = isset( $content['data'][$languages][$fieldIdentifier] ) ? $content['data'][$languages][$fieldIdentifier] : null;
-                    }
-                }
-                if ($fieldName) {
-                    $data[$fieldName] = $item;
-                } else {
-                    $data = $item;
-                }
+            }
+            if ($fieldName) {
+                $data[$fieldName] = $item;
+            } else {
+                $data = $item;
             }
         }
 
@@ -335,5 +306,27 @@ class ContentSearch
         } else {
             $filterFieldsResult[] = $data;
         }
+    }
+
+    private static function getValueFromDottedKey($array, $key, $language, $default = null)
+    {
+        $value = $default;
+        foreach (explode('.', $key) as $segment) {
+            if (isset($array[$segment])){
+                $value = $array[$segment];
+                if (is_array($array[$segment])){
+                    $array = $array[$segment];
+                    if (isset($array[$language]) && is_array($array[$language])){
+                        $array = $array[$language];
+                    }
+                }
+            }else{
+                return $default;
+            }
+        }
+        if (isset($value[$language])){
+            $value = $value[$language];
+        }
+        return $value;
     }
 }
