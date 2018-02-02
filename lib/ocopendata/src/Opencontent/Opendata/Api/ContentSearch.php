@@ -282,7 +282,7 @@ class ContentSearch
                 $fieldName = $fieldIdentifier;
                 $fieldIdentifiers[] = $fieldIdentifier;
             } else {
-                $fieldName = isset( $fieldNameParts[1] ) ? $fieldNameParts[1] : $fieldNameParts[0];
+                $fieldName = isset( $fieldNameParts[1] ) ? $fieldNameParts[1] : null;
             }
 
             $item = null;
@@ -297,7 +297,11 @@ class ContentSearch
             if ($fieldName) {
                 $data[$fieldName] = $item;
             } else {
-                $data = $item;
+                if (count($fields) == 1){
+                    $data = $item;
+                }else{
+                    $data[] = $item;
+                }
             }
         }
 
