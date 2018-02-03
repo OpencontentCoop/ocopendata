@@ -258,58 +258,63 @@ class ContentSearch
             $languages = $content['metadata']['languages'];
         }
 
-        $combine = false;
-
         if (count($fields) == 1) {
             reset($fields);
-            $firstKey = key($fields);
-            if (!is_numeric($firstKey)) {
-                $fields = array_values($fields);
-                array_unshift($fields, $firstKey);
-                $combine = true;
+            $key = key($fields);
+            if (!is_numeric($key)) {
+                $value = $fields[$key];
+                $this->filterHashedFields($filterFieldsResult, $content, $key, $value, $languages);
+                return;
             }
         }
 
-        $fieldIdentifiers = array();
         foreach ($fields as $field) {
-
-            $fieldNameParts = explode(' as ', $field);
-            $parts = explode('.', $fieldNameParts[0], 2);
-            $groupIdentifier = $parts[0];
-            $fieldIdentifier = $parts[1];
-
-            if ($combine) {
-                $fieldName = $fieldIdentifier;
-                $fieldIdentifiers[] = $fieldIdentifier;
-            } else {
-                $fieldName = isset( $fieldNameParts[1] ) ? $fieldNameParts[1] : null;
-            }
-
-            $item = null;
-            if (count($languages) == 1 || $combine) {
-                $item = self::getValueFromDottedKey($content, "$groupIdentifier.$fieldIdentifier", $languages[0]);
-            } else {
-                $item = array();
-                foreach ($languages as $language) {
-                    $item[$language] = self::getValueFromDottedKey($content, "$groupIdentifier.$fieldIdentifier", $language);
-                }
-            }
-            if ($fieldName) {
-                $data[$fieldName] = $item;
-            } else {
-                if (count($fields) == 1){
-                    $data = $item;
+            $key = $this->getFieldKey($field);
+            $value = $this->getFieldValue($content, $field, $languages);
+            if (count($fields) == 1 && !$key){
+                $data = $value;
+            }else{
+                if ($key){
+                    $data[$key] = $value;
                 }else{
-                    $data[] = $item;
+                    $data[] = $value;
                 }
             }
         }
+        $filterFieldsResult[] = $data;
+    }
 
-        if ($combine) {
-            $filterFieldsResult[$data[$fieldIdentifiers[0]]] = $data[$fieldIdentifiers[1]];
+    private function filterHashedFields(&$filterFieldsResult, $content, $key, $value, array $languages = null)
+    {
+        $filterFieldsResult[$this->getFieldValue($content, $key, $languages)] = $this->getFieldValue($content, $value, $languages);
+    }
+
+    private function getFieldIdentifier($field)
+    {
+        $fieldNameParts = explode(' as ', $field);
+
+        return $fieldNameParts[0];
+    }
+
+    private function getFieldKey($field)
+    {
+        $fieldNameParts = explode(' as ', $field);
+
+        return isset( $fieldNameParts[1] ) ? $fieldNameParts[1] : null;
+    }
+
+    private function getFieldValue($content, $field, $languages)
+    {
+        if (count($languages) == 1) {
+            $item = self::getValueFromDottedKey($content, $this->getFieldIdentifier($field), $languages[0]);
         } else {
-            $filterFieldsResult[] = $data;
+            $item = array();
+            foreach ($languages as $language) {
+                $item[$language] = self::getValueFromDottedKey($content, $this->getFieldIdentifier($field), $language);
+            }
         }
+
+        return $item;
     }
 
     private static function getValueFromDottedKey($array, $key, $language, $default = null)
