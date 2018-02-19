@@ -136,6 +136,12 @@ class OCOpenDataController extends ezpRestContentController
         // Limit criteria
         $offset = isset( $this->offset ) ? $this->offset : 0;
         $limit = isset( $this->limit ) ? $this->limit : 10;
+        if ($limit == 0){
+            $limit = 10;
+        }
+        if ($limit > 1000){
+            $limit = 10;
+        }
         $crit->accept[] = ezpContentCriteria::limit()->offset( $offset )->limit( $limit );
         
         // Sort criteria
