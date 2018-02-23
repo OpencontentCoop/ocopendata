@@ -33,6 +33,10 @@ class ParenthesisSplitter
 
         $originalString = $string;
 
+        // escaped parenthesis
+        $string = str_replace("\\{$open}", '++', $string);
+        $string = str_replace("\\{$close}", '--', $string);
+
         $this->chars = array();
 
         $strlen = mb_strlen( $string );
