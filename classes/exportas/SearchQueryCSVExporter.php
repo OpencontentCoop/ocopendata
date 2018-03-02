@@ -128,7 +128,11 @@ class SearchQueryCSVExporter extends AbstarctExporter
 
     protected function csvHeader($field)
     {
-        $header = $field['name'][$this->language];
+        if ( isset($field['name'][$this->language]) ) {
+            $header = $field['name'][$this->language];
+        } else {
+            $header = array_values($field['name'])[0];
+        }
         switch ($field['dataType']) {
 
             case 'ezmatrix': {
