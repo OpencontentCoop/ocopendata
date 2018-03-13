@@ -54,7 +54,8 @@
         loadDataTable: function () {
             this.settings.datatable.prevQuery = this.settings.datatable.ajax.query;
             var buildedQuery = this.buildQuery();
-            this.settings.datatable.ajax.url = this._ajaxUrl + '?q=' + buildedQuery;
+            this.settings.datatable.ajax.url = this._ajaxUrl;
+            this.settings.datatable.ajax.data = {q: buildedQuery};
             this.settings.datatable.ajax.query = buildedQuery;
             var id = this.settings.table.id;
             var table = $(this.settings.table.template).attr('id', id);
