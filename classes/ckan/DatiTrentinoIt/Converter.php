@@ -437,7 +437,7 @@ class Converter implements \OcOpenDataConverterInterface
                         break;
                 }
             }
-            $resourceList[] = Resource::fromArray($data);
+            $resourceList[] = CkanResource::fromArray($data);
         }
 
         return $resourceList;

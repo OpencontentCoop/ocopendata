@@ -211,7 +211,7 @@ class Dataset extends Base
                     $instance->resources = array();
                     foreach( $value as $resource )
                     {
-                        $instance->resources[] = Resource::fromArray( $resource );
+                        $instance->resources[] = CkanResource::fromArray( $resource );
                     }
                 }
                 else

@@ -3,7 +3,7 @@
 namespace Opencontent\Ckan\DatiTrentinoIt;
 
 
-class Resource extends Base
+class CkanResource extends Base
 {
     /**
      * package_id (string) – id of package that the resource should be added to.

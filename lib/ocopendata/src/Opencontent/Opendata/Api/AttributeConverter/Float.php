@@ -6,7 +6,7 @@ use eZContentObjectAttribute;
 use eZContentClassAttribute;
 use Opencontent\Opendata\Api\PublicationProcess;
 
-class Float extends Base
+class FloatNumber extends Base
 {    
     public function toCSVString($content, $params = null)
     {
