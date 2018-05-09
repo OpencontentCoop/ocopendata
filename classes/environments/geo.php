@@ -15,7 +15,7 @@ class GeoEnvironmentSettings extends EnvironmentSettings
 
     public function filterContent(Content $content)
     {
-        $language = isset( $this->request->variables['language'] ) ? $this->request->variables['language'] : null;
+        $language = isset( $this->request->get['language'] ) ? $this->request->get['language'] : null;
 
         return $content->geoJsonSerialize($language);
     }

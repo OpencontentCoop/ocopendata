@@ -10,9 +10,9 @@ use Opencontent\Opendata\Api\TagRepository;
 $Module = $Params['Module'];
 $Environment = $Params['Environment'];
 $Action = $Params['Action'];
-$Param = isset( $_REQUEST['q'] ) ? urldecode($_REQUEST['q']) : $Params['Param'];
+$Param = isset( $_GET['q'] ) ? urldecode($_GET['q']) : $Params['Param'];
 
-$Debug = isset( $_REQUEST['debug'] );
+$Debug = isset( $_GET['debug'] );
 
 try
 {

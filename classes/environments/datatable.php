@@ -10,7 +10,7 @@ class DatatableEnvironmentSettings extends DefaultEnvironmentSettings
         \Opencontent\QueryLanguage\QueryBuilder $builder
     ) {
 
-        $parameters = $this->request->variables;
+        $parameters = $this->request->get;
         $columns = $parameters['columns'];
         $requestNames = array();
         foreach( $columns as $index => $column ){
@@ -31,7 +31,7 @@ class DatatableEnvironmentSettings extends DefaultEnvironmentSettings
         }
 
         return array(
-            'draw' => (int)( ++$this->request->variables['draw']),
+            'draw' => (int)( ++$this->request->get['draw']),
             'recordsTotal' => (int)$searchResults->totalCount,
             'recordsFiltered' => (int)$searchResults->totalCount,
             'data' => $searchResults->searchHits,
@@ -55,7 +55,7 @@ class DatatableEnvironmentSettings extends DefaultEnvironmentSettings
         \ArrayObject $query,
         \Opencontent\QueryLanguage\QueryBuilder $builder
     ) {
-        $parameters = $this->request->variables;        
+        $parameters = $this->request->get;        
         
         $columns = $parameters['columns'];
         $order = $parameters['order'];
