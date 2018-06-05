@@ -44,10 +44,9 @@
                 }else{
                     $('.progress').hide();
                     $('h2').html('File is ready');
-                    $('.download').attr( 'href', EndPoint+'?download=1&download_id='+data.download_id).show();
+                    $('.download').attr( 'href', EndPoint+Data.query+'?download=1&download_id='+data.download_id).show();
                 }
             };
-
             iterate(Data);
         });
         {/literal}
