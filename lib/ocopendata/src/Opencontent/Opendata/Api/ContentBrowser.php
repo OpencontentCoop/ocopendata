@@ -84,6 +84,8 @@ class ContentBrowser
         $item->classIdentifier = $node->attribute('class_identifier');
         $item->childrenCount = (int)$node->attribute('children_count');
         $item->priority = (int)$node->attribute('priority');
+        $item->sortField = $node->attribute('sort_field');
+        $item->sortOrder = $node->attribute('sort_order');
 
         return $item;
     }

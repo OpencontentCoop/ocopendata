@@ -35,6 +35,10 @@ class BrowseItem
 
     public $priority;
 
+    public $sortField;
+
+    public $sortOrder;
+
     /**
      * @var integer
      */
