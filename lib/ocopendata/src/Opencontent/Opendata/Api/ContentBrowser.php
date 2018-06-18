@@ -83,6 +83,7 @@ class ContentBrowser
         $item->path = $node->attribute('path_string');
         $item->classIdentifier = $node->attribute('class_identifier');
         $item->childrenCount = (int)$node->attribute('children_count');
+        $item->priority = (int)$node->attribute('priority');
 
         return $item;
     }

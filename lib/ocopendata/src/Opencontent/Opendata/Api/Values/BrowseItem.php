@@ -33,6 +33,8 @@ class BrowseItem
 
     public $classIdentifier;
 
+    public $priority;
+
     /**
      * @var integer
      */
