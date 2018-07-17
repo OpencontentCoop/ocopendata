@@ -23,7 +23,7 @@
                         "render": function (data, type, row, meta) {
                             var validDate = moment(data, moment.ISO_8601);
                             if (validDate.isValid()) {
-                                return '<span style="white-space:nowrap">' + validDate.format("D MMMM YYYY, hh:mm") + '</span>';
+                                return '<span style="white-space:nowrap">' + validDate.format("D MMMM YYYY, HH:mm") + '</span>';
                             } else {
                                 return data;
                             }
