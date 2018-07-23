@@ -12,7 +12,7 @@
                 tags_tree: '/opendata/api/tags_tree/'
             },
             onError: function(errorCode,errorMessage,jqXHR){
-                alert(errorMessage + ' (error: '+errorCode+')');
+                console.log(errorMessage + ' (error: '+errorCode+')');
             }
         };
 
