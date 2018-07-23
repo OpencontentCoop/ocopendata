@@ -90,7 +90,7 @@ class ParameterConverter extends SentenceConverter
             $idList[] = $this->classRepository->load($class)->getClassId();
         }
         $this->solrNamesHelper->filterAvailableFieldDefinitionsByClasses($list);
-        $this->convertedQuery['SearchContentClassID'] = $idList;
+        $this->convertedQuery['SearchContentClassID'] = array_map('intval', $idList);
     }
 
     protected function convertSortBy($value)
@@ -201,14 +201,14 @@ class ParameterConverter extends SentenceConverter
             switch( $item['field'] )
             {
                 case 'author':
-                {
-                    $fields = array( \eZSolr::getMetaFieldName( 'owner_id', 'facet' ) );
-                } break;
+                    {
+                        $fields = array( \eZSolr::getMetaFieldName( 'owner_id', 'facet' ) );
+                    } break;
 
                 case 'class':
-                {
-                    $fields = array( \eZSolr::getMetaFieldName( 'class_identifier', 'facet' ) );
-                } break;
+                    {
+                        $fields = array( \eZSolr::getMetaFieldName( 'class_identifier', 'facet' ) );
+                    } break;
 
 //                case 'installation':
 //                {
@@ -216,14 +216,14 @@ class ParameterConverter extends SentenceConverter
 //                } break;
 
                 case 'translation':
-                {
-                    $fields = array( \eZSolr::getMetaFieldName( 'language_code', 'facet' ) );
-                } break;
+                    {
+                        $fields = array( \eZSolr::getMetaFieldName( 'language_code', 'facet' ) );
+                    } break;
 
                 default:
-                {
-                    $fields = $this->solrNamesHelper->generateFieldNames($item['field'], 'filter');
-                } break;
+                    {
+                        $fields = $this->solrNamesHelper->generateFieldNames($item['field'], 'filter');
+                    } break;
             }
 
             foreach ($fields as $field) {
