@@ -40,6 +40,13 @@ class SentenceConverter
      */
     protected $classRepository;
 
+    /**
+     * @var SolrNamesHelper
+     */
+    protected $solrNamesHelper;
+
+    protected static $isRecurrenceEnabled;
+
     public function __construct( SolrNamesHelper $solrNamesHelper )
     {
         $this->solrNamesHelper = $solrNamesHelper;
@@ -59,9 +66,9 @@ class SentenceConverter
 
     /**
      * @param Sentence $sentence
-     *
-     * @return array|string|null
+     * @return array|mixed|null
      * @throws Exception
+     * @throws \Opencontent\Opendata\Api\Exception\NotFoundException
      */
     public function convert( Sentence $sentence )
     {
@@ -103,34 +110,34 @@ class SentenceConverter
         {
             case 'contains':
             case '!contains':
-            {
-                $data = $this->generateContainsFilter(
-                    $fieldNames,
-                    $value,
-                    $operator == '!contains'
-                );
-            }
+                {
+                    $data = $this->generateContainsFilter(
+                        $fieldNames,
+                        $value,
+                        $operator == '!contains'
+                    );
+                }
                 break;
 
             case 'in':
             case '!in':
-            {
-                $data = $this->generateInFilter( $fieldNames, $value, $operator == '!in' );
-            }
+                {
+                    $data = $this->generateInFilter( $fieldNames, $value, $operator == '!in' );
+                }
                 break;
 
             case 'range':
             case '!range':
-            {
-                $data = $this->generateRangeFilter( $fieldNames, $value, $operator == '!range' );
-            }
+                {
+                    $data = $this->generateRangeFilter( $fieldNames, $value, $operator == '!range' );
+                }
                 break;
 
             case '=':
             case '!=':
-            {
-                $data = $this->generateEqFilter( $fieldNames, $value, $operator == '!=' );
-            }
+                {
+                    $data = $this->generateEqFilter( $fieldNames, $value, $operator == '!=' );
+                }
                 break;
 
             default:
@@ -139,20 +146,135 @@ class SentenceConverter
         return ( empty( $data ) ) ? null : $data;
     }
 
+    /**
+     * @param Token $field
+     * @param $operator
+     * @param $value
+     * @return array|bool|mixed
+     * @throws Exception
+     * @throws \Opencontent\Opendata\Api\Exception\NotFoundException
+     */
     protected function convertCalendar( Token $field, $operator, $value )
     {
         $fields = Sentence::parseString( str_replace( 'calendar', '', (string)$field ) );
-        if ( empty( $fields ) )
-        {
-            $fields = array( 'from_time', 'to_time' ); //default
-        }
-        if ( count( $fields ) !== 2 )
-        {
-            throw new Exception( "Function field 'calendar' requires two parameters (e.g: calendar[from_time, to_time] = [yesterday, today])" );
-        }
-        $fromFieldNames = $this->solrNamesHelper->generateFieldNames( $fields[0] );
-        $toFieldNames = $this->solrNamesHelper->generateFieldNames( $fields[1] );
 
+        if ( $operator != '=' ){
+            throw new Exception( "The operator of function field 'calendar' must be '=' (e.g: calendar[from_time, to_time] = [yesterday, today])" );
+        }
+
+        if ( !is_array( $value ) || ( is_array( $value ) && count( $value ) != 2 ) ){
+            throw new Exception( "The value of function field 'calendar' requires a two elements array (e.g: calendar[from_time, to_time] = [yesterday, today])" );
+        }
+
+        $fromDateValue = $this->formatFilterValue( $value[0], 'date' );
+        $toDateValue = $this->formatFilterValue( $value[1], 'date' );
+
+        if (self::isRecurrenceEnabled())
+        {
+            \OCRecurrenceHelper::addSolrFieldTypeMap();
+            if ( empty( $fields ) )
+            {
+                $fields = array( 'from_time', 'to_time', 'recurrences' ); //default
+            }
+        }
+        else
+        {
+            if ( empty( $fields ) )
+            {
+                $fields = array( 'from_time', 'to_time' ); //default
+            }
+
+            if ( count( $fields ) !== 2 )
+            {
+                throw new Exception( "Function field 'calendar' requires two parameters (e.g: calendar[from_time, to_time] = [yesterday, today])" );
+            }
+        }
+
+        $fromField = $toField = $recurrenceField = $fromToFilter = $recurrenceFilter = false;
+        if ( count( $fields ) >= 2 )
+        {
+            $fromField = $fields[0];
+            $toField = $fields[1];
+            if (isset($fields[2])){
+                $recurrenceField = $fields[2];
+            }
+        }
+        elseif( count( $fields ) == 1 )
+        {
+            $recurrenceField = $fields[0];
+        }
+
+        if ($fromField && $toField)
+        {
+            $fromFieldNames = $this->solrNamesHelper->generateFieldNames( $fromField );
+            $toFieldNames = $this->solrNamesHelper->generateFieldNames( $toField );
+
+            $fromToFilter = $this->convertCalendarDateTimeFields($fromFieldNames, $toFieldNames, $fromDateValue, $toDateValue);
+        }
+
+        if ($recurrenceField && self::isRecurrenceEnabled()){
+            $recurrencesFiledNames = $this->solrNamesHelper->generateFieldNames( $recurrenceField );
+            $fromTimestampValue = $this->formatFilterValue( $value[0], 'timestamp' );
+            $toTimestampValue = $this->formatFilterValue( $value[1], 'timestamp' );
+            $recurrenceFilter = $this->convertCalendarRecurrenceFields($recurrencesFiledNames, $fromTimestampValue, $toTimestampValue);
+        }
+
+        if ( $fromToFilter && $recurrenceFilter )
+        {
+            $filter = array( 'or', $fromToFilter, $recurrenceFilter );
+        }
+        elseif( $fromToFilter )
+        {
+            $filter = $fromToFilter;
+        }
+        else
+        {
+            $filter = $recurrenceFilter;
+        }
+
+        return $filter;
+    }
+
+    /**
+     * @param $recurrencesFiledNames
+     * @param $fromTimestampValue
+     * @param $toTimestampValue
+     * @return array|mixed
+     * @throws Exception
+     */
+    private function convertCalendarRecurrenceFields($recurrencesFiledNames, $fromTimestampValue, $toTimestampValue)
+    {
+        $minBound = \OCRecurrenceHelper::MIN_BOUND;
+        $maxBound = \OCRecurrenceHelper::MAX_BOUND;
+        $filter = array();
+        foreach ($recurrencesFiledNames as $type => $fieldName)
+        {
+            if ( substr($fieldName, -3) !== '_dp')
+            {
+                throw new Exception( "Function field 'calendar' arguments must be a date or recurrence identifier" );
+            }
+
+            $filter[] = $fieldName . ":\"Intersects($minBound $fromTimestampValue $toTimestampValue $maxBound)\"";
+        }
+
+        if ( count( $filter ) == 1 )
+            $filter = array_pop( $filter );
+        elseif ( count( $filter ) > 1 )
+            array_unshift( $filter, 'or' );
+
+        return $filter;
+    }
+
+    /**
+     * @param $fromFieldNames
+     * @param $toFieldNames
+     * @param $fromValue
+     * @param $toValue
+     * @return array|mixed
+     * @throws Exception
+     */
+    private function convertCalendarDateTimeFields($fromFieldNames, $toFieldNames, $fromValue, $toValue)
+    {
         $fieldCouples = array();
         $index = 0;
         foreach( $fromFieldNames as $type => $fieldName )
@@ -161,7 +283,7 @@ class SentenceConverter
             $type = array_pop( $typeParts );
             if ( $type != 'date' && substr($fieldName, -3) !== '_dt')
             {
-                throw new Exception( "Function field 'calendar' arguments must be a date identifier" );
+                throw new Exception( "Function field 'calendar' arguments must be a date or recurrence identifier" );
             }
             $fieldCouples[] = array(
                 'from' =>  $fieldName
@@ -182,15 +304,6 @@ class SentenceConverter
                 $fieldCouples[$index]['to'] = $fieldName;
             $index++;
         }
-
-        if ( $operator != '=' )
-            throw new Exception( "The operator of function field 'calendar' must be '=' (e.g: calendar[from_time, to_time] = [yesterday, today])" );
-
-        if ( !is_array( $value ) || ( is_array( $value ) && count( $value ) != 2 ) )
-            throw new Exception( "The value of function field 'calendar' requires a two elements array (e.g: calendar[from_time, to_time] = [yesterday, today])" );
-
-        $fromValue = $this->formatFilterValue( $value[0], 'date' );
-        $toValue = $this->formatFilterValue( $value[1], 'date' );
 
         $filter = array();
         foreach( $fieldCouples as $fieldCouple )
@@ -217,6 +330,16 @@ class SentenceConverter
         return $filter;
     }
 
+    protected static function isRecurrenceEnabled()
+    {
+        if ( self::$isRecurrenceEnabled === null )
+        {
+            self::$isRecurrenceEnabled = in_array( 'ocevents', \eZExtension::activeExtensions() ) && class_exists('OCRecurrenceHelper');
+        }
+
+        return self::$isRecurrenceEnabled;
+    }
+
     protected function cleanValue( $value )
     {
         if ( is_array( $value ) )
@@ -236,6 +359,13 @@ class SentenceConverter
         return $data;
     }
 
+    /**
+     * @param $value
+     * @param $type
+     * @return false|float|int|string
+     * @throws Exception
+     * @throws \Opencontent\Opendata\Api\Exception\NotFoundException
+     */
     protected function formatFilterValue( $value, $type )
     {
         $typeParts = explode( '.', $type );
@@ -271,44 +401,64 @@ class SentenceConverter
             case 'meta_published':
             case 'meta_modified':
             case 'date':
-            {
-                if ( $value != '*' )
+                {
+                    if ( $value != '*' )
+                    {
+                        $time = new \DateTime( $value, new \DateTimeZone('UTC') );
+
+                        if ( !$time instanceof \DateTime)
+                        {
+                            throw new Exception( "Problem with date $value" );
+                        }
+                        $value = '"' . ezfSolrDocumentFieldBase::convertTimestampToDate( $time->format('U') ) . '"';
+                    }
+                }
+                break;
+
+            case 'timestamp':
                 {
                     $time = new \DateTime( $value, new \DateTimeZone('UTC') );
-                    
+
                     if ( !$time instanceof \DateTime)
                     {
                         throw new Exception( "Problem with date $value" );
                     }
-                    $value = '"' . ezfSolrDocumentFieldBase::convertTimestampToDate( $time->format('U') ) . '"';
+                    $value = strtotime($value);
                 }
-            }
                 break;
 
             case 'meta_section_id':
-            {
-                $section = $this->sectionRepository->load( $value );
-                if ( $section instanceof ContentSection )
                 {
-                    $value = (int)$section['id'];
+                    $section = $this->sectionRepository->load( $value );
+                    if ( $section instanceof ContentSection )
+                    {
+                        $value = (int)$section['id'];
+                    }
                 }
-            }
                 break;
 
             case 'meta_object_states':
-            {
-                $state = $this->stateRepository->load( $value );
-                if ( $state instanceof ContentState )
                 {
-                    $value = (int)$state['id'];
+                    $state = $this->stateRepository->load( $value );
+                    if ( $state instanceof ContentState )
+                    {
+                        $value = (int)$state['id'];
+                    }
                 }
-            }
                 break;
         }
 
         return $value;
     }
 
+    /**
+     * @param $fieldNames
+     * @param $value
+     * @param $negative
+     * @return array|mixed
+     * @throws Exception
+     * @throws \Opencontent\Opendata\Api\Exception\NotFoundException
+     */
     protected function generateContainsFilter( $fieldNames, $value, $negative )
     {
         if ( $negative ) $negative = '!';
@@ -346,6 +496,14 @@ class SentenceConverter
         return $filter;
     }
 
+    /**
+     * @param $fieldNames
+     * @param $value
+     * @param $negative
+     * @return array|mixed
+     * @throws Exception
+     * @throws \Opencontent\Opendata\Api\Exception\NotFoundException
+     */
     protected function generateInFilter( $fieldNames, $value, $negative )
     {
         if ( $negative ) $negative = '!';
@@ -383,6 +541,14 @@ class SentenceConverter
         return $filter;
     }
 
+    /**
+     * @param $fieldNames
+     * @param $value
+     * @param $negative
+     * @return array|mixed
+     * @throws Exception
+     * @throws \Opencontent\Opendata\Api\Exception\NotFoundException
+     */
     protected function generateRangeFilter( $fieldNames, $value, $negative )
     {
         if ( !is_array( $value ) )
@@ -404,6 +570,14 @@ class SentenceConverter
         return $filter;
     }
 
+    /**
+     * @param $fieldNames
+     * @param $value
+     * @param $negative
+     * @return array|mixed
+     * @throws Exception
+     * @throws \Opencontent\Opendata\Api\Exception\NotFoundException
+     */
     protected function generateEqFilter( $fieldNames, $value, $negative )
     {
         return $this->generateInFilter( $fieldNames, $value, $negative );
