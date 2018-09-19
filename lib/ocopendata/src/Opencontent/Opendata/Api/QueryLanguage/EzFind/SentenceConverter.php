@@ -21,11 +21,6 @@ class SentenceConverter
     protected $convertedQuery;
 
     /**
-     * @var array[]
-     */
-    protected $availableFieldDefinitions;
-
-    /**
      * @var StateRepository
      */
     protected $stateRepository;
@@ -171,10 +166,19 @@ class SentenceConverter
 
         if (self::isRecurrenceEnabled())
         {
-            \OCRecurrenceHelper::addSolrFieldTypeMap();
+            \OCRecurrenceHelper::addSolrFieldTypeMap();            
             if ( empty( $fields ) )
             {
-                $fields = array( 'from_time', 'to_time', 'recurrences' ); //default
+                try
+                {
+                    //se l'attributo non è contemplato in base al parameter 'classes', viene sollevata eccezione
+                    $this->solrNamesHelper->getDatatypesByIdentifier( 'recurrences' );
+                    $fields = array( 'from_time', 'to_time', 'recurrences' );
+                }
+                catch( Exception $e )
+                {
+                    $fields = array( 'from_time', 'to_time' );
+                }
             }
         }
         else
@@ -214,8 +218,8 @@ class SentenceConverter
 
         if ($recurrenceField && self::isRecurrenceEnabled()){
             $recurrencesFiledNames = $this->solrNamesHelper->generateFieldNames( $recurrenceField );
-            $fromTimestampValue = $this->formatFilterValue( $value[0], 'timestamp' );
-            $toTimestampValue = $this->formatFilterValue( $value[1], 'timestamp' );
+            $fromTimestampValue = $value[0] == '*' ? \OCRecurrenceHelper::MIN_BOUND : $this->formatFilterValue( $value[0], 'timestamp' );
+            $toTimestampValue = $value[1] == '*' ? \OCRecurrenceHelper::MAX_BOUND : $this->formatFilterValue( $value[1], 'timestamp' );
             $recurrenceFilter = $this->convertCalendarRecurrenceFields($recurrencesFiledNames, $fromTimestampValue, $toTimestampValue);
         }
 
