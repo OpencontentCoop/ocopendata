@@ -12,8 +12,8 @@ class OCOpenDataViewController implements ezpRestViewControllerInterface
      */
     public function loadView( ezcMvcRoutingInformation $routeInfo, ezcMvcRequest $request, ezcMvcResult $result )
     {
-        if ( isset( $request->variables['EnvironmentSettigs'] )
-             && $request->variables['EnvironmentSettigs'] instanceof \Opencontent\Opendata\Api\EnvironmentSettings )
+        if ( isset( $request->variables['EnvironmentSettings'] )
+             && $request->variables['EnvironmentSettings'] instanceof \Opencontent\Opendata\Api\EnvironmentSettings )
             return $this->loadOpenData2View( $routeInfo, $request, $result );
         return new ezpRestJsonView( $request, $result );
     }
