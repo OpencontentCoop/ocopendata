@@ -1,16 +1,16 @@
-{run-once}
+    {run-once}
 {ezscript_require(array( 'ezjsc::jquery', 'ezjsc::jqueryUI' ) )}
 {literal}
 <script type="text/javascript">
 $(function() {
     $( ".resource-tab" ).each(function(){
-        var activePanel = $("li", $(this)).index( $("li.has_content", $(this)) );        
+        var activePanel = $("li", $(this)).index( $("li.has_content", $(this)) );
         if (activePanel > 0) {
             $(this).tabs({ selected:activePanel });
         }else{
-            $(this).tabs();   
+            $(this).tabs();
         }
-    });    
+    });
 });
 
 </script>

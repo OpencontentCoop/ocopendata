@@ -1,36 +1,25 @@
-{ezpagedata_set( 'extra_menu', false() )}
-<div class="border-box">
-<div class="border-content">
+<div class="content-view-full class-{$node.class_identifier} row">
 
- <div class="global-view-full content-view-full">
-  <div class="class-{$node.object.class_identifier}">
+    <div class="content-main wide">
 
-	<h1>{$node.name|wash()}</h1>
+        <h1>{$node.name|wash()}</h1>
 
-    {* DATA e ULTIMAMODIFICA *}
-    {include name = last_modified
-      node = $node
-      view_parameters = $view_parameters
-      uri = 'design:parts/openpa/last_modified.tpl'}
+        {foreach $node.object.contentobject_attributes as $attribute}
+            {if $node|has_attribute( $attribute.contentclass_attribute_identifier )}
+                {if $attribute.contentclass_attribute_identifier|begins_with( 'resource' )}
+                    {skip}
+                {/if}
+                <dl class="dl-horizontal attribute-{$attribute.contentclass_attribute_identifier}">
+                    <dt>{$attribute.contentclass_attribute_name}</dt>
+                    <dd>
+                        {attribute_view_gui attribute=$attribute}
+                    </dd>
+                </dl>
+            {/if}
+        {/foreach}
 
-    {* EDITOR TOOLS *}
-    {include name = editor_tools
-      node = $node
-      uri = 'design:parts/openpa/editor_tools.tpl'}
+        {include uri=concat('design:parts/opendata_resources.tpl') node=$node}
 
-
-      {* ATTRIBUTI BASE: mostra i contenuti del nodo *}
-    {include name = attributi_base
-             uri = 'design:parts/opendata_detail.tpl'
-             node = $node}
-    
-    {* ATTRIBUTI BASE: mostra i contenuti del nodo *}
-    {include name = attributi_base
-             uri = 'design:parts/opendata_resources.tpl'
-             node = $node}
-    
     </div>
-</div>
 
-</div>
 </div>
