@@ -12,21 +12,36 @@ $html .= '<body>';
 $html .= '<div class="container">';
 
 try {
+    $tools = new OCOpenDataTools($Alias);
+    $settings = $tools->getSettings();
+    $endpointUrlParts = parse_url($settings['BaseUrl']);
+    $endpointUrl = $endpointUrlParts['scheme'] . '://' . $endpointUrlParts['host'];
+
     if ($ObjectID == 'org') {
-        $tools = new OCOpenDataTools($Alias);
         $tools->pushOrganization();
     } else {
         $object = eZContentObject::fetch($ObjectID);
         if (!$object instanceof eZContentObject){
             throw new Exception("Object $ObjectID not found");
         }
-        $tools = new OCOpenDataTools($Alias);
-        $tools->pushObject($ObjectID);
+        $data = $tools->pushObject($ObjectID);
+        if ($data instanceof \Opencontent\Ckan\DatiTrentinoIt\Dataset){
+            $dataSetId = $data->getData('id');
+            $dataSetUrl = $endpointUrl . '/dataset/' .  $dataSetId;
+        }
     }
 
     $json = array('result' => 'success');
 
-    $html .= "<h1>OK</h1>";
+    $html .= "<h1>OK pushed in $endpointUrl</h1>";
+    if (isset($dataSetUrl)){
+        $html .= "<a class='btn btn-xs btn-success' href='$dataSetUrl'>Visualizza dataset su Ckan</a> ";
+    }
+    if (is_numeric($ObjectID)) {
+        $html .= "<a class='btn btn-xs btn-info' href='/openpa/object/$ObjectID'>Torna al sito</a>";
+    }
+
+    $html .= '<pre>' . print_r($data, 1) . '</pre>';
 
 } catch (Exception $e) {
 
@@ -52,6 +67,8 @@ try {
             $data = $tools->organizationBuilder->build();
         }
 
+        $settings = $tools->getSettings();
+        $html .= "<h4>Endpoint: " . $endpointUrl . "</h4>";
         $html .= '<pre>' . print_r($data, 1) . '</pre>';
 
     } catch (Exception $error) {

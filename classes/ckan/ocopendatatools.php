@@ -169,7 +169,10 @@ class OCOpenDataTools
 
             return $returnData;
         } catch (Exception $e) {
-            eZDebug::writeError($e->getMessage() . ' on object id #' . $object->attribute('id'), __METHOD__);
+            if (is_numeric($object)) $objectId = $object;
+            elseif ($object instanceof eZContentObject) $objectId = $object->attribute('id');
+            else $objectId = '?';
+            eZDebug::writeError($e->getMessage() . ' on object id #' . $objectId, __METHOD__);
             throw $e;
         }
     }
