@@ -136,14 +136,15 @@ class ContentClass
             if ( isset( $type['format'] ) )
             {
                 $template['format'] = array( $type['format'] );
-            }
-            if ( isset( $type['constraint'] ) )
-            {
-                $template['constraint'] = (array)$type['constraint'];
-            }
+            }                        
             if ( $help )
             {
                 $template['help'] = $help;
+            }
+            $constraint = array();
+            if ( isset( $type['constraint'] ) )
+            {
+                $constraint = (array)$type['constraint'];
             }
 
             $dataTypeInfo = array( 'name' => null );
@@ -159,6 +160,7 @@ class ContentClass
                 'dataType' => $attribute->attribute( 'data_type_string' ),
                 'dataTypeName' => $dataTypeInfo['name'],
                 'template' => $template,
+                'constraint' => $constraint,
                 'isSearchable' => (bool)$attribute->attribute( 'is_searchable' ),
                 'isRequired' => (bool)$attribute->attribute( 'is_required' ),
             );
