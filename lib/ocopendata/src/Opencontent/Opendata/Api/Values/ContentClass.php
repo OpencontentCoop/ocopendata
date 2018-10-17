@@ -137,6 +137,10 @@ class ContentClass
             {
                 $template['format'] = array( $type['format'] );
             }
+            if ( isset( $type['constraint'] ) )
+            {
+                $template['constraint'] = (array)$type['constraint'];
+            }
             if ( $help )
             {
                 $template['help'] = $help;

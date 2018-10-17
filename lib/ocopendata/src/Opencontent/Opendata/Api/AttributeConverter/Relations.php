@@ -199,9 +199,14 @@ class Relations extends Base
 
     public function type( eZContentClassAttribute $attribute )
     {
-        return array(
+        $result = array(
             'identifier' => 'array of id or remoteId or file or image'
         );
+        $attributeContent = $attribute->content();
+        if (is_array($attributeContent) && isset($attributeContent['class_constraint_list']) && !empty($attributeContent['class_constraint_list'])){
+            $result['constraint'] = $attributeContent['class_constraint_list'];
+        }
+        return $result;
     }
 
     public function toCSVString($content, $language = null)
