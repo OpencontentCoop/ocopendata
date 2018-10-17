@@ -12,7 +12,7 @@ class FloatNumber extends Base
     {
         if (is_string($content)) {            
             $locale = \eZLocale::instance();
-            return $locale->formatNumber($content);
+            return (float)$locale->formatNumber($content);
         }
 
         return '';
