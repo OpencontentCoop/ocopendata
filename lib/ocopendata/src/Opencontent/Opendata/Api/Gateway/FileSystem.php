@@ -96,4 +96,12 @@ class FileSystem extends Database
                       'store'    => true );
 
     }
+
+    public function clearAllCache()
+    {
+        $commonPath = eZDir::path( array( eZSys::cacheDirectory(), 'ocopendata' ) );
+        $fileHandler = eZClusterFileHandler::instance();
+        $commonSuffix = '';
+        $fileHandler->fileDeleteByDirList( array('content'), $commonPath, $commonSuffix );
+    }
 }

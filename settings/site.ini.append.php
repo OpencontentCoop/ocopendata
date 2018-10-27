@@ -11,6 +11,7 @@ PolicyOmitList[]=opendata/help
 [Cache]
 CacheItems[]=ocopendataapiclasses
 CacheItems[]=ocopendataapistates
+CacheItems[]=ocopendataapicontent
 
 [Cache_ocopendataapiclasses]
 name=Opendata Api classi
@@ -19,6 +20,15 @@ tags[]=ocopendata
 path=ocopendata/class
 isClustered=true
 class=OCOpenDataClassRepositoryCache
+
+[Cache_ocopendataapicontent]
+name=Opendata Api contenuti
+id=ocopendata_content
+tags[]=ocopendata
+path=ocopendata/content
+isClustered=true
+class=OCOpenDataContentRepositoryCache
+
 
 [Cache_ocopendataapistates]
 name=Opendata Api Stati

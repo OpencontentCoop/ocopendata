@@ -1,7 +1,5 @@
 <?php
 
-use Opencontent\Opendata\Api\StateRepository;
-
 class OCOpenDataClassRepositoryCache
 {
     public static function clearCache()
