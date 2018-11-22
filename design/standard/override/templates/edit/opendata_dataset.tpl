@@ -4,7 +4,7 @@
 {elseif $object.main_node_id}
     {set $_redirect = concat( 'content/view/full/', $object.main_node_id )}
 {elseif ezhttp( 'url', 'get', true() )}
-    {set $_redirect = ezhttp( 'url', 'get' )}
+    {set $_redirect = ezhttp( 'url', 'get' )|wash()}
 {/if}  
 
 <form enctype="multipart/form-data" method="post" action={concat("/content/edit/",$object.id,"/",$edit_version,"/",$edit_language|not|choose(concat($edit_language,"/"),''))|ezurl}>
