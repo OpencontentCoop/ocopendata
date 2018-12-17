@@ -70,21 +70,100 @@ class QueryConverter implements QueryConverterInterface
 
     protected function convertFilters()
     {
-        $filters = array();
+        $filters = array();        
         foreach ( $this->query->getFilters() as $item )
         {
             $filter = $this->parseItem( $item );
             if ( !empty( $filter ) && $filter !== null )
             {
-                if ( is_array( $filter ) && count( $filter ) == 1 )
-                    $filter = array_pop( $filter );
+                $filter = $this->flatFilter( $filter );                
                 $filters[] = $filter;
             }
         }
+
+        $filters = $this->cleanFilters($filters);
+
         if ( !empty( $filters ) )
         {
-            $this->convertedQuery['Filter'] = $filters;
+            $this->convertedQuery['Filter'] = (array)$filters;
         }
+    }
+
+    // elimina innestamenti superflui
+    private function flatFilter( $filter )
+    {
+        if ( is_array( $filter ) )
+        {
+            if ( count( $filter ) == 1 )
+            {
+                $filter = array_pop( $filter );
+                
+                return $this->flatFilter( $filter );
+            }
+            else
+            {
+                $flat = array();
+                foreach ($filter as $item) 
+                {
+                    $flat[] = $this->flatFilter( $item );
+                }
+            }
+            
+            return $flat;
+        }
+        else{
+            return $filter;
+        }
+    }
+
+    // use cleanFilter per correggere innestamenti superflui in clausola and
+    private function cleanFilters( $filters )
+    {
+        $cleanFilters = array();                        
+        
+        foreach ($filters as $filter) 
+        {
+            $this->cleanFilter( $filter, $cleanFilters );
+        }
+
+        return $this->flatFilter( $cleanFilters );
+    }
+
+    private function cleanFilter( $filter, &$stack )
+    {
+        if ( is_array( $filter ) )
+        {
+            if ( $filter[0] == 'or' )
+            {
+                // $stack[] = $filter;                
+                $subStack = array();
+                foreach ( $filter as $item )
+                {
+                    if ( is_array( $item ) )
+                    {
+                        $itemStack = array();
+                        $this->cleanFilter( $item, $itemStack );
+                        $subStack[] = $itemStack;
+                    }
+                    else
+                    {
+                        $subStack[] = $item;
+                    }                    
+                }
+                $stack[] = $subStack;
+            }
+            else
+            {
+                foreach ( $filter as $item )
+                {
+                    $this->cleanFilter( $item, $stack );
+                }
+            }
+        }
+        else
+        {
+            $stack[] = $filter;
+        }        
     }
 
     protected function convertParameters()
