@@ -111,7 +111,7 @@ class DefaultEnvironmentSettings extends EnvironmentSettings
         {
             foreach( $data as $identifier => $value )
             {
-                list( $classIdentifier, $attributeIdentifier ) = explode( '/', $value['identifier'] );
+                @list( $classIdentifier, $attributeIdentifier ) = explode( '/', $value['identifier'] );
                 if ( isset( $overrideIdentifierList[$value['identifier']] ) )
                 {
                     $identifier = $overrideIdentifierList[$value['identifier']];

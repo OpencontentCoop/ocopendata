@@ -82,6 +82,13 @@
             //console.log( ' -- Query: ' + query);
             return !notEncoded ? encodeURIComponent(query) : query;
         },
+        encodeValue: function(item){
+            return item.toString()
+                .replace(/"/g, '\\\"')
+                .replace(/'/g, "\\'")
+                .replace(/\(/g, "\\(")
+                .replace(/\)/g, "\\)");
+        },
         buildFilterInput: function (facets, facet, cb, context) {
             var self = this;
             for (var i = 0, len = facets.length; i < len; i++) {
@@ -102,7 +109,7 @@
 
                     $.each(facetDefinition.data, function (value, count) {
                         if (value.length > 0) {
-                            var quotedValue = facetDefinition.field.search("extra_") > -1 ? encodeURIComponent('"' + value + '"') : value;
+                            var quotedValue = facetDefinition.field.search("extra_") > -1 ? encodeURIComponent('"' + self.encodeValue(value) + '"') : self.encodeValue(value);
                             var option = $('<option value="' + quotedValue + '">' + value + ' (' + count + ')</option>');
                             if (currentFilters[facetDefinition.field]
                                 && currentFilters[facetDefinition.field].value
