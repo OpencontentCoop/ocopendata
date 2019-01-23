@@ -4,7 +4,7 @@ namespace Opencontent\Opendata\Api\QueryLanguage\EzFind;
 
 use Opencontent\Opendata\Api\ClassRepository;
 use Opencontent\QueryLanguage\QueryBuilder as BaseQueryBuilder;
-
+use eZINI;
 
 class QueryBuilder extends BaseQueryBuilder
 {
@@ -67,6 +67,9 @@ class QueryBuilder extends BaseQueryBuilder
             $this->fields,
             array_keys( $availableFieldDefinitions )
         );
+        
+        $filtersList = (array)eZINI::instance( 'ezfind.ini' )->variable( 'ExtendedAttributeFilters', 'FiltersList' );
+        $this->parameters = array_merge($this->parameters, array_keys($filtersList));
 
         $this->tokenFactory = new TokenFactory(
             $this->fields,

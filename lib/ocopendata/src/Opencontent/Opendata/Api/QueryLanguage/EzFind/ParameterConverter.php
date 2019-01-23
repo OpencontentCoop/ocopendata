@@ -5,6 +5,8 @@ namespace Opencontent\Opendata\Api\QueryLanguage\EzFind;
 use Opencontent\QueryLanguage\Converter\Exception;
 use Opencontent\QueryLanguage\Parser\Parameter;
 use Opencontent\QueryLanguage\Parser\Sentence;
+use eZFindExtendedAttributeFilterFactory;
+use eZFindExtendedAttributeFilterInterface;
 
 class ParameterConverter extends SentenceConverter
 {
@@ -67,7 +69,12 @@ class ParameterConverter extends SentenceConverter
                     break;
 
                 default:
-                    throw new Exception("Can not convert $key parameter");
+                    $attributeFilter = eZFindExtendedAttributeFilterFactory::getInstance($key);
+                    if ($attributeFilter instanceof eZFindExtendedAttributeFilterInterface){
+                        $this->convertExtendedAttributeFilter($attributeFilter, $key, $value);
+                    }else{                    
+                        throw new Exception("Can not convert $key parameter");
+                    }
             }
         }
     }
@@ -193,10 +200,10 @@ class ParameterConverter extends SentenceConverter
     protected function convertFacets($value)
     {
         $facets = array();
-
+        $avoidDuplicateNameList = array();
         foreach ($value as $item) {
 
-            $item = self::parseFacetQueryValue( $item );
+            $item = self::parseFacetQueryValue( $item, $this->solrNamesHelper );
 
             switch( $item['field'] )
             {
@@ -226,28 +233,63 @@ class ParameterConverter extends SentenceConverter
                     } break;
             }
 
+            $name = $item['field'];
+            if (isset($avoidDuplicateNameList[$name])){
+                $avoidDuplicateNameList[$name]++;
+            }else{
+                $avoidDuplicateNameList[$name] = 0;
+            }
+            if ($avoidDuplicateNameList[$name] > 0){
+                $name .= $avoidDuplicateNameList[$name];
+            }
+
+            if ($item['query']){                
+                list($queryField, $queryValue) = explode(':', $item['query']);
+                $fieldNames = $this->solrNamesHelper->generateFieldNames( $queryField, 'filter' );
+                $value = $this->cleanValue($queryValue);                            
+                if (!is_array($queryValue) && count($fieldNames) > 0){
+                    $fieldName = array_shift($fieldNames);
+                    $item['query'] = $fieldName . ':' . $queryValue;
+                }
+            }
+
             foreach ($fields as $field) {
                 $facets[] = array(
                     'field' => $field,
-                    'name'=> $item['field'],
+                    'name'=> $name,
                     'limit' => $item['limit'],
                     'offset' => $item['offset'],
-                    'sort' => $item['sort']
+                    'sort' => $item['sort'],
+                    'query'  => $item['query'],
+                    // 'range' => array(
+                    //     'field' => 'published',
+                    //     'start' => trim($this->formatFilterValue( (new \DateTime())->sub(new \DateInterval("P10Y"))->format(\DateTime::ISO8601), 'date' ), '"'),
+                    //     'end' => 'NOW',
+                    //     'gap' => '+1DAY'
+                    // )
                 );
             }
         }
         $this->convertedQuery['Facet'] = $facets;
     }
 
-    public static function parseFacetQueryValue( $item )
+    public static function parseFacetQueryValue( $item, $solrNamesHelper = null)
     {
         $item = trim( $item, "'" );
-        @list( $field, $sort, $limit, $offset ) = explode( '|', $item );
+        $parts = explode( '|', $item );
+        
+        $field = isset($parts[0]) ? $parts[0] : null;
+        $sort = isset($parts[1]) ? $parts[1] : 'count';
+        $limit = isset($parts[2]) ? $parts[2] : 100;
+        $offset = isset($parts[3]) ? $parts[3] : 0;
+        $query = isset($parts[4]) && strpos($parts[4], ':') !== false ? $parts[4] : null;
+
         return array(
             'field'=> $field,
-            'limit' => $limit ? $limit : 100,
-            'offset' => $offset ? $offset : 0,
-            'sort' => $sort ? $sort : 'count'
+            'limit' => $limit,
+            'offset' => $offset,
+            'sort' => $sort,
+            'query' => $query
         );
     }
 
@@ -271,6 +313,18 @@ class ParameterConverter extends SentenceConverter
         }, $value);
 
         $this->convertedQuery['_filterLanguages'] = $value;
+    }
+
+    protected function convertExtendedAttributeFilter(eZFindExtendedAttributeFilterInterface $attributeFilter, $key, $value)
+    {
+        $extendedFilter = array(
+            'id' => $key,
+            'params' => $value
+        );
+        if (!isset( $this->convertedQuery['ExtendedAttributeFilter'] )) {
+            $this->convertedQuery['ExtendedAttributeFilter'] = array();
+        }
+        $this->convertedQuery['ExtendedAttributeFilter'][] = $extendedFilter;
     }
 
 }

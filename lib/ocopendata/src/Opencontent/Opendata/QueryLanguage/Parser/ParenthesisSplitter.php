@@ -49,7 +49,8 @@ class ParenthesisSplitter
 
         if ( !$this->isBalanced() )
         {
-            throw new Exception( "Unbalanced parenthesis in \"$string\"" . mb_strlen( $string ) );
+            $string = $string ? " in \"$string\"" : '';
+            throw new Exception( "Unbalanced parenthesis {$open} or {$close}{$string}" );
         }
 
         $this->string = $originalString;

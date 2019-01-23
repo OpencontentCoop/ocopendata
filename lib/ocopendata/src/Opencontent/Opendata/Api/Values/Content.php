@@ -12,7 +12,6 @@ use Opencontent\Opendata\Api\AttributeConverterLoader;
 use eZUser;
 use eZPreferences;
 use eZContentObjectTreeNode;
-use Opencontent\Opendata\Api\Gateway;
 use Opencontent\Opendata\GeoJson\Feature;
 use Opencontent\Opendata\GeoJson\Geometry;
 use Opencontent\Opendata\GeoJson\Properties;

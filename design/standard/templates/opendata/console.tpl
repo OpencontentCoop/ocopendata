@@ -87,6 +87,17 @@
         </div>
     </div>
 
+    <div class="row">
+        <div class="col-sm-6">
+            <h3>eZFind Query</h3>
+            <pre id="ezfind-query"></pre>
+        </div>
+        <div class="col-sm-6">
+            <h3>Extra results</h3>
+            <pre id="facets-results"></pre>
+        </div>
+    </div>
+
     <hr />
 
     <h2>Classi</h2>
@@ -109,6 +120,9 @@
     </form>
 
     <div id="class-result" style="margin: 20px 0"></div>
+
+
+    {def $extendedAttributeFilters = ezini('ExtendedAttributeFilters', 'FiltersList', 'ezfind.ini')}
 
     <script>
     $(function() {ldelim}
@@ -167,7 +181,9 @@
             'queryString': $('#query-string'),
             'queryAnalysis': $('#query-analysis'),
             'results': $('#search-results'),
-            'geoResults': $('#geo-results')
+            'geoResults': $('#geo-results'),
+            'ezfindQuery': $('#ezfind-query'),
+            'facetsResults': $('#facets-results')
         };
 
         var $errors = $('#errors');
@@ -350,11 +366,20 @@
             });
             $searchContainers.queryAnalysis.html( content );
             console.log(data.ezfind);
+            $searchContainers.ezfindQuery.html(JSON.stringify(data.ezfind, null, 4));
         };
 
         var loadSearchResults = function(url,data){
             $(icon).removeClass('fa-cog fa-spin');
-
+            $searchContainers.facetsResults.html('Facets: ' + JSON.stringify(data.facets, null, 4));
+            if (data.ranges)
+                $searchContainers.facetsResults.append("\nRanges: " + JSON.stringify(data.ranges, null, 4));
+            {/literal}
+            {foreach $extendedAttributeFilters as $filter => $class}
+            if (data.{$filter})
+                $searchContainers.facetsResults.append("\n{$filter}: " + JSON.stringify(data.{$filter}, null, 4));
+            {/foreach}
+            {literal}
             var results = data.searchHits;
             var searchQuery = url.replace(searchEndpoint,'');
             var content = '<strong>API /content</strong>:<br/> <a href="'+url+'"><code>'+decodeURIComponent(searchQuery)+'</code></a>';
@@ -523,6 +548,19 @@
 
 </div>
 
+
+{*fetch( 'ezfind', 'search', hash(
+       'limit', 1,
+       'extended_attribute_filter', array(
+           hash(
+            'id', 'stats',
+            'params', hash(
+                'field', 'meta_section_id_si',
+                'facet', array('meta_owner_id_si', 'extra_project_name_s')
+            )
+           )
+       )
+)).SearchExtras|attribute(show,4)*}
 
 </body>
 </html>

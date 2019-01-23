@@ -15,9 +15,9 @@ class Sentence
     protected $operator = array();
 
     /**
-     * @var Token[]
+     * @var Value
      */
-    protected $value = array();
+    protected $value;
 
     public function getField()
     {
@@ -31,7 +31,9 @@ class Sentence
 
     public function getValue()
     {
-        return $this->normalizeValue();
+        return $this->value instanceof ArrayValue ?
+            $this->value->toArray() :
+            (string) $this->value;
     }
 
     public function setField(Token $data)
@@ -46,7 +48,7 @@ class Sentence
 
     public function setValue(Token $data)
     {
-        $this->value[] = $data;
+        $this->value = ValueParser::parseString($data);
     }
 
     public function __toString()
@@ -56,89 +58,26 @@ class Sentence
 
     public function isValid()
     {
-        return $this->field !== null && !empty( $this->operator ) && !empty( $this->value );
+        return $this->field !== null && !empty($this->operator) && !empty($this->stringValue());
     }
 
     public function stringValue()
     {
-        $value = $this->getValue();
-        if (is_array($value)) {
-            if (array_keys($value) === range(0, count($value) - 1)) {
-                $string = '[' . implode(',', $value) . ']';
-            } else {
-                $valueArray = array();
-                foreach ($value as $key => $item) {
-                    $valueArray[] = $key . '=>' . $item;
-                }
-                $string = '[' . implode(',', $valueArray) . ']';
-            }
-        } else {
-            $string = (string)$value;
-        }
-
-        return $string;
+        return (string)$this->value;
     }
 
-    protected function normalizeValue()
-    {
-        if (is_array($this->value)) {
-            $value = implode(' ', $this->value);
-        } else {
-            $value = (string)$this->value;
-        }
-
-        return self::parseString($value);
-    }
-
+    /**
+     * @param $variableValue
+     * @return string|Value
+     */
     public static function parseString($variableValue)
     {
-        $variableValue = trim( $variableValue );
-        if (strpos($variableValue, '[') === 0) {
-            return self::parseArray($variableValue);
+        $value = ValueParser::parseString($variableValue);
+
+        if ($value instanceof ArrayValue){
+            return $value->toArray();
         }
 
-        return $variableValue;
-    }
-
-    protected static function parseArray($variableValue)
-    {
-        $variableValue = trim($variableValue, '[]');
-        if ($variableValue == '') {
-            return array();
-        } else {
-            $arrayValue = array();
-            if (strpos($variableValue, "'") !== false) {
-                $variableValue = str_replace("\'", "$", $variableValue);
-                $parts = explode("'", $variableValue);
-                foreach ($parts as $part) {
-                    if ($part != '') {
-                        $value = trim($part);
-                        if ($value != ',') {
-                            $value = str_replace("$", "'", $value);
-                            $arrayValue[] = "'$value'";
-                        }
-                    }
-                }
-            }else{
-                $arrayValue = explode(",", $variableValue);
-                $arrayValue = array_map('trim', $arrayValue);
-            }
-            foreach ($arrayValue as $value) {
-                if (strpos($value, '=>') !== false) {
-                    return self::parseArrayAsHash($arrayValue);
-                }
-            }
-            return $arrayValue;
-        }
-    }
-
-    protected static function parseArrayAsHash($array)
-    {
-        $variableValue = array();
-        foreach ($array as $item) {
-            @list( $key, $value ) = explode('=>', $item);
-            $variableValue[trim($key)] = self::parseString(trim($value));
-        }
-        return $variableValue;
+        return (string)$value;
     }
 }

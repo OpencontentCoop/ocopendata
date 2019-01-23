@@ -10,8 +10,6 @@ use Opencontent\Opendata\Api\Gateway;
 use Opencontent\Opendata\Api\Values\Content;
 use Opencontent\Opendata\Api\Values\ContentData;
 use Opencontent\Opendata\Api\Values\Metadata;
-use Opencontent\Opendata\Api\Exception\NotFoundException;
-use Opencontent\Opendata\Api\Exception\ForbiddenException;
 
 class SolrStorage implements Gateway
 {

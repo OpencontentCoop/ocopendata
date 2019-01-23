@@ -4,13 +4,10 @@ namespace Opencontent\Opendata\Api;
 
 use Opencontent\Opendata\Api\Exception\OutOfRangeException;
 use Opencontent\Opendata\Api\Values\Content;
-use Opencontent\Opendata\Api\Values\ContentClass;
 use Opencontent\Opendata\Api\Values\SearchResults;
 use Opencontent\QueryLanguage\QueryBuilder;
 use Opencontent\Opendata\Api\Structs\ContentCreateStruct;
 use Opencontent\Opendata\Api\Structs\ContentUpdateStruct;
-
-
 
 class EnvironmentSettings
 {
@@ -86,7 +83,8 @@ class EnvironmentSettings
 
     /**
      * @param SearchResults $searchResults
-     *
+     * @param \ArrayObject $query
+     * @param QueryBuilder $builder
      * @return SearchResults
      */
     public function filterSearchResult(SearchResults $searchResults, \ArrayObject $query, QueryBuilder $builder)
@@ -100,7 +98,7 @@ class EnvironmentSettings
 
     /**
      * @param \ArrayObject $query
-     *
+     * @param QueryBuilder $builder
      * @return \ArrayObject
      */
     public function filterQuery(\ArrayObject $query, QueryBuilder $builder)
@@ -188,5 +186,8 @@ class EnvironmentSettings
         return $this->request;
     }
 
-
+    public function isDebug()
+    {
+        return $this->debug  == true;
+    }
 }

@@ -2,7 +2,6 @@
 
 namespace Opencontent\Opendata\Api\Gateway;
 
-use Opencontent\Opendata\Api\Gateway;
 use Opencontent\Opendata\Api\Values\Content;
 use eZDir;
 use eZSys;

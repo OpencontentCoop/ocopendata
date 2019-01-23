@@ -73,6 +73,12 @@ class SentenceConverter
 
         if ( $field == 'q' )
         {
+            if (is_array($sentence->getValue())){
+                throw new Exception( "Value of query field (q) must be a string" );
+            }
+            if ($sentence->getOperator() !== '='){
+                throw new Exception( "Operator of query field (q) must be =" );
+            }
             $this->convertedQuery['_query'] = $this->cleanValue($sentence->stringValue());
             return null;
         }

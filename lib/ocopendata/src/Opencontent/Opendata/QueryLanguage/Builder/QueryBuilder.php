@@ -5,7 +5,7 @@ namespace Opencontent\QueryLanguage;
 use Opencontent\QueryLanguage\Converter\QueryConverter;
 use Opencontent\QueryLanguage\Parser\TokenFactory;
 
-abstract class QueryBuilder
+abstract class QueryBuilder implements QueryBuilderInterface
 {
     public $fields = array();
 
