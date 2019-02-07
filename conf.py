@@ -4,13 +4,13 @@
 from __future__ import unicode_literals
 
 # -- PROJECT Variables ----------------------------------------------------
-settings_project_name = "Manuale API OpenPA"
+settings_project_name = "Documentazione API OpenPA"
 settings_copyright_copyleft = 'Opencontent'
 settings_editor_name = 'Opencontent'
 settings_doc_version = 'version: latest'
 settings_doc_release = 'version: latest'
-settings_basename = 'manuale-api-openpa'
-settings_file_name = 'manuale-api-openpa'
+settings_basename = 'documentazione-api-openpa'
+settings_file_name = 'documentazione-api-openpa'
 
 # -- No need to change below here
 
