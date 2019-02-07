@@ -31,7 +31,7 @@ Lettura di un contenuto
 
     GET content/read/$ContentIdentifier
 
-La risposta in JSON è un oggetto \ |LINK4|\ 
+La risposta in JSON è un oggetto Content
 
 La varibile obbligatoria $ContentIdentifier rappresenta un identificatore unico del contentuto, espresso con metadata.id oppure metadata.remoteId
 
@@ -45,9 +45,9 @@ Ricerca di un contenuto
 
     GET content/search/$Query
 
-La risposta in JSON è un oggetto \ |LINK5|\ 
+La risposta in JSON è un oggetto SearchResults
 
-La varibile obbligatoria $Query rappresenta la stringa di ricerca. Il server API riconosce \ |LINK6|\  per filtrare i contenuti.
+La varibile obbligatoria $Query rappresenta la stringa di ricerca. Il server API riconosce \ |LINK4|\  per filtrare i contenuti.
 
 .. _h413a4c412d6971386e6b3d516b274151:
 
@@ -59,7 +59,7 @@ Lettura di un punto geografico
 
     GET geo/read/$ContentIdentifier
 
-La risposta in geoJSON è un oggetto \ |LINK7|\ 
+La risposta in geoJSON è un oggetto \ |LINK5|\ 
 
 La varibile obbligatoria $ContentIdentifier rappresenta un identificatore unico del contentuto.
 
@@ -73,7 +73,7 @@ Ricerca di punti geografici
 
     GET geo/search/$Query
 
-La risposta in geoJSON è un oggetto \ |LINK8|\ 
+La risposta in geoJSON è un oggetto \ |LINK6|\ 
 
 La varibile obbligatoria $Query rappresenta la stringa di ricerca. Il server API riconosce un meta-linguaggio per filtrare i contenuti.
 
@@ -87,7 +87,7 @@ Rappresentazione delle risorse
 Content
 -------
 
-\ |LINK9|\ 
+\ |LINK7|\ 
 
 La risorsa contenuto rappresenta il cuore delle API. Essa viene esposta come un oggetto composto da due proprietà che ne rappresentano i metadati e i dati veri e propri.
 
@@ -154,17 +154,17 @@ SearchResults
 -------------
 
 
-+-------------+------------------------------------+-------------------------------------------------------+
-|\ |STYLE10|\ |\ |STYLE11|\                        |\ |STYLE12|\                                           |
-+-------------+------------------------------------+-------------------------------------------------------+
-|query        |string                              |Stringa di ricerca                                     |
-+-------------+------------------------------------+-------------------------------------------------------+
-|nextPageQuery|string oppure null                  |Stringa per ricevere la pagina successiva dei risultati|
-+-------------+------------------------------------+-------------------------------------------------------+
-|totalCount   |integer                             |Numero totale di contenuti ottenuti dalla ricerca      |
-+-------------+------------------------------------+-------------------------------------------------------+
-|searchHits   |Array di Content oppure \ |LINK10|\ |Risultati della ricerca                                |
-+-------------+------------------------------------+-------------------------------------------------------+
++-------------+-----------------------------------+-------------------------------------------------------+
+|\ |STYLE10|\ |\ |STYLE11|\                       |\ |STYLE12|\                                           |
++-------------+-----------------------------------+-------------------------------------------------------+
+|query        |string                             |Stringa di ricerca                                     |
++-------------+-----------------------------------+-------------------------------------------------------+
+|nextPageQuery|string oppure null                 |Stringa per ricevere la pagina successiva dei risultati|
++-------------+-----------------------------------+-------------------------------------------------------+
+|totalCount   |integer                            |Numero totale di contenuti ottenuti dalla ricerca      |
++-------------+-----------------------------------+-------------------------------------------------------+
+|searchHits   |Array di Content oppure \ |LINK8|\ |Risultati della ricerca                                |
++-------------+-----------------------------------+-------------------------------------------------------+
 
 .. _h1b33d1b9275c4253722d78662685f:
 
@@ -254,7 +254,7 @@ E' possibile eseguire ricerche più complesse. Ad esempio per ricerca gli eventi
 
     from_time range [today,next week] or to_time range [today,next week] or ( from_time range [*,today] and to_time range [next week,*] ) classes event sort [published => desc]
 
-Il server API mette a disposizione di default una console raggiungibile da (\ |LINK11|\ )
+Il server API mette a disposizione di default una console raggiungibile da (\ |LINK9|\ )
 
 
 .. bottom of content
@@ -315,33 +315,25 @@ Il server API mette a disposizione di default una console raggiungibile da (\ |L
 
 .. |LINK4| raw:: html
 
-    <a href="#heading=h.bf1ehngwldck">Content</a>
+    <a href="#heading=h.44opkufuw637">un meta-linguaggio</a>
 
 .. |LINK5| raw:: html
 
-    <a href="#heading=h.b5klwxoizuzw">SearchResults</a>
+    <a href="http://geojson.org/geojson-spec.html#feature-objects" target="_blank">Feature</a>
 
 .. |LINK6| raw:: html
 
-    <a href="#heading=h.44opkufuw637">un meta-linguaggio</a>
+    <a href="http://geojson.org/geojson-spec.html#feature-collection-objects" target="_blank">FeatureCollection</a>
 
 .. |LINK7| raw:: html
 
-    <a href="http://geojson.org/geojson-spec.html#feature-objects" target="_blank">Feature</a>
+    <a href="https://github.com/Opencontent/openservices/blob/master/doc/example/content.json" target="_blank">Esempio di content in formato json</a>
 
 .. |LINK8| raw:: html
 
     <a href="http://geojson.org/geojson-spec.html#feature-collection-objects" target="_blank">FeatureCollection</a>
 
 .. |LINK9| raw:: html
-
-    <a href="https://github.com/Opencontent/openservices/blob/master/doc/example/content.json" target="_blank">Esempio di content in formato json</a>
-
-.. |LINK10| raw:: html
-
-    <a href="http://geojson.org/geojson-spec.html#feature-collection-objects" target="_blank">FeatureCollection</a>
-
-.. |LINK11| raw:: html
 
     <a href="http://www.domain.tdl/opendata/console" target="_blank">www.domain.tdl/opendata/console</a>
 
