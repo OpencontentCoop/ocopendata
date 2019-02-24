@@ -42,8 +42,18 @@ class PublicationProcess
 
         $section = $this->currentStruct->metadata->getSection();
 
+        $prioritizedLanguageCodes = \eZContentLanguage::prioritizedLanguageCodes();
+        $mainLanguage = $prioritizedLanguageCodes[0];
+        $addMissingTranslations = array();
         if ($this->currentStruct->metadata->getContentObject() instanceof \eZContentObject) {
             $content = \SQLIContent::fromContentObject($this->currentStruct->metadata->getContentObject());
+            $currentObjectLanguages = array_keys(
+                $this->currentStruct->metadata->getContentObject()->allLanguages()
+            );
+            if (!in_array($mainLanguage, $currentObjectLanguages)){
+                $content->addTranslation($mainLanguage);
+            }
+            $addMissingTranslations = array_diff($currentObjectLanguages, $this->currentStruct->metadata->languages);
         } else {
             $contentOptions = new \SQLIContentOptions(array(
                 'class_identifier' => $this->currentStruct->metadata->classIdentifier,
@@ -57,8 +67,6 @@ class PublicationProcess
         }
 
         try {
-            $prioritizedLanguageCodes = \eZContentLanguage::prioritizedLanguageCodes();
-            $mainLanguage = $prioritizedLanguageCodes[0];
             foreach ($this->currentStruct->data as $language => $values) {
                 if ($language == $mainLanguage) {
                     foreach ($values as $identifier => $data) {
@@ -85,6 +93,17 @@ class PublicationProcess
                         }else {
                             $content->fields[$language]->{$identifier} = $converters[$identifier]->set($data, $this);
                         }
+                    }
+                }
+            }
+
+            if (!empty($addMissingTranslations)) {
+                $fieldList = $this->currentStruct->metadata->getClass()->fields;
+                foreach ($addMissingTranslations as $language) {
+                    $content->addTranslation($language);
+                    foreach ($fieldList as $field){
+                        $identifier = $field['identifier'];
+                        $content->fields[$language]->{$identifier} = (string)$content->fields[$language]->{$identifier};
                     }
                 }
             }
@@ -133,6 +152,7 @@ class PublicationProcess
 
             return $id;
         } catch (\Exception $e) {
+print_r($e->getTraceAsString());
             if ($content->getRawContentObject()->attribute('current_version') == 1) {
                 $content->getRawContentObject()->remove();
             } else {
