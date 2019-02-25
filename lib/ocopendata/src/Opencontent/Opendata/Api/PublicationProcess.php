@@ -2,6 +2,7 @@
 
 namespace Opencontent\Opendata\Api;
 
+use Opencontent\Opendata\Api\Exception\PublicationException;
 use Opencontent\Opendata\Api\Structs\ContentCreateStruct;
 use Opencontent\Opendata\Api\Values\ContentSection;
 
@@ -152,14 +153,12 @@ class PublicationProcess
 
             return $id;
         } catch (\Exception $e) {
-print_r($e->getTraceAsString());
             if ($content->getRawContentObject()->attribute('current_version') == 1) {
                 $content->getRawContentObject()->remove();
             } else {
                 $content->getDraft()->removeThis();
             }
-            throw $e;
+            throw new PublicationException($e->getMessage(), $e->getCode(), $e);
         }
     }
-
 }
