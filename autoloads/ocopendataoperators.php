@@ -5,6 +5,7 @@ use Opencontent\Opendata\Api\ContentRepository;
 use Opencontent\Opendata\Api\ContentSearch;
 use Opencontent\Opendata\Api\ClassRepository;
 use Opencontent\Opendata\Api\TagRepository;
+use Opencontent\Opendata\Api\StateRepository;
 
 class OCOpenDataOperators
 {
@@ -17,6 +18,7 @@ class OCOpenDataOperators
             'api_read',
             'api_class',
             'api_tagtree',
+            'api_state',
         );
     }
 
@@ -43,6 +45,9 @@ class OCOpenDataOperators
             ),
             'api_tagtree' => array(
                 'identifier' => array( 'type' => 'string', 'required' => true, 'default' => false )
+            ),
+            'api_state' => array(
+                'identifier' => array( 'type' => 'mixed', 'required' => true )
             )
         );
     }
@@ -52,6 +57,20 @@ class OCOpenDataOperators
 
         switch ($operatorName)
         {
+            case 'api_state':
+            {
+                $stateRepository = new StateRepository();
+                $identifier = $namedParameters['identifier'];
+                try {
+                    $data = (array)$stateRepository->load($identifier)->jsonSerialize();
+                }
+                catch( Exception $e )
+                {
+                    $data = array();
+                }
+                $operatorValue = $data;
+            } break;
+
             case 'api_tagtree':
             {
                 $tagsRepository = new TagRepository();

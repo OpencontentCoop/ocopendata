@@ -13,6 +13,11 @@ class StateRepository
 {
     private static $states;
 
+    /**
+     * @param $identifier
+     * @return ContentState
+     * @throws NotFoundException
+     */
     public function load( $identifier )
     {
         $all = $this->internalLoadStates();

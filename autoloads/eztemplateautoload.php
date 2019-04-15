@@ -10,6 +10,7 @@ $eZTemplateOperatorArray[] = array(
         'api_search',
         'api_read',
         'api_class',
-        'api_tagtree'
+        'api_tagtree',
+        'api_state',
     )
 );
