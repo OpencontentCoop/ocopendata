@@ -77,7 +77,11 @@ class GeoEnvironmentSettings extends EnvironmentSettings
                 if (count($filters) > 1) {
                     array_unshift($filters, 'or');
                 }
-                $query['Filter'] = array($query['Filter'], $filters);
+                if (!empty($query['Filter'])) {
+                    $query['Filter'] = array($query['Filter'], $filters);
+                }else{
+                    $query['Filter'] = $filters;
+                }
             } else {
                 throw new RuntimeException("No attribute type ezgmaplocation found");
             }
