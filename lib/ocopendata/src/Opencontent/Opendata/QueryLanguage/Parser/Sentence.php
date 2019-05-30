@@ -58,7 +58,7 @@ class Sentence
 
     public function isValid()
     {
-        return $this->field !== null && !empty($this->operator) && !empty($this->stringValue());
+        return $this->field !== null && !empty($this->operator) && !Value::isEmpty($this->stringValue());
     }
 
     public function stringValue()

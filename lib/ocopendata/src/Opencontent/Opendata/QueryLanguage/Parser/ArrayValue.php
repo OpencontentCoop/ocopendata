@@ -21,7 +21,7 @@ class ArrayValue extends Value
         if ($key && $value) {
             $this->data[$key] = $value;
         }
-        if ($key && empty($value)) {
+        if ($key && Value::isEmpty($value)) {
             $this->pendingKey = $key;
         }
 
