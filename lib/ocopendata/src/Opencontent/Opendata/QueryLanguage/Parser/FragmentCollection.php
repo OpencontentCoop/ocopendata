@@ -25,6 +25,7 @@ class FragmentCollection implements Iterator, Countable
 
     /**
      * @param Fragment|FragmentCollection $fragment
+     * @throws Exception
      */
     public function add( $fragment )
     {

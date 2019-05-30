@@ -33,6 +33,7 @@ class SearchResults
      */
     public $facets = array();
 
+
     public function jsonSerialize()
     {
         $searchHits = array_map(function($value){
@@ -42,12 +43,14 @@ class SearchResults
             return $value;
         }, $this->searchHits);
 
-        return array(
+        $data = array(
           'query' => $this->query,
           'nextPageQuery' => $this->nextPageQuery,
           'totalCount' => $this->totalCount,
           'searchHits' => $searchHits,
           'facets' => $this->facets,
         );
+
+        return $data;
     }
 }

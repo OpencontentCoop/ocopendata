@@ -4,8 +4,14 @@ namespace Opencontent\QueryLanguage\Parser;
 
 class Parameter extends Sentence
 {
+    /**
+     * @var Token
+     */
     protected $key;
 
+    /**
+     * @var Value
+     */
     protected $value;
 
     public function setKey( Token $data )
@@ -16,11 +22,6 @@ class Parameter extends Sentence
     public function getKey()
     {
         return $this->key;
-    }
-
-    public function setValue( Token $data )
-    {
-        $this->value = $data;
     }
 
     public function isValid()

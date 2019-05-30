@@ -24,7 +24,7 @@ class Fragment implements ArrayAccess, Iterator, Countable
      */
     protected $tokenFactory;
 
-    public function __construct( $string = '', TokenFactory $tokenFactory )
+    public function __construct( $string, TokenFactory $tokenFactory )
     {
         $this->tokenFactory = $tokenFactory;
         $this->string = $string;
