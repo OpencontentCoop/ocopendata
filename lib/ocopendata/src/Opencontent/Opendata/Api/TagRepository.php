@@ -12,8 +12,9 @@ class TagRepository
 {
     public function read($tagUrl)
     {
-        if (is_numeric($tagUrl)) {
-            $tag = eZTagsObject::fetch($tagUrl);
+        $tagId = ltrim($tagUrl, '/');
+        if (is_numeric($tagId)) {
+            $tag = eZTagsObject::fetch((int)$tagId);
         } else {
             $tag = eZTagsObject::fetchByUrl($tagUrl);
         }
