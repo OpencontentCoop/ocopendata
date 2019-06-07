@@ -4,7 +4,7 @@ use Opencontent\Opendata\Rest\Client\HttpClient;
 
 try
 {
-    $client = new HttpClient( 'http://openpa.opencontent.it', 'user', 'password' );
+    $client = new HttpClient( 'http://www.example.com', 'user', 'password' );
     $data = array(
         'metadata' => array(
             'remote_id' => 'my_own_unique_id',
