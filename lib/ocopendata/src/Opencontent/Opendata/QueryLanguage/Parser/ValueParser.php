@@ -22,6 +22,7 @@ class ValueParser
         foreach ($fragments as $wrapper => $items) {
             self::parseValueFragment($items, $value);
         }
+
         return $value;
     }
 
@@ -52,13 +53,16 @@ class ValueParser
                         }
                     }
                 } else {
-                    $parts = explode(",", $item);
+                    $parts = explode(",", $item);                    
                     $parts = array_map('trim', $parts);
                 }
 
                 foreach ($parts as $part) {
-                    $hashSplit = explode('=>', $part);
-                    if (isset($hashSplit[1])) {
+                    if (empty($part)){
+                        continue;
+                    }                    
+                    $hashSplit = explode('=>', $part);                                        
+                    if (isset($hashSplit[1])) {                        
                         $value->append($hashSplit[0], $hashSplit[1]);
                     } else {
                         $key = null;
