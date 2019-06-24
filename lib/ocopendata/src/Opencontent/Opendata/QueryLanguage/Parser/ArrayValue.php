@@ -16,16 +16,18 @@ class ArrayValue extends Value
     public function append($key, $value)
     {
         $key = trim($key);
-        $value = trim($value);
+        $value = is_string($value) ? trim($value) : $value;
 
-        if ($key && $value) {
+        $isEmptyValue = Value::isEmpty($value);
+
+        if ($key && !$isEmptyValue) {
             $this->data[$key] = $value;
         }
-        if ($key && Value::isEmpty($value)) {
+        if ($key && $isEmptyValue) {
             $this->pendingKey = $key;
         }
 
-        if (!$key && $value) {
+        if (!$key && !$isEmptyValue) {
             if ($this->pendingKey) {
                 $this->data[$this->pendingKey] = $value;
                 $this->pendingKey = null;
