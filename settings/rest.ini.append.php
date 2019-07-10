@@ -7,6 +7,7 @@ ProviderClass[opendata]=OCOpenDataProvider
 SkipFilter[]=ezpRestContentController_*
 SkipFilter[]=OCOpenDataTagController_*;2
 SkipFilter[]=OCOpenDataController_*
+SkipFilter[]=OCOpenDataController_help;2
 SkipFilter[]=OCOpenDataController2_anonymousRead;2
 SkipFilter[]=OCOpenDataController2_anonymousSearch;2
 SkipFilter[]=OCOpenDataController2_anonymousBrowse;2
