@@ -19,6 +19,9 @@ ApplicationCache=disabled
 [OCOpenDataController2_CacheSettings]
 ApplicationCache=disabled
 
+[OCOpenDataController_help_CacheSettings]
+ApplicationCache=disabled
+
 [OCOpenDataController_datasetList_CacheSettings]
 ApplicationCache=disabled
 

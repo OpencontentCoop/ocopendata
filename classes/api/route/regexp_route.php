@@ -1,17 +1,17 @@
 <?php
 
 
-class OcOpenDataRoute extends ezpMvcRailsRoute implements OcOpenDataRouteInterface
+class OcOpenDataRegexpRoute extends ezpMvcRegexpRoute implements OcOpenDataRouteInterface
 {
     protected $docUrl;
 
     protected $apiDescription;
 
-    public function __construct($pattern, $controllerClassName, $protocolActionMap, array $defaultValues = array(), $protocol = null, $docUrl = null, $apiDescription = null)
+    public function __construct($pattern, $controllerClassName, $protocolActionMap, array $defaultValues = array(), $docUrl = null, $apiDescription = null)
     {
         $this->docUrl = $docUrl;
         $this->apiDescription = $apiDescription;
-        parent::__construct($pattern, $controllerClassName, $protocolActionMap, $defaultValues, $protocol);
+        parent::__construct($pattern, $controllerClassName, $protocolActionMap, $defaultValues);
     }
 
     /**
@@ -22,6 +22,9 @@ class OcOpenDataRoute extends ezpMvcRailsRoute implements OcOpenDataRouteInterfa
         return $this->protocolActionMap;
     }
 
+    /**
+     * @return string
+     */
     public function getPattern()
     {
         return $this->pattern;
@@ -29,14 +32,16 @@ class OcOpenDataRoute extends ezpMvcRailsRoute implements OcOpenDataRouteInterfa
 
     public function getParams()
     {
+        $parts = explode('?P', $this->pattern);
         $params = array();
-        $patternParts = explode('/', $this->pattern);
-        foreach ($patternParts as &$part) {
-            if (strlen($part) > 1 && $part[0] === ':') {
-                $params[] = substr($part, 1);
 
+        foreach ($parts as $part) {
+            if (strpos($part, '<') === 0) {
+                $subParts = explode('>', $part);
+                $params[] = ltrim($subParts[0], '<');
             }
         }
+
         return $params;
     }
 
@@ -45,7 +50,6 @@ class OcOpenDataRoute extends ezpMvcRailsRoute implements OcOpenDataRouteInterfa
         if ($this->docUrl) {
             return $this->docUrl;
         }
-
         $arguments = array();
         foreach ($this->getParams() as $param) {
             $arguments[$param] = ':' . $param;
