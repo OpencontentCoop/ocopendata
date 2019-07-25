@@ -66,7 +66,11 @@ class OCOpenDataController2 extends ezpRestContentController
 
     protected function getPayload()
     {
-        $data = json_decode( file_get_contents( "php://input" ), true );
+        $input = file_get_contents( "php://input" );
+        $data = json_decode( $input, true );
+        if (!$data && !empty($input)){
+            throw new Exception("Invalid json", 1);
+        }
         return $data;
     }
 

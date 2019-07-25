@@ -41,6 +41,12 @@ class PublicationProcess
             );
         }
 
+        $languages = array_keys($this->currentStruct->data->getArrayCopy());
+        $invalidLanguages = array_diff($languages, \eZContentLanguage::fetchLocaleList());
+        if (!empty($invalidLanguages)){
+            throw new PublicationException('Invalid languages ' . implode(',', $invalidLanguages));
+        }
+
         $section = $this->currentStruct->metadata->getSection();
 
         $prioritizedLanguageCodes = \eZContentLanguage::prioritizedLanguageCodes();
@@ -104,7 +110,9 @@ class PublicationProcess
                     $content->addTranslation($language);
                     foreach ($fieldList as $field){
                         $identifier = $field['identifier'];
-                        $content->fields[$language]->{$identifier} = (string)$content->fields[$language]->{$identifier};
+                        if (is_string($content->fields[$language]->{$identifier})){
+                            $content->fields[$language]->{$identifier} = (string)$content->fields[$language]->{$identifier};
+                        }
                     }
                 }
             }

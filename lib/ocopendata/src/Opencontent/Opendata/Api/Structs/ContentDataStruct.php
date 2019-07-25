@@ -63,6 +63,9 @@ class ContentDataStruct extends \ArrayObject
                 $dataType
             );
             foreach ($metadata->languages as $language) {
+                if (!isset($this[$language])){
+                    $this->throwException("Data in language $language not found");
+                }
                 $dataTranslation = $this[$language];
                 $notValidFields = array_diff(array_keys($dataTranslation), $identifiers);
                 if (count($notValidFields) > 0) {
