@@ -99,6 +99,8 @@ class HttpClient
         unset( $data['metadata']['name'] );
         unset( $data['metadata']['link'] );
         unset( $data['metadata']['stateIdentifiers'] );
+        unset( $data['metadata']['assignedNodes'] );
+        unset( $data['metadata']['classDefinition'] );
 
         return new PayloadBuilder($data);
     }
