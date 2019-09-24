@@ -217,7 +217,7 @@ class SearchGateway implements BaseGateway
         $data = array();
 
         if (!$languages) {
-            $languages = $content['metadata']['languages'];
+            $languages = [\eZLocale::currentLocaleCode()];
         }
 
         if (count($fields) == 1) {
