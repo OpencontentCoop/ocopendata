@@ -4,6 +4,7 @@
 
         var defaults = {
             language: 'ita-IT',
+            fallbackLanguage: 'ita-IT',
             accessPath: '/',
             endpoint: {
                 geo: '/opendata/api/geo/search/',
@@ -422,7 +423,7 @@
 
         var i18n = function (data, key, fallbackLanguage) {
             var currentLanguage = getSetSettings('language');
-            fallbackLanguage = fallbackLanguage || 'ita-IT';
+            fallbackLanguage = fallbackLanguage || getSetSettings('fallbackLanguage');
             var returnData = false;
             if (data && key) {
                 if (typeof data[currentLanguage] != 'undefined' && data[currentLanguage][key]) {
