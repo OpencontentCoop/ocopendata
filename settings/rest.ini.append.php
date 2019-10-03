@@ -30,7 +30,7 @@ ApplicationCache=disabled
 
 [Authentication]
 RequireAuthentication=enabled
-AuthenticationStyle=ezpRestBasicAuthStyle
+AuthenticationStyle=OCOpenDataApiBasicAuthStyle
 DefaultUserID=
 
 */ ?>
