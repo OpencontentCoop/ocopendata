@@ -107,7 +107,7 @@
             $.ajax({
                 type: "GET",
                 url: settings.endpoint.search,
-                data: {q: encodeURIComponent(query)},
+                data: {q: query},
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (data,textStatus,jqXHR) {
@@ -151,7 +151,7 @@
             $.ajax({
                 type: "GET",
                 url: settings.endpoint.search,
-                data: {q: encodeURIComponent(query)},
+                data: {q: query},
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 cache: true,
@@ -278,7 +278,7 @@
             $.ajax({
                 type: "GET",
                 url: settings.endpoint.geo,
-                data: {q: encodeURIComponent(query)},
+                data: {q: query},
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (response,textStatus,jqXHR) {
