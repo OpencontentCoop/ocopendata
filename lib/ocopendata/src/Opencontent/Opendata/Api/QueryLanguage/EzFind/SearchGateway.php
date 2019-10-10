@@ -6,6 +6,7 @@ use Opencontent\Opendata\Api\ContentRepository;
 use Opencontent\Opendata\Api\Gateway\FileSystem;
 use Opencontent\Opendata\Api\Gateway\SolrStorage;
 use Opencontent\Opendata\Api\SearchGateway as BaseGateway;
+use Opencontent\Opendata\Api\SearchResultDecoratorQueryBuilderAware;
 use Opencontent\Opendata\Api\Values\Content;
 use Opencontent\Opendata\Api\Values\Metadata;
 use Opencontent\Opendata\Api\Values\ContentData;
@@ -170,6 +171,9 @@ class SearchGateway implements BaseGateway
         $filtersList = (array)eZINI::instance('ezfind.ini')->variable('ExtendedAttributeFilters', 'FiltersList');
         foreach (array_keys($filtersList) as $filterId){
             $filter = \eZFindExtendedAttributeFilterFactory::getInstance($filterId);
+            if ($filter instanceof SearchResultDecoratorQueryBuilderAware){
+                $filter->setQueryBuilder($this->getQueryBuilder());
+            }
             if ($filter instanceof SearchResultDecoratorInterface){
                 $filter->decorate($searchResults, $rawResults);
             }

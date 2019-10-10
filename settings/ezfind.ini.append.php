@@ -8,4 +8,5 @@ General[]=ezfIndexOpenDataStorage
 FiltersList[stats]=OpendataStatsExtendedAttributeFilter
 FiltersList[pivot]=OpendataPivotExtendedAttributeFilter
 FiltersList[facet_range]=OpendataRangeExtendedAttributeFilter
+FiltersList[cursor]=OpendataCursorExtendedAttributeFilter
 */ ?>
