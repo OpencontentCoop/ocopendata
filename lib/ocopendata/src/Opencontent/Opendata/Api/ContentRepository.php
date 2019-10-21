@@ -29,17 +29,18 @@ class ContentRepository
     /**
      * @param $content
      * @param bool $ignorePolicies
-     *
+     * @param array|null $customLimitations
      * @return array
+     * @throws Exception\NotFoundException
      * @throws ForbiddenException
      */
-    public function read($content, $ignorePolicies = false)
+    public function read($content, $ignorePolicies = false, array $customLimitations = null)
     {
         if (!$content instanceof Content) {
             $content = $this->gateway->loadContent($content);
         }
 
-        if (!$ignorePolicies && !$content->canRead()) {
+        if (!$ignorePolicies && !$content->canRead(\eZUser::currentUser(), $customLimitations)) {
             throw new ForbiddenException($content, 'read');
         }
 

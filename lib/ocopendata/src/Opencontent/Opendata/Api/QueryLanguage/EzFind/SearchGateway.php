@@ -131,7 +131,7 @@ class SearchGateway implements BaseGateway
                         $ignorePolicies = true;
                     }
                 }
-                $content = $contentRepository->read($content, $ignorePolicies);
+                $content = $contentRepository->read($content, $ignorePolicies, $limitation);
 
                 if ($filterFields !== null) {
                     $this->filterFields($filterFieldsResult, $content, $filterFields, $filterLanguages);

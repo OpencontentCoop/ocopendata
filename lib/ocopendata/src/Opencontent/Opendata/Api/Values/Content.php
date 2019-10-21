@@ -190,7 +190,7 @@ class Content
         return new Feature($this->metadata->id, $geometry, new Properties($properties));
     }
 
-    public function canRead(eZUser $user = null)
+    public function canRead(eZUser $user = null, $customLimitations = null)
     {
         if ($user == null) {
             $user = eZUser::currentUser();
@@ -209,6 +209,11 @@ class Content
 
         $access = 'denied';
         $policies =& $accessResult['policies'];
+        if (is_array($customLimitations) && isset($customLimitations['policies'])){
+            foreach ($customLimitations['policies'] as $index => $customPolicy){
+                $policies['custom_' . $index] = $customPolicy;
+            }
+        }
         foreach (array_keys($policies) as $pkey) {
             $limitationArray =& $policies[$pkey];
             if ($access == 'allowed') {
