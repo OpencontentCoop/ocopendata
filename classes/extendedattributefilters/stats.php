@@ -31,21 +31,28 @@ class OpendataStatsExtendedAttributeFilter implements eZFindExtendedAttributeFil
             throw new Exception('Missing filter parameter "field" in stats');
         }
 
-        $fieldName = eZSolr::getFieldName($filterParams['field']);
-        $queryParams['stats'] = 'true';
-        $queryParams['stats.field'] = $fieldName;
+        $fields = $filterParams['field'];
+        if (!is_array($fields)){
+            $fields = [$fields];
+        }
 
-        if (isset($filterParams['facet'])) {
-            $facetsParams = $filterParams['facet'];
-            if (!is_array($facetsParams)) {
-                $facetsParams = array($facetsParams);
+        foreach ($fields as $field) {
+            $fieldName = eZSolr::getFieldName($field);
+            $queryParams['stats'] = 'true';
+            $queryParams['stats.field'][] = $fieldName;
+
+            if (isset($filterParams['facet'])) {
+                $facetsParams = $filterParams['facet'];
+                if (!is_array($facetsParams)) {
+                    $facetsParams = array($facetsParams);
+                }
+                $facetNameList = array();
+                foreach ($facetsParams as $facetParam) {
+                    $facetName = eZSolr::getFieldName($facetParam, false, 'facet');
+                    $facetNameList[] = $facetName;
+                }
+                $queryParams['stats.facet'] = $facetNameList;
             }
-            $facetNameList = array();
-            foreach ($facetsParams as $facetParam) {
-                $facetName = eZSolr::getFieldName($facetParam, false, 'facet');
-                $facetNameList[] = $facetName;
-            }
-            $queryParams['stats.facet'] = $facetNameList;
         }
 
         return $queryParams;
