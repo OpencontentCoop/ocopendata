@@ -38,17 +38,18 @@ class User extends Base
     {
         if ( !is_array( $data ) || !isset( $data['login'] ) || !isset( $data['email'] ) )
         {
-            throw new InvalidInputException( 'Invalid type',$identifier, $data );
+            throw new InvalidInputException( 'Invalid type', $identifier, $data );
         }
 
+        $currentId = isset($data['id']) ? (int)$data['id'] : 0;
         $user = eZUser::fetchByName( $data['login'] );
-        if ( $user instanceof eZUser )
+        if ( $user instanceof eZUser && $currentId != $user->attribute( 'contentobject_id' ))
         {
             throw new InvalidInputException( 'Duplicate user login', $identifier, $data );
         }
 
         $user = eZUser::fetchByEmail( $data['email'] );
-        if ( $user instanceof eZUser )
+        if ( $user instanceof eZUser && $currentId != $user->attribute( 'contentobject_id' ))
         {
             throw new InvalidInputException( 'Duplicate user email', $identifier, $data );
         }
