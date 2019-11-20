@@ -297,7 +297,7 @@ class MetadataStruct implements \ArrayAccess
                 $this->parentTreeNodes[] = $node;
                 $normalizedParentNodes[] = (int)$nodeId;
             } else {
-                $node = eZContentObjectTreeNode::fetchByRemoteID($nodeId);
+                $node = eZContentObjectTreeNode::fetchByRemoteID(''.$nodeId);
                 if ($node instanceof eZContentObjectTreeNode) {
                     if (!$node->attribute('is_container')){
                         $this->throwException("Node '{$nodeId}' is not container");

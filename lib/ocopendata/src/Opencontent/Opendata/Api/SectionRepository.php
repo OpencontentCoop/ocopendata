@@ -14,6 +14,7 @@ class SectionRepository
     public function load( $identifier )
     {
         $all = $this->internalLoadSections();
+
         foreach( $all as $section )
         {
             if ( ( is_numeric( $identifier ) && $section['id'] == $identifier )
@@ -59,7 +60,10 @@ class SectionRepository
     public static function retrieveCache( $file, $mtime, $identifier )
     {
         $content = include( $file );
-
+        if ($content instanceof \eZClusterFileFailure){
+            $data = self::generateCache($file, $identifier);
+            return $data['content'];
+        }
         return $content;
     }
 
