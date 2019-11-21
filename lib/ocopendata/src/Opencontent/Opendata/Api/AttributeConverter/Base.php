@@ -80,12 +80,12 @@ class Base
 
     public function validateOnCreate($identifier, $data, eZContentClassAttribute $attribute)
     {
-        $this->validate($identifier, $data, $attribute);
+        static::validate($identifier, $data, $attribute);
     }
 
     public function validateOnUpdate($identifier, $data, eZContentClassAttribute $attribute)
     {
-        $this->validate($identifier, $data, $attribute);
+        static::validate($identifier, $data, $attribute);
     }
 
     /**
