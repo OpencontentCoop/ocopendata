@@ -5,12 +5,19 @@ namespace Opencontent\Opendata\Api;
 use eZTagsObject;
 use eZTagsTemplateFunctions;
 use Opencontent\Opendata\Api\Exception\BaseException;
+use Opencontent\Opendata\Api\Exception\NotFoundException;
 use Opencontent\Opendata\Api\Structs\TagStruct;
+use Opencontent\Opendata\Api\Structs\TagTranslationStruct;
+use Opencontent\Opendata\Api\Structs\TagSynonymStruct;
 use Opencontent\Opendata\Api\Values\Tag;
+use eZDB;
+use eZContentLanguage;
+use eZTagsKeyword;
+use ezpEvent;
 
 class TagRepository
 {
-    public function read($tagUrl)
+    public function read($tagUrl, $offset = 0, $limit = 100)
     {
         $tagId = ltrim($tagUrl, '/');
         if (is_numeric($tagId)) {
@@ -22,7 +29,7 @@ class TagRepository
             throw new BaseException("Tag {$tagUrl} not found");
         }
 
-        return $this->buildTagTree($tag);
+        return $this->buildTagTree($tag, $offset, $limit);
     }
 
     public function create(TagStruct $struct)
@@ -101,7 +108,7 @@ class TagRepository
             }
 
             $db->commit();
-
+            ezpEvent::getInstance()->filter('tag/add', array('tag' => $tagObject, 'parentTag' => $parentTag));
             $tag = $this->read($tagObject->attribute('id'));
             $message = 'success';
         }
@@ -123,20 +130,210 @@ class TagRepository
 
     }
 
-    private function buildTagTree(eZTagsObject $tagObject)
+    public function addSynonym(TagSynonymStruct $struct)
     {
+        $mainTag = eZTagsObject::fetch($struct->tagId);
+        if (!$mainTag instanceof eZTagsObject){
+            throw new NotFoundException($struct->tagId, 'Tag');
+        }
 
+        $language = eZContentLanguage::fetchByLocale($struct->locale, true);
+        $parentTag = $mainTag->getParent(true);
+
+        if ($parentTag instanceof eZTagsObject && eZTagsObject::exists(0, $struct->keyword, $parentTag->attribute('id'))) {
+            $tags = eZTagsObject::fetchList(array('keyword' => $struct->keyword, 'parent_id' => $parentTag->attribute('id')));
+            if (is_array($tags) && !empty($tags)) {
+
+                return array(
+                    'message' => 'success',
+                    'method' => 'addSynonym',
+                    'tag' => $this->read($tags[0]->attribute('id'))
+                );
+            }
+        }
+
+        $db = eZDB::instance();
+        $db->begin();
+
+        $languageMask = eZContentLanguage::maskByLocale(array($language->attribute('locale')), $struct->alwaysAvailable);
+
+        $tag = new eZTagsObject(
+            array(
+                'parent_id' => $mainTag->attribute('parent_id'),
+                'main_tag_id' => $mainTag->attribute('id'),
+                'depth' => $mainTag->attribute('depth'),
+                'path_string' => $parentTag instanceof eZTagsObject ? $parentTag->attribute('path_string') : '/',
+                'main_language_id' => $language->attribute('id'),
+                'language_mask' => $languageMask
+            ),
+            $language->attribute('locale')
+        );
+        $tag->store();
+
+        $translation = new eZTagsKeyword(
+            array(
+                'keyword_id' => $tag->attribute('id'),
+                'language_id' => $language->attribute('id'),
+                'keyword' => $struct->keyword,
+                'locale' => $language->attribute('locale'),
+                'status' => eZTagsKeyword::STATUS_PUBLISHED
+            )
+        );
+
+        if ($struct->alwaysAvailable)
+            $translation->setAttribute('language_id', $translation->attribute('language_id') + 1);
+
+        $translation->store();
+
+        $tag->setAttribute('path_string', $tag->attribute('path_string') . $tag->attribute('id') . '/');
+        $tag->store();
+        $tag->updateModified();
+
+        $db->commit();
+
+        /* Extended Hook */
+        if (class_exists('ezpEvent', false)) {
+            ezpEvent::getInstance()->filter('tag/add', array('tag' => $tag, 'parentTag' => $parentTag));
+            ezpEvent::getInstance()->filter('tag/makesynonym', array('tag' => $tag, 'mainTag' => $mainTag));
+        }
+
+        return array(
+            'message' => 'success',
+            'method' => 'addSynonym',
+            'tag' => $this->read($tag->attribute('id'))
+        );
+    }
+
+    public function addTranslation(TagTranslationStruct $struct)
+    {
+        $tag = eZTagsObject::fetch($struct->tagId);
+        if (!$tag instanceof eZTagsObject){
+            throw new NotFoundException($struct->tagId, 'Tag');
+        }
+
+        $language = eZContentLanguage::fetchByLocale($struct->locale, true);
+        $parentTag = $tag->getParent(true);
+
+        if ($parentTag instanceof eZTagsObject && eZTagsObject::exists(0, $struct->keyword, $parentTag->attribute('id'))) {
+            $tags = eZTagsObject::fetchList(array('keyword' => $struct->keyword, 'parent_id' => $parentTag->attribute('id')));
+            if (is_array($tags) && !empty($tags)) {
+                return array(
+                    'message' => 'success',
+                    'method' => 'addTranslation',
+                    'tag' => $this->read($tags[0]->attribute('id'))
+                );
+            }
+        }
+
+        $tagID = $tag->attribute('id');
+        $tagTranslation = eZTagsKeyword::fetch($tag->attribute('id'), $language->attribute('locale'), true);
+        if (!$tagTranslation instanceof eZTagsKeyword) {
+            $tagTranslation = new eZTagsKeyword(array('keyword_id' => $tag->attribute('id'),
+                'keyword' => '',
+                'language_id' => $language->attribute('id'),
+                'locale' => $language->attribute('locale'),
+                'status' => eZTagsKeyword::STATUS_DRAFT));
+
+            $tagTranslation->store();
+            $tag->updateLanguageMask();
+        }
+
+        $tag = eZTagsObject::fetch($tagID, $language->attribute('locale'));
+
+        $newParentID = $tag->attribute('parent_id');
+        $newParentTag = eZTagsObject::fetchWithMainTranslation($newParentID);
+
+        $updateDepth = false;
+        $updatePathString = false;
+
+        $db = eZDB::instance();
+        $db->begin();
+
+        $oldParentDepth = $tag->attribute('depth') - 1;
+        $newParentDepth = $newParentTag instanceof eZTagsObject ? $newParentTag->attribute('depth') : 0;
+
+        if ($oldParentDepth != $newParentDepth)
+            $updateDepth = true;
+
+        $oldParentTag = false;
+        if ($tag->attribute('parent_id') != $newParentID) {
+            $oldParentTag = $tag->getParent(true);
+            if ($oldParentTag instanceof eZTagsObject)
+                $oldParentTag->updateModified();
+
+            $synonyms = $tag->getSynonyms(true);
+            foreach ($synonyms as $synonym) {
+                $synonym->setAttribute('parent_id', $newParentID);
+                $synonym->store();
+            }
+
+            $updatePathString = true;
+        }
+
+        $tagTranslation->setAttribute('keyword', $struct->keyword);
+        $tagTranslation->setAttribute('status', eZTagsKeyword::STATUS_PUBLISHED);
+        $tagTranslation->store();
+
+        if ($struct->isMainTranslation)
+            $tag->updateMainTranslation($language->attribute('locale'));
+
+        $tag->setAlwaysAvailable($struct->alwaysAvailable);
+
+        $tag->setAttribute('parent_id', $newParentID);
+        $tag->store();
+
+        if (class_exists('ezpEvent', false)) {
+            ezpEvent::getInstance()->filter(
+                'tag/edit',
+                array(
+                    'tag' => $tag,
+                    'oldParentTag' => $oldParentTag,
+                    'newParentTag' => $newParentTag,
+                    'move' => $updatePathString
+                )
+            );
+        }
+
+        if ($updatePathString)
+            $tag->updatePathString();
+
+        if ($updateDepth)
+            $tag->updateDepth();
+
+        $tag->updateModified();
+        $tag->registerSearchObjects();
+
+        $db->commit();
+
+        return array(
+            'message' => 'success',
+            'method' => 'addTranslation',
+            'tag' => $this->read($tag->attribute('id'))
+        );
+    }
+
+    private function buildTagTree(eZTagsObject $tagObject, $offset = 0, $limit = 100)
+    {
         $keywordTranslations = array();
         foreach($tagObject->getTranslations() as $translation){
             $keywordTranslations[$translation->attribute('locale')] = $translation->attribute('keyword');
+        }
+
+        $synonyms = array();
+        foreach($tagObject->getSynonyms() as $synonym){
+            foreach ($synonym->getTranslations() as $synonymTranslation) {
+                $synonyms[$synonymTranslation->attribute('locale')] = $synonymTranslation->attribute('keyword');
+            }
         }
 
         $tag = new Tag();
         $tag->id = (int)$tagObject->attribute('id');
         $tag->parentId = (int)$tagObject->attribute('parent_id');
         $tag->hasChildren = (bool)$this->getTagChildrenCount($tagObject) > 0;
-        $tag->children = $this->getTagChildren($tagObject);
+        $tag->childrenCount = (int)$this->getTagChildrenCount($tagObject);
+        $tag->children = $this->getTagChildren($tagObject, $offset, $limit);
         $tag->synonymsCount = (int)$tagObject->attribute('synonyms_count');
+        $tag->synonyms = $synonyms;
         $tag->languageNameArray = $tagObject->attribute('language_name_array');
         $tag->keywordTranslations = $keywordTranslations;
         $tag->keyword = $tagObject->attribute('keyword');
@@ -156,10 +353,11 @@ class TagRepository
 
     /**
      * @param eZTagsObject $tag
-     *
+     * @param int $offset
+     * @param int $limit
      * @return eZTagsObject[]
      */
-    private function getTagChildren(eZTagsObject $tag)
+    private function getTagChildren(eZTagsObject $tag, $offset = 0, $limit = 100)
     {
         $eztagsINI = \eZINI::instance('eztags.ini');
 
@@ -171,10 +369,11 @@ class TagRepository
             }
         }
 
-        $limitArray = null;
-        if ($maxTags > 0) {
-            $limitArray = array('offset' => 0, 'length' => $maxTags);
+        if ($limit > $maxTags){
+            $limit = $maxTags;
         }
+
+        $limitArray = array('offset' => $offset, 'length' => $limit);
 
         $children = eZTagsObject::fetchList(
             array(

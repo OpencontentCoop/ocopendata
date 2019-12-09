@@ -10,12 +10,16 @@ class Tag implements \JsonSerializable
 
     public $hasChildren;
 
+    public $childrenCount;
+
     /**
      * @var Tag[]
      */
     public $children;
 
     public $synonymsCount;
+
+    public $synonyms;
 
     public $languageNameArray;
 

@@ -42,7 +42,9 @@ class OCOpenDataTagController extends ezpRestContentController
             if (isset($this->request->variables['Tag'])){
                 $requestTag = $this->request->variables['Tag'];
             }
-            $result->variables = (array)$tagRepository->read($requestTag);
+            $offset = isset($this->request->get['offset']) ? (int)$this->request->get['offset'] : $this->offset;
+            $limit = isset($this->request->get['limit']) ? (int)$this->request->get['limit'] : $this->limit;
+            $result->variables = (array)$tagRepository->read($requestTag, $offset, $limit);
         }
         catch ( Exception $e )
         {

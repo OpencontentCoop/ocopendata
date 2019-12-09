@@ -174,7 +174,10 @@ class OCOpenDataProvider extends ezpRestApiProvider
                     '@^/tags_tree(?P<Tag>.+)@',
                     'OCOpenDataTagController',
                     'tagsTree',
-                    array(),
+                    array(
+                        'offset' => 0,
+                        'limit' => 100
+                    ),
                     'tags_tree/:Tag',
                     'Browse tag tree'
                 ), 2

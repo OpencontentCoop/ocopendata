@@ -42,7 +42,9 @@ class OCOpenDataOperators
                 'identifier' => array( 'type' => 'string', 'required' => true, 'default' => false )
             ),
             'api_tagtree' => array(
-                'identifier' => array( 'type' => 'string', 'required' => true, 'default' => false )
+                'identifier' => array( 'type' => 'string', 'required' => true, 'default' => false ),
+                'offset' => array( 'type' => 'integer', 'required' => false, 'default' => 0 ),
+                'limit' => array( 'type' => 'integer', 'required' => false, 'default' => 100 ),
             )
         );
     }
@@ -57,7 +59,11 @@ class OCOpenDataOperators
                 $tagsRepository = new TagRepository();
                 $identifier = $namedParameters['identifier'];
                 try {
-                    $data = (array)$tagsRepository->read($identifier)->jsonSerialize();
+                    $data = (array)$tagsRepository->read(
+                        $identifier,
+                        $namedParameters['offset'],
+                        $namedParameters['limit']
+                        )->jsonSerialize();
                 }
                 catch( Exception $e )
                 {
