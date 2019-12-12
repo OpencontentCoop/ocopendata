@@ -116,7 +116,7 @@ class QueryConverter implements QueryConverterInterface
         }
     }
 
-    // use cleanFilter per correggere innestamenti superflui in clausola and
+    // use cleanFilter per correggere innestamenti superflui
     private function cleanFilters( $filters )
     {
         $cleanFilters = array();                        
@@ -133,7 +133,7 @@ class QueryConverter implements QueryConverterInterface
     {
         if ( is_array( $filter ) )
         {
-            if ( $filter[0] == 'or' )
+            if ( $filter[0] == 'or' || $filter[0] == 'and' )
             {
                 // $stack[] = $filter;                
                 $subStack = array();
