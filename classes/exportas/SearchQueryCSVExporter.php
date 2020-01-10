@@ -237,7 +237,7 @@ class SearchQueryCSVExporter extends AbstarctExporter
                 $this->handlePaginateDownload();
 
             } elseif ($this->count > self::MAX_DIRECT_DOWNLOAD_ITEMS ||
-                      eZINI::instance('ocopendata.ini')->variable('GeneralSettings', 'ForcePaginateDownload') == 'enabled') {
+                eZINI::instance('ocopendata.ini')->variable('GeneralSettings', 'ForcePaginateDownload') == 'enabled') {
 
                 $this->startPaginateDownload();
 
@@ -326,7 +326,9 @@ class SearchQueryCSVExporter extends AbstarctExporter
         $fileHandler = $this->tempFile($this->filename);
 
         $tempFilename = eZSys::cacheDirectory() . '/tmp/' . uniqid('exportaspaginate_') . '.temp';
-        eZFile::create($tempFilename, false, $fileHandler->fetchContents());
+        if (!eZFile::create(basename($tempFilename), dirname($tempFilename), $fileHandler->fetchContents())){
+            eZDebug::writeError("Fail creating $tempFilename", __METHOD__);
+        }
 
         $output = fopen($tempFilename, 'a');
         $result = $this->fetch();
