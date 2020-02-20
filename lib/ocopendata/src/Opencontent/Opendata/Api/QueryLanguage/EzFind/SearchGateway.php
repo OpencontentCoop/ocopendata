@@ -51,7 +51,12 @@ class SearchGateway implements BaseGateway
 
         //$ezFindQuery['Filter'][] = ezfSolrDocumentFieldBase::generateMetaFieldName('installation_id') . ':' . eZSolr::installationID();
         if (is_array($limitation) && empty($limitation)) {
-            $ezFindQuery['Filter'][] = \ezfSolrDocumentFieldBase::generateMetaFieldName('installation_id') . ':' . \eZSolr::installationID();
+            $installationFilter = \ezfSolrDocumentFieldBase::generateMetaFieldName('installation_id') . ':' . \eZSolr::installationID();
+            if (isset($ezFindQuery['Filter'][0]) && $ezFindQuery['Filter'][0] == 'or'){
+                $ezFindQuery['Filter'] = array($ezFindQuery['Filter'], $installationFilter);
+            }else{
+                $ezFindQuery['Filter'][] = $installationFilter;
+            }
         }
         $ezFindQuery['Limitation'] = $limitation;
         $ezFindQuery['AsObjects'] = false;
