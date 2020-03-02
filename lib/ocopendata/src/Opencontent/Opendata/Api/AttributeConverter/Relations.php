@@ -31,6 +31,19 @@ class Relations extends Base
         return self::$gateway;
     }
 
+    private function hasVisibleNode(eZContentObject $object)
+    {
+        $contentobjectID = $object->attribute('id');
+        $visibilitySQL = "AND ezcontentobject_tree.is_invisible = 0 AND ezcontentobject_tree.is_hidden = 0 ";
+        $rows = \eZDB::instance()->arrayQuery(
+            "SELECT COUNT(ezcontentobject_tree.node_id) AS node_count " .
+            "FROM ezcontentobject_tree " .
+            "INNER JOIN ezcontentobject ON (ezcontentobject_tree.contentobject_id = ezcontentobject.id) " .
+            "WHERE contentobject_id = $contentobjectID " . $visibilitySQL
+        );
+        return ($rows[0]['node_count'] > 0);
+    }
+
     public function get( eZContentObjectAttribute $attribute )
     {
         $content = parent::get( $attribute );
@@ -43,7 +56,7 @@ class Relations extends Base
                 $id = intval($id);
                 if ($id > 0) {
                     $contentObject = eZContentObject::fetch($id);
-                    if ($contentObject instanceof eZContentObject) {
+                    if ($contentObject instanceof eZContentObject && $this->hasVisibleNode($contentObject)) {
                         $contents[] = Metadata::createFromEzContentObject($contentObject);
                     }
                 }
