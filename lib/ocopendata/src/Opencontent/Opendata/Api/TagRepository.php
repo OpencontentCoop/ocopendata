@@ -57,11 +57,16 @@ class TagRepository
         }
 
         if ($parentTag instanceof eZTagsObject){
-            $tag = $this->read($parentTag->attribute('id'))->findByKeyword($struct->keyword);
-            $message = 'already exists';
+            foreach ($parentTag->getChildren() as $child){
+                if ($struct->keyword == $child->attribute('keyword')){
+                    $tag = $this->read($child->attribute('id'), 0, 0);
+                    $message = 'already exists';
+                    break;
+                }
+            }
         }else{
             try{
-                $tag = $this->read($struct->keyword);
+                $tag = $this->read($struct->keyword, 0, 0);
                 $message = 'already exists';
             }
             catch(\Exception $e){
@@ -109,7 +114,7 @@ class TagRepository
 
             $db->commit();
             ezpEvent::getInstance()->filter('tag/add', array('tag' => $tagObject, 'parentTag' => $parentTag));
-            $tag = $this->read($tagObject->attribute('id'));
+            $tag = $this->read($tagObject->attribute('id'), 0, 0);
             $message = 'success';
         }
 
@@ -145,9 +150,9 @@ class TagRepository
             if (is_array($tags) && !empty($tags)) {
 
                 return array(
-                    'message' => 'success',
+                    'message' => 'already exists',
                     'method' => 'addSynonym',
-                    'tag' => $this->read($tags[0]->attribute('id'))
+                    'tag' => $this->read($tags[0]->attribute('id'), 0, 0)
                 );
             }
         }
@@ -200,7 +205,7 @@ class TagRepository
         return array(
             'message' => 'success',
             'method' => 'addSynonym',
-            'tag' => $this->read($tag->attribute('id'))
+            'tag' => $this->read($tag->attribute('id'), 0, 0)
         );
     }
 
@@ -212,21 +217,16 @@ class TagRepository
         }
 
         $language = eZContentLanguage::fetchByLocale($struct->locale, true);
-        $parentTag = $tag->getParent(true);
-
-        if ($parentTag instanceof eZTagsObject && eZTagsObject::exists(0, $struct->keyword, $parentTag->attribute('id'))) {
-            $tags = eZTagsObject::fetchList(array('keyword' => $struct->keyword, 'parent_id' => $parentTag->attribute('id')));
-            if (is_array($tags) && !empty($tags)) {
-                return array(
-                    'message' => 'success',
-                    'method' => 'addTranslation',
-                    'tag' => $this->read($tags[0]->attribute('id'))
-                );
-            }
-        }
 
         $tagID = $tag->attribute('id');
         $tagTranslation = eZTagsKeyword::fetch($tag->attribute('id'), $language->attribute('locale'), true);
+        if ($tagTranslation instanceof eZTagsKeyword) {
+            return array(
+                'message' => 'already exists',
+                'method' => 'addTranslation',
+                'tag' => $this->read($struct->tagId, 0, 0)
+            );
+        }
         if (!$tagTranslation instanceof eZTagsKeyword) {
             $tagTranslation = new eZTagsKeyword(array('keyword_id' => $tag->attribute('id'),
                 'keyword' => '',
@@ -308,7 +308,7 @@ class TagRepository
         return array(
             'message' => 'success',
             'method' => 'addTranslation',
-            'tag' => $this->read($tag->attribute('id'))
+            'tag' => $this->read($tag->attribute('id'), 0, 0)
         );
     }
 
@@ -359,6 +359,10 @@ class TagRepository
      */
     private function getTagChildren(eZTagsObject $tag, $offset = 0, $limit = 100)
     {
+        if ($limit === 0){
+            return [];
+        }
+
         $eztagsINI = \eZINI::instance('eztags.ini');
 
         $maxTags = 100;
