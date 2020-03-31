@@ -109,8 +109,11 @@ class Metadata implements \ArrayAccess
         }
         $metadata->classIdentifier = $contentObject->attribute( 'class_identifier' );
         $metadata->classId = $contentObject->attribute( 'contentclass_id' );
-        $metadata->mainNodeRemoteId = $contentObject->attribute( 'main_node' )->attribute( 'remote_id' );
-        $metadata->mainNodeId = $contentObject->attribute( 'main_node_id' );
+        $mainNode = $contentObject->mainNode();
+        if ($mainNode instanceof eZContentObjectTreeNode) {
+            $metadata->mainNodeRemoteId = $mainNode->attribute('remote_id');
+            $metadata->mainNodeId = $mainNode->attribute('node_id');
+        }
         $metadata->parentNodes = array();
         foreach( $contentObject->attribute( 'parent_nodes' ) as $node )
         {
