@@ -66,6 +66,11 @@ class DefaultEnvironmentSettings extends EnvironmentSettings
                         {
                             if( is_array( $item ) || $item instanceof ArrayAccess )
                             {
+                                if ( isset( $item['metadata'] ) )
+                                {
+                                    $item = $item['metadata'];
+                                }
+
                                 $parentNodes = array();
                                 foreach ( $item['parentNodes'] as $parentNode )
                                 {
