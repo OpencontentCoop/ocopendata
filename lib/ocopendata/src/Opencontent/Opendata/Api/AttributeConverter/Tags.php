@@ -59,10 +59,22 @@ class Tags extends Base
 
             $keywordsFound = eZTagsObject::fetchByKeyword($keyword);
             if (!empty($keywordsFound)) {
-                $tagIDs[] = $keywordsFound[0]->ID;
-                $tagKeywords[] = $keywordsFound[0]->Keyword;
-                $tagParents[] = $keywordsFound[0]->ParentID;
-                $tagLanguages[] = \eZLocale::currentLocaleCode();
+                if ($this->getParentTagId() > 0) {
+                    foreach ($keywordsFound as $keywordFound) {
+                        $pathArray = explode('/', trim($keywordFound->attribute('path_string'), '/'));
+                        if (in_array($this->getParentTagId(), $pathArray)) {
+                            $tagIDs[] = $keywordFound->attribute('id');
+                            $tagKeywords[] = $keywordFound->attribute('keyword');
+                            $tagParents[] = $keywordFound->attribute('parent_id');
+                            $tagLanguages[] = \eZLocale::currentLocaleCode();
+                        }
+                    }
+                }else{
+                    $tagIDs[] = $keywordsFound[0]->ID;
+                    $tagKeywords[] = $keywordsFound[0]->Keyword;
+                    $tagParents[] = $keywordsFound[0]->ParentID;
+                    $tagLanguages[] = \eZLocale::currentLocaleCode();
+                }
             } else {
                 $tagIDs[] = 0;
                 $tagKeywords[] = $keyword;
