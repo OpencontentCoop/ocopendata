@@ -7,6 +7,8 @@ use Opencontent\Opendata\Api\EnvironmentLoader;
 
 class DefaultEnvironmentSettings extends EnvironmentSettings
 {
+    protected $maxSearchLimit = 300;
+
     public function filterContent( Content $content )
     {
         $this->blockBlackListedContent( $content );
