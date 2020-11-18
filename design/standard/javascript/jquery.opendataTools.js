@@ -424,6 +424,8 @@
         var i18n = function (data, key, fallbackLanguage) {
             var currentLanguage = getSetSettings('language');
             fallbackLanguage = fallbackLanguage || getSetSettings('fallbackLanguage');
+            var languages = Object.keys(data);
+            var veryFallbackLanguage = languages.shift();
             var returnData = false;
             if (data && key) {
                 if (typeof data[currentLanguage] != 'undefined' && data[currentLanguage][key]) {
@@ -432,12 +434,18 @@
                 else if (fallbackLanguage && typeof data[fallbackLanguage] != 'undefined' && data[fallbackLanguage][key]) {
                     returnData = data[fallbackLanguage][key];
                 }
+                else if (veryFallbackLanguage && typeof data[veryFallbackLanguage] != 'undefined' && data[veryFallbackLanguage][key]) {
+                    returnData = data[veryFallbackLanguage][key];
+                }
             } else if (data) {
                 if (typeof data[currentLanguage] != 'undefined' && data[currentLanguage]) {
                     returnData = data[currentLanguage];
                 }
                 else if (fallbackLanguage && typeof data[fallbackLanguage] != 'undefined' && data[fallbackLanguage]) {
                     returnData = data[fallbackLanguage];
+                }
+                else if (veryFallbackLanguage && typeof data[veryFallbackLanguage] != 'undefined' && data[veryFallbackLanguage]) {
+                    returnData = data[veryFallbackLanguage];
                 }
             }
             return returnData != 0 ? returnData : false;
