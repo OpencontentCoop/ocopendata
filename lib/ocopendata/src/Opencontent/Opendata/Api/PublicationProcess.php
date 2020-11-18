@@ -110,7 +110,7 @@ class PublicationProcess
                     $content->addTranslation($language);
                     foreach ($fieldList as $field){
                         $identifier = $field['identifier'];
-                        if (is_string($content->fields[$language]->{$identifier})){
+                        if (isset($content->fields[$language]->{$identifier})){
                             $content->fields[$language]->{$identifier} = (string)$content->fields[$language]->{$identifier};
                         }
                     }
