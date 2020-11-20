@@ -424,7 +424,7 @@
         var i18n = function (data, key, fallbackLanguage) {
             var currentLanguage = getSetSettings('language');
             fallbackLanguage = fallbackLanguage || getSetSettings('fallbackLanguage');
-            var languages = Object.keys(data);
+            var languages = data ? Object.keys(data) : [];
             var veryFallbackLanguage = languages.shift();
             var returnData = false;
             if (data && key) {
