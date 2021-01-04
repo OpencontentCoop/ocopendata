@@ -5,10 +5,12 @@ namespace Opencontent\Opendata\Api\Structs;
 
 class ContentUpdateStruct extends ContentCreateStruct
 {
-    public function validate()
+    public function validate($ignorePolicies = false)
     {
         $this->metadata->validateOnUpdate();
-        $this->metadata->checkAccess();
+        if ($ignorePolicies === false) {
+            $this->metadata->checkAccess();
+        }
         if ($this->options->isUpdateNullFields()){
             $this->data->validateOnCreate( $this->metadata, $this->options );
         }else{

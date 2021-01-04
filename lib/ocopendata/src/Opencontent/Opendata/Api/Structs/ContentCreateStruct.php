@@ -28,10 +28,12 @@ class ContentCreateStruct implements \ArrayAccess
         $this->options = $options instanceof PublicationOptions ? $options : new PublicationOptions();
     }
 
-    public function validate()
+    public function validate($ignorePolicies = false)
     {
         $this->metadata->validateOnCreate();
-        $this->metadata->checkAccess();
+        if ($ignorePolicies === false) {
+            $this->metadata->checkAccess();
+        }
         $this->data->validateOnCreate( $this->metadata, $this->options );
     }
 

@@ -46,10 +46,10 @@ class ContentRepository
         return $this->currentEnvironmentSettings->filterContent($content);
     }
 
-    public function create($payload)
+    public function create($payload, $ignorePolicies = false)
     {
         $createStruct = $this->currentEnvironmentSettings->instanceCreateStruct($payload);
-        $createStruct->validate();
+        $createStruct->validate($ignorePolicies);
         $publicationProcess = new PublicationProcess($createStruct);
         $contentId = $publicationProcess->publish();
 
@@ -58,14 +58,14 @@ class ContentRepository
         return array(
             'message' => 'success',
             'method' => 'create',
-            'content' => (array)$this->read($contentId)
+            'content' => (array)$this->read($contentId, $ignorePolicies)
         );
     }
 
-    public function update($payload)
+    public function update($payload, $ignorePolicies = false)
     {
         $updateStruct = $this->currentEnvironmentSettings->instanceUpdateStruct($payload);
-        $updateStruct->validate();
+        $updateStruct->validate($ignorePolicies);
         $publicationProcess = new PublicationProcess($updateStruct);
         $contentId = $publicationProcess->publish();
 
@@ -74,15 +74,15 @@ class ContentRepository
         return array(
             'message' => 'success',
             'method' => 'update',
-            'content' => (array)$this->read($contentId)
+            'content' => (array)$this->read($contentId, $ignorePolicies)
         );
     }
 
-    public function createUpdate($payload){
+    public function createUpdate($payload, $ignorePolicies = false){
         try {
-            $result = $this->create($payload);
+            $result = $this->create($payload, $ignorePolicies);
         } catch (DuplicateRemoteIdException $e) {
-            $result = $this->update($payload);
+            $result = $this->update($payload, $ignorePolicies);
         }
 
         return $result;
