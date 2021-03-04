@@ -88,13 +88,13 @@ class Relations extends Base
                         File::validate($identifier, $item, $attribute);
                     } elseif (isset( $item['remoteId'] )) {
                         try {
-                            self::gateway()->loadContent($data['remoteId']);
+                            self::gateway()->loadContent($item['remoteId']);
                         } catch (\Exception $e) {
                             throw new InvalidInputException('Invalid content identifier', $identifier, array($item));
                         }
                     } elseif (isset( $item['id'] )) {
                         try {
-                            self::gateway()->loadContent($data['id']);
+                            self::gateway()->loadContent($item['id']);
                         } catch (\Exception $e) {
                             throw new InvalidInputException('Invalid content identifier', $identifier, array($item));
                         }
