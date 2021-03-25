@@ -17,13 +17,13 @@ use ezpEvent;
 
 class TagRepository
 {
-    public function read($tagUrl, $offset = 0, $limit = 100)
+    public function read($tagUrl, $offset = 0, $limit = 100, $mainTranslation = false)
     {
         $tagId = ltrim($tagUrl, '/');
         if (is_numeric($tagId)) {
             $tag = eZTagsObject::fetch((int)$tagId);
         } else {
-            $tag = eZTagsObject::fetchByUrl($tagUrl);
+            $tag = eZTagsObject::fetchByUrl($tagUrl, $mainTranslation);
         }
         if (!$tag instanceof eZTagsObject) {
             throw new BaseException("Tag {$tagUrl} not found");
@@ -221,11 +221,21 @@ class TagRepository
         $tagID = $tag->attribute('id');
         $tagTranslation = eZTagsKeyword::fetch($tag->attribute('id'), $language->attribute('locale'), true);
         if ($tagTranslation instanceof eZTagsKeyword) {
-            return array(
-                'message' => 'already exists',
-                'method' => 'addTranslation',
-                'tag' => $this->read($struct->tagId, 0, 0)
-            );
+            if ($struct->forceUpdate) {
+                $tagTranslation->setAttribute('keyword', $struct->keyword);
+                $tagTranslation->store();
+                return array(
+                    'message' => 'update',
+                    'method' => 'addTranslation',
+                    'tag' => $this->read($struct->tagId, 0, 0)
+                );
+            }else {
+                return array(
+                    'message' => 'already exists',
+                    'method' => 'addTranslation',
+                    'tag' => $this->read($struct->tagId, 0, 0)
+                );
+            }
         }
         if (!$tagTranslation instanceof eZTagsKeyword) {
             $tagTranslation = new eZTagsKeyword(array('keyword_id' => $tag->attribute('id'),

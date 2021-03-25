@@ -14,4 +14,6 @@ class TagTranslationStruct
     public $alwaysAvailable = true;
 
     public $isMainTranslation = false;
+
+    public $forceUpdate = false;
 }

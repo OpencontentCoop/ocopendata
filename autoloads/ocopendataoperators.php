@@ -45,6 +45,7 @@ class OCOpenDataOperators
                 'identifier' => array( 'type' => 'string', 'required' => true, 'default' => false ),
                 'offset' => array( 'type' => 'integer', 'required' => false, 'default' => 0 ),
                 'limit' => array( 'type' => 'integer', 'required' => false, 'default' => 100 ),
+                'main_translation' => array( 'type' => 'boolean', 'required' => false, 'default' => true ),
             )
         );
     }
@@ -61,8 +62,9 @@ class OCOpenDataOperators
                 try {
                     $data = (array)$tagsRepository->read(
                         $identifier,
-                        $namedParameters['offset'],
-                        $namedParameters['limit']
+                        (int)$namedParameters['offset'],
+                        (int)$namedParameters['limit'],
+                        $namedParameters['main_translation']
                         )->jsonSerialize();
                 }
                 catch( Exception $e )
