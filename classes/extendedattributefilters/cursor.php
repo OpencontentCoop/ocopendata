@@ -41,7 +41,7 @@ class OpendataCursorExtendedAttributeFilter implements eZFindExtendedAttributeFi
 
             $next = ($currentCursor == $nextCursor || $resultCount < $limit) ? null : $nextCursor;
             $currentQuery = $this->fixQuery($searchResults->query, $currentCursor);
-            $nextQuery = $next ? $this->fixQuery($searchResults->nextPageQuery, $next) : null;
+            $nextQuery = $next && $searchResults->nextPageQuery ? $this->fixQuery($searchResults->nextPageQuery, $next) : null;
 
             $searchResults->query = $currentQuery;
             $searchResults->nextPageQuery = $nextQuery;
