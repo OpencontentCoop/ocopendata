@@ -41,6 +41,16 @@ class ClassRepository
                 null,
                 $identifier
             );
+            //force regenerate avoiding fatal handling a eZClusterFileFailure instead of ContentClass
+            if (self::$classes[$identifier] instanceof \eZClusterFileFailure){
+                self::$classes[$identifier] = $this->getCacheManager($identifier)->processCache(
+                    null,
+                    array(__CLASS__, 'generateCache'),
+                    null,
+                    null,
+                    $identifier
+                );
+            }
         }
 
         return self::$classes[$identifier];
