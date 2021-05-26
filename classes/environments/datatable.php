@@ -42,7 +42,7 @@ class DatatableEnvironmentSettings extends DefaultEnvironmentSettings
     
     protected function filterMetaData( Content $content )
     {
-        return $content;
+        return parent::filterMetaData($content);
     }
 
     /**
