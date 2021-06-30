@@ -403,13 +403,13 @@ class SentenceConverter
 
             case 'string':
                 //$value = '((*' . strtolower( $value ) . '*) OR "' . $value . '"")';
-                $value = '"' . $value . '"';
+                $value = '"' . trim($value, '"') . '"';
                 break;
 
             case 'meta_class_name_ms':
             case 'meta_name':
             case 'sub_string':
-                $value = '"' . $value . '"';
+                $value = '"' . trim($value, '"') . '"';
                 break;
 
             case 'meta_published':
