@@ -408,7 +408,12 @@ class Converter implements \OcOpenDataConverterInterface
                 switch ($resourceAttribute) {
                     case 'url':
                         if (isset( $resource['file'] )) {
-                            $url = $resource['file']->content()->attribute('filepath');
+                            /** @var \eZBinaryFile $file */
+                            $file = $resource['file']->content();
+                            $url = 'content/download/' . $resource['file']->attribute('contentobject_id')
+                                . '/' . $resource['file']->attribute('id')
+                                . '/' . $resource['file']->attribute('version')
+                                . '/' . $file->attribute('original_filename');
                             $data["url"] = $this->fixUrl($url);
                             $data["resource_type"] = 'file';
                             $data["size"] = $resource['file']->content()->attribute('filesize');
