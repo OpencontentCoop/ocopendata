@@ -43,6 +43,7 @@ class FileSystem extends Database
             $contentObjectIdentifierAsInt = (int)$contentObjectIdentifier;
             $whereSql = "ezcontentobject.id='$contentObjectIdentifierAsInt'";
         }else{
+            $contentObjectIdentifier = \eZDB::instance()->escapeString($contentObjectIdentifier);
             $whereSql = "ezcontentobject.remote_id='$contentObjectIdentifier'";
         }
         $fetchSQLString = "SELECT ezcontentobject.id, ezcontentobject.modified
