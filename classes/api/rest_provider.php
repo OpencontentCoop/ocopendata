@@ -65,19 +65,32 @@ class OCOpenDataProvider extends ezpRestApiProvider
                     'Update a content'
                 ), 2
             ),
-//            'openData2delete' => new OcOpenDataVersionedRoute(
-//                new OcOpenDataRoute(
-//                    '/:EnvironmentSettings/delete',
-//                    'OCOpenDataController2',
-//                    'contentDelete',
-//                    array(
-//                        'EnvironmentSettings' => 'content'
-//                    ),
-//                    'http-post',
-//                    null,
-//                    'Delete a content'
-//                ), 2
-//            ),
+            'openData2delete' => new OcOpenDataVersionedRoute(
+                new OcOpenDataRoute(
+                    '/:EnvironmentSettings/delete/:ContentObjectIdentifier',
+                    'OCOpenDataController2',
+                    'contentDelete',
+                    array(
+                        'EnvironmentSettings' => 'content'
+                    ),
+                    'http-delete',
+                    null,
+                    'Delete a content'
+                ), 2
+            ),
+            'openData2move' => new OcOpenDataVersionedRoute(
+                new OcOpenDataRoute(
+                    '/:EnvironmentSettings/move/:ContentObjectIdentifier/:NewParentNodeIdentifier',
+                    'OCOpenDataController2',
+                    'contentMove',
+                    array(
+                        'EnvironmentSettings' => 'content'
+                    ),
+                    'http-post',
+                    null,
+                    'Move a content under a new parent node'
+                ), 2
+            ),
             'openData2download' => new OcOpenDataVersionedRoute(
                 new OcOpenDataRoute(
                     '/download/:ObjectId/:Id/:Version/:Filename',
