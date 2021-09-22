@@ -11,4 +11,9 @@ class InvalidInputException extends BaseException
         $message = $message . ' in input field ' . $identifier;
         parent::__construct( $message );
     }
+
+    public function getServerErrorCode()
+    {
+        return 400;
+    }
 }

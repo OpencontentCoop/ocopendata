@@ -6,4 +6,8 @@ use Opencontent\Opendata\Api\Exception\BaseException;
 
 class PublicationException extends BaseException
 {
+    public function getServerErrorCode()
+    {
+        return 400;
+    }
 }

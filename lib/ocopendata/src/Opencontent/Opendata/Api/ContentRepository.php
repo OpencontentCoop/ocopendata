@@ -97,7 +97,10 @@ class ContentRepository
         }
         $objectId = (int)$content->metadata->id;
         $object = \eZContentObject::fetch($objectId);
-        if (!$object instanceof \eZContentObject || !$object->canRemove()) {
+        if (!$object instanceof \eZContentObject){
+            throw new NotFoundException($content);
+        }
+        if (!$object->canRemove()) {
             throw new ForbiddenException($content, 'remove');
         }
 
@@ -134,7 +137,10 @@ class ContentRepository
 
         $objectId = (int)$content->metadata->id;
         $object = \eZContentObject::fetch($objectId);
-        if (!$object instanceof \eZContentObject || !$object->canEdit()) {
+        if (!$object instanceof \eZContentObject){
+            throw new NotFoundException($content);
+        }
+        if (!$object->canMoveFrom()) {
             throw new ForbiddenException($content, 'move');
         }
 
@@ -144,6 +150,9 @@ class ContentRepository
 
         if (!$newParentNode instanceof \eZContentObjectTreeNode) {
             throw new NotFoundException($newParentNodeIdentifier, 'Node');
+        }
+        if (!$newParentNode->canCreate()){
+            throw new ForbiddenException('in node #' . $newParentNode->attribute('node_id'), 'create');
         }
 
         if ($asUniqueLocation) {
