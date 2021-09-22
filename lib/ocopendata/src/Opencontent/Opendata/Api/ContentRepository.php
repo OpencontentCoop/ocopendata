@@ -148,7 +148,7 @@ class ContentRepository
 
         if ($asUniqueLocation) {
             foreach ($object->assignedNodes() as $assignedNode) {
-                if ($assignedNode->attribute('parent_node_id') == $newParentNode->attribute('node_id')) {
+                if ($assignedNode->attribute('parent_node_id') != $newParentNode->attribute('node_id')) {
                     if (!$assignedNode->canRemove() || !$assignedNode->canRemoveLocation()) {
                         throw new ForbiddenException($assignedNode->attribute('node_id'), 'remove location');
                     }
@@ -161,7 +161,7 @@ class ContentRepository
         if ($asUniqueLocation) {
             $removeList = [];
             foreach ($object->assignedNodes() as $assignedNode) {
-                if ($assignedNode->attribute('parent_node_id') == $newParentNode->attribute('node_id')
+                if ($assignedNode->attribute('parent_node_id') != $newParentNode->attribute('node_id')
                     && $assignedNode->canRemove()
                     && $assignedNode->canRemoveLocation()
                 ) {
