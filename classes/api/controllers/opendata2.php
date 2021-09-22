@@ -258,7 +258,8 @@ class OCOpenDataController2 extends ezpRestContentController
 
             $result->variables['result'] = $this->contentRepository->move(
                 $this->request->variables['ContentObjectIdentifier'],
-                $this->request->variables['NewParentNodeIdentifier']
+                $this->request->variables['NewParentNodeIdentifier'],
+                isset($this->request->get['unique']) ? (bool)$this->request->get['unique'] : false
             );
         }
         catch ( Exception $e )

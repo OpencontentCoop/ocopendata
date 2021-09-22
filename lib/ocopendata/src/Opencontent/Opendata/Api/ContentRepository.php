@@ -27,6 +27,33 @@ class ContentRepository
         $this->gateway = new FileSystem();      // scrive cache sul filesystem (cluster safe)
     }
 
+    public function createUpdate($payload, $ignorePolicies = false)
+    {
+        try {
+            $result = $this->create($payload, $ignorePolicies);
+        } catch (DuplicateRemoteIdException $e) {
+            $result = $this->update($payload, $ignorePolicies);
+        }
+
+        return $result;
+    }
+
+    public function create($payload, $ignorePolicies = false)
+    {
+        $createStruct = $this->currentEnvironmentSettings->instanceCreateStruct($payload);
+        $createStruct->validate($ignorePolicies);
+        $publicationProcess = new PublicationProcess($createStruct);
+        $contentId = $publicationProcess->publish();
+
+        $this->currentEnvironmentSettings->afterCreate($contentId, $createStruct);
+
+        return array(
+            'message' => 'success',
+            'method' => 'create',
+            'content' => (array)$this->read($contentId, $ignorePolicies)
+        );
+    }
+
     /**
      * @param $content
      * @param bool $ignorePolicies
@@ -47,22 +74,6 @@ class ContentRepository
         return $this->currentEnvironmentSettings->filterContent($content);
     }
 
-    public function create($payload, $ignorePolicies = false)
-    {
-        $createStruct = $this->currentEnvironmentSettings->instanceCreateStruct($payload);
-        $createStruct->validate($ignorePolicies);
-        $publicationProcess = new PublicationProcess($createStruct);
-        $contentId = $publicationProcess->publish();
-
-        $this->currentEnvironmentSettings->afterCreate($contentId, $createStruct);
-
-        return array(
-            'message' => 'success',
-            'method' => 'create',
-            'content' => (array)$this->read($contentId, $ignorePolicies)
-        );
-    }
-
     public function update($payload, $ignorePolicies = false)
     {
         $updateStruct = $this->currentEnvironmentSettings->instanceUpdateStruct($payload);
@@ -77,16 +88,6 @@ class ContentRepository
             'method' => 'update',
             'content' => (array)$this->read($contentId, $ignorePolicies)
         );
-    }
-
-    public function createUpdate($payload, $ignorePolicies = false){
-        try {
-            $result = $this->create($payload, $ignorePolicies);
-        } catch (DuplicateRemoteIdException $e) {
-            $result = $this->update($payload, $ignorePolicies);
-        }
-
-        return $result;
     }
 
     public function delete($content, $moveToTrash = false)
@@ -125,7 +126,7 @@ class ContentRepository
         );
     }
 
-    public function move($content, $newParentNodeIdentifier)
+    public function move($content, $newParentNodeIdentifier, $asUniqueLocation = false)
     {
         if (!$content instanceof Content) {
             $content = $this->gateway->loadContent($content);
@@ -141,11 +142,44 @@ class ContentRepository
             \eZContentObjectTreeNode::fetch($newParentNodeIdentifier) :
             \eZContentObjectTreeNode::fetchByRemoteID($newParentNodeIdentifier);
 
-        if (!$newParentNode instanceof \eZContentObjectTreeNode){
+        if (!$newParentNode instanceof \eZContentObjectTreeNode) {
             throw new NotFoundException($newParentNodeIdentifier, 'Node');
         }
 
+        if ($asUniqueLocation) {
+            foreach ($object->assignedNodes() as $assignedNode) {
+                if (!($assignedNode->attribute('parent_node_id') == $newParentNode->attribute('node_id')
+                    && $assignedNode->canRemove()
+                    && $assignedNode->canRemoveLocation())
+                ) {
+                    throw new ForbiddenException($assignedNode->attribute('node_id'), 'remove location');
+                }
+            }
+        }
+
         \eZContentObjectTreeNodeOperations::move($object->attribute('main_node_id'), $newParentNode->attribute('node_id'));
+
+        if ($asUniqueLocation) {
+            $removeList = [];
+            foreach ($object->assignedNodes() as $assignedNode) {
+                if ($assignedNode->attribute('parent_node_id') == $newParentNode->attribute('node_id')
+                    && $assignedNode->canRemove()
+                    && $assignedNode->canRemoveLocation()
+                ) {
+                    $removeList[] = $assignedNode->attribute('node_id');
+                }
+            }
+            if (!empty($removeList)) {
+                if (\eZOperationHandler::operationIsAvailable('content_removelocation')) {
+                    \eZOperationHandler::execute('content',
+                        'removelocation', array('node_list' => $removeList),
+                        null,
+                        true);
+                } else {
+                    \eZContentOperationCollection::removeNodes($removeList);
+                }
+            }
+        }
 
         return array(
             'message' => 'success',
@@ -163,6 +197,16 @@ class ContentRepository
     }
 
     /**
+     * Alias of setEnvironment method
+     *
+     * @return ContentRepository
+     */
+    public function setCurrentEnvironmentSettings(EnvironmentSettings $environmentSettings)
+    {
+        return $this->setEnvironment($environmentSettings);
+    }
+
+    /**
      * @param EnvironmentSettings $currentEnvironmentSettings
      *
      * @return $this
@@ -171,16 +215,6 @@ class ContentRepository
     {
         $this->currentEnvironmentSettings = $currentEnvironmentSettings;
         return $this;
-    }
-
-    /**
-     * Alias of setEnvironment method
-     *
-     * @return ContentRepository
-     */
-    public function setCurrentEnvironmentSettings(EnvironmentSettings $environmentSettings)
-    {
-        return $this->setEnvironment($environmentSettings);
     }
 
     /**
