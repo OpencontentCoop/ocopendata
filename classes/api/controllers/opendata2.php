@@ -235,7 +235,31 @@ class OCOpenDataController2 extends ezpRestContentController
         {
             $this->setEnvironment();
             $result = new ezpRestMvcResult();
-            $result->variables['result'] = $this->contentRepository->delete( $this->getPayload() );
+
+            $result->variables['result'] = $this->contentRepository->delete(
+                $this->request->variables['ContentObjectIdentifier'],
+                isset($this->request->get['trash']) ? (bool)$this->request->get['trash'] : false
+            );
+        }
+        catch ( Exception $e )
+        {
+            $result = $this->doExceptionResult( $e );
+        }
+
+        return $result;
+    }
+
+    public function doContentMove()
+    {
+        try
+        {
+            $this->setEnvironment();
+            $result = new ezpRestMvcResult();
+
+            $result->variables['result'] = $this->contentRepository->move(
+                $this->request->variables['ContentObjectIdentifier'],
+                $this->request->variables['NewParentNodeIdentifier']
+            );
         }
         catch ( Exception $e )
         {

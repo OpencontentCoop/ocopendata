@@ -3,6 +3,7 @@
 namespace Opencontent\Opendata\Api;
 
 use Opencontent\Opendata\Api\Exception\DuplicateRemoteIdException;
+use Opencontent\Opendata\Api\Exception\NotFoundException;
 use Opencontent\Opendata\Api\Gateway\FileSystem;
 use Opencontent\Opendata\Api\Exception\ForbiddenException;
 use Opencontent\Opendata\Api\Values\Content;
@@ -88,9 +89,69 @@ class ContentRepository
         return $result;
     }
 
-    public function delete($data)
+    public function delete($content, $moveToTrash = false)
     {
-        return 'todo';
+        if (!$content instanceof Content) {
+            $content = $this->gateway->loadContent($content);
+        }
+        $objectId = (int)$content->metadata->id;
+        $object = \eZContentObject::fetch($objectId);
+        if (!$object instanceof \eZContentObject || !$object->canRemove()) {
+            throw new ForbiddenException($content, 'remove');
+        }
+
+        $deleteIDArray = array();
+        foreach ($object->assignedNodes() as $node) {
+            $deleteIDArray[] = $node->attribute('node_id');
+        }
+        if (!empty($deleteIDArray)) {
+            if (\eZOperationHandler::operationIsAvailable('content_delete')) {
+                \eZOperationHandler::execute('content',
+                    'delete',
+                    array(
+                        'node_id_list' => $deleteIDArray,
+                        'move_to_trash' => $moveToTrash
+                    ),
+                    null, true);
+            } else {
+                \eZContentOperationCollection::deleteObject($deleteIDArray, $moveToTrash);
+            }
+        }
+
+        return array(
+            'message' => 'success',
+            'method' => 'delete',
+            'content' => $objectId
+        );
+    }
+
+    public function move($content, $newParentNodeIdentifier)
+    {
+        if (!$content instanceof Content) {
+            $content = $this->gateway->loadContent($content);
+        }
+
+        $objectId = (int)$content->metadata->id;
+        $object = \eZContentObject::fetch($objectId);
+        if (!$object instanceof \eZContentObject || !$object->canEdit()) {
+            throw new ForbiddenException($content, 'move');
+        }
+
+        $newParentNode = is_numeric($newParentNodeIdentifier) ?
+            \eZContentObjectTreeNode::fetch($newParentNodeIdentifier) :
+            \eZContentObjectTreeNode::fetchByRemoteID($newParentNodeIdentifier);
+
+        if (!$newParentNode instanceof \eZContentObjectTreeNode){
+            throw new NotFoundException($newParentNodeIdentifier, 'Node');
+        }
+
+        \eZContentObjectTreeNodeOperations::move($object->attribute('main_node_id'), $newParentNodeIdentifier);
+
+        return array(
+            'message' => 'success',
+            'method' => 'move',
+            'content' => $objectId
+        );
     }
 
     /**
