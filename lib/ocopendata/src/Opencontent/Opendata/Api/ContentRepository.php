@@ -145,7 +145,7 @@ class ContentRepository
             throw new NotFoundException($newParentNodeIdentifier, 'Node');
         }
 
-        \eZContentObjectTreeNodeOperations::move($object->attribute('main_node_id'), $newParentNodeIdentifier);
+        \eZContentObjectTreeNodeOperations::move($object->attribute('main_node_id'), $newParentNode->attribute('node_id'));
 
         return array(
             'message' => 'success',
