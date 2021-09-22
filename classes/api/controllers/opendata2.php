@@ -229,6 +229,22 @@ class OCOpenDataController2 extends ezpRestContentController
         return $result;
     }
 
+    public function doContentUpsert()
+    {
+        try
+        {
+            $this->setEnvironment();
+            $result = new ezpRestMvcResult();
+            $result->variables['result'] = $this->contentRepository->createUpdate( $this->getPayload() );
+        }
+        catch ( Exception $e )
+        {
+            $result = $this->doExceptionResult( $e );
+        }
+
+        return $result;
+    }
+
     public function doContentDelete()
     {
         try

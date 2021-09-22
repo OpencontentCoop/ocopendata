@@ -65,6 +65,19 @@ class OCOpenDataProvider extends ezpRestApiProvider
                     'Update a content'
                 ), 2
             ),
+            'openData2upsert' => new OcOpenDataVersionedRoute(
+                new OcOpenDataRoute(
+                    '/:EnvironmentSettings/upsert',
+                    'OCOpenDataController2',
+                    'contentUpsert',
+                    array(
+                        'EnvironmentSettings' => 'content'
+                    ),
+                    'http-post',
+                    null,
+                    'Upsert a content'
+                ), 2
+            ),
             'openData2delete' => new OcOpenDataVersionedRoute(
                 new OcOpenDataRoute(
                     '/:EnvironmentSettings/delete/:ContentObjectIdentifier',
