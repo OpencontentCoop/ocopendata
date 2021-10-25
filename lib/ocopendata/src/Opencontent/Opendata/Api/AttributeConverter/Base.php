@@ -73,7 +73,7 @@ class Base
 
     public static function validate($identifier, $data, eZContentClassAttribute $attribute)
     {
-        if ($data !== null && $data !== false && !is_string($data)) {
+        if ($data !== null && $data !== false && !is_scalar($data)) {
             throw new InvalidInputException('Invalid type', $identifier, $data);
         }
     }
