@@ -25,10 +25,7 @@ class ContentRepository
         //        $this->gateway = new Database();      // fallback per tutti
         //        $this->gateway = new SolrStorage();   // usa solr storage per restituire oggetti (sembra lento...)
         $this->gateway = new FileSystem();      // scrive cache sul filesystem (cluster safe)
-
-        $moduleINI = \eZINI::instance('module.ini');
-        $globalModuleRepositories = $moduleINI->variable('ModuleSettings', 'ModuleRepositories');
-        \eZModule::setGlobalPathList($globalModuleRepositories);
+        \eZModule::setGlobalPathList(\eZModule::activeModuleRepositories());
     }
 
     public function createUpdate($payload, $ignorePolicies = false)
