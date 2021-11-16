@@ -16,15 +16,16 @@ class User extends Base
     {
         $content = parent::get( $attribute );
         if ( $attribute->attribute( 'data_type_string' ) == 'ezuser'
-             && $attribute instanceof eZContentObjectAttribute
-             && $attribute->hasContent() )
+             && $attribute instanceof eZContentObjectAttribute)
         {
             /** @var eZUser $user */
             $user = $attribute->content();
-            $content['content'] = array(
-                'login' => $user->Login,
-                'email' => $user->Email
-            );
+            if ($user instanceof eZUser) {
+                $content['content'] = array(
+                    'login' => $user->Login,
+                    'email' => $user->Email
+                );
+            }
         }
         return $content;
     }
