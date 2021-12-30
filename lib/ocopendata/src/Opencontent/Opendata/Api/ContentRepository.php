@@ -156,9 +156,11 @@ class ContentRepository
             throw new ForbiddenException('in node #' . $newParentNode->attribute('node_id'), 'create');
         }
 
-        if ($asUniqueLocation) {
-            foreach ($object->assignedNodes() as $assignedNode) {
-                if ($assignedNode->attribute('parent_node_id') != $newParentNode->attribute('node_id')) {
+        $currentParentNodes = [];
+        foreach ($object->assignedNodes() as $assignedNode) {
+            $currentParentNodes[$assignedNode->attribute('parent_node_id')] = $assignedNode->attribute('node_id');
+            if ($assignedNode->attribute('parent_node_id') != $newParentNode->attribute('node_id')) {
+                if ($asUniqueLocation) {
                     if (!$assignedNode->canRemove() || !$assignedNode->canRemoveLocation()) {
                         throw new ForbiddenException($assignedNode->attribute('node_id'), 'remove location');
                     }
@@ -166,7 +168,15 @@ class ContentRepository
             }
         }
 
-        \eZContentObjectTreeNodeOperations::move($object->attribute('main_node_id'), $newParentNode->attribute('node_id'));
+        if (!isset($currentParentNodes[$newParentNode->attribute('node_id')])) {
+            \eZContentObjectTreeNodeOperations::move($object->attribute('main_node_id'), $newParentNode->attribute('node_id'));
+        } elseif ($object->attribute('main_parent_node_id') != $newParentNode->attribute('node_id')) {
+            \eZContentOperationCollection::updateMainAssignment(
+                $currentParentNodes[$newParentNode->attribute('node_id')],
+                $object->attribute('id'),
+                $newParentNode->attribute('node_id')
+            );
+        }
 
         if ($asUniqueLocation) {
             $removeList = [];

@@ -8,6 +8,10 @@ use Opencontent\Opendata\Api\Values\ContentSection;
 
 class PublicationProcess
 {
+    private $currentStruct;
+
+    private $isUpdate;
+
     /**
      * PublicationProcess constructor.
      *
@@ -53,6 +57,7 @@ class PublicationProcess
         $mainLanguage = $prioritizedLanguageCodes[0];
         $addMissingTranslations = array();
         if ($this->currentStruct->metadata->getContentObject() instanceof \eZContentObject) {
+            $this->isUpdate = true;
             $content = \SQLIContent::fromContentObject($this->currentStruct->metadata->getContentObject());
             $currentObjectLanguages = array_keys(
                 $this->currentStruct->metadata->getContentObject()->allLanguages()
@@ -158,6 +163,37 @@ class PublicationProcess
 
             // flush content
             unset( $content );
+
+            // remove locations missing in payload
+            if ($this->isUpdate && !empty($this->currentStruct->metadata->parentNodes)){
+                \eZContentObject::clearCache([$id]);
+                $object = \eZContentObject::fetch($id);
+                if ($object instanceof \eZContentObject){
+                    $assignedNodes = $object->assignedNodes();
+                    if (count($assignedNodes) !== count($this->currentStruct->metadata->parentNodes)){
+                        $removeList = [];
+                        foreach ($assignedNodes as $assignedNode){
+                            if (
+                                !in_array($assignedNode->attribute('parent_node_id'), $this->currentStruct->metadata->parentNodes)
+                                && $assignedNode->canRemove()
+                                && $assignedNode->canRemoveLocation()
+                            ){
+                                $removeList[] = $assignedNode->attribute('node_id');
+                            }
+                        }
+                        if (!empty($removeList)) {
+                            if (\eZOperationHandler::operationIsAvailable('content_removelocation')) {
+                                \eZOperationHandler::execute('content',
+                                    'removelocation', array('node_list' => $removeList),
+                                    null,
+                                    true);
+                            } else {
+                                \eZContentOperationCollection::removeNodes($removeList);
+                            }
+                        }
+                    }
+                }
+            }
 
             return $id;
         } catch (\Exception $e) {
