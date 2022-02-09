@@ -67,7 +67,7 @@ class FileSystem extends Database
         $cacheFile = $contentObjectId . '.cache';
         $extraPath = eZDir::filenamePath( $contentObjectId );
         $cacheFilePath = eZDir::path( array( eZSys::cacheDirectory(), 'ocopendata',  'content', $extraPath, $cacheFile ) );
-        return eZClusterFileHandler::instance( $cacheFilePath );
+        return new \eZFSFileHandler( $cacheFilePath );
     }
 
     public function clearCache( $contentObjectId )
