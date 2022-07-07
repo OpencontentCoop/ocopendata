@@ -173,6 +173,7 @@ class Page extends Base
                 \eZPersistentObject::removeObject(\eZFlowPoolItem::definition(), array('block_id' => $block['block_id']));
 
                 if (isset($block['valid_items'])) {
+                    $validItemsCount = count($block['valid_items']);
                     foreach ($block['valid_items'] as $index => $remoteId) {
                         $object = \eZContentObject::fetchByRemoteID($remoteId);
                         if ($object instanceof \eZContentObject) {
@@ -180,7 +181,7 @@ class Page extends Base
                                 'blockID' => $block['block_id'],
                                 'nodeID' => $object->attribute('main_node_id'),
                                 'objectID' => $object->attribute('id'),
-                                'priority' => $index,
+                                'priority' => $validItemsCount - $index,
                                 'timestamp' => time() - 86400
                             );
                         }
