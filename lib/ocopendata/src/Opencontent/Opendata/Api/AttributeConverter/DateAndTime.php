@@ -7,7 +7,7 @@ use eZContentClassAttribute;
 use Opencontent\Opendata\Api\PublicationProcess;
 use Opencontent\Opendata\Api\Exception\InvalidInputException;
 
-class Date extends Base
+class DateAndTime extends Base
 {
     public function get(eZContentObjectAttribute $attribute)
     {
@@ -20,12 +20,7 @@ class Date extends Base
 
     public function set($data, PublicationProcess $process)
     {
-        $timestamp = date("U", strtotime($data));
-        if (method_exists('\eZTimestamp', 'getUtcTimestampFromLocalTimestamp')){
-            $timestamp = \eZTimestamp::getUtcTimestampFromLocalTimestamp($timestamp);
-        }
-
-        return $timestamp;
+        return date("U", strtotime($data));
     }
 
     public function type(eZContentClassAttribute $attribute)

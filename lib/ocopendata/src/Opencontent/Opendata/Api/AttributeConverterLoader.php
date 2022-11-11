@@ -72,7 +72,7 @@ class AttributeConverterLoader
             'eztags' => '\Opencontent\Opendata\Api\AttributeConverter\Tags',
             'ezgmaplocation' => '\Opencontent\Opendata\Api\AttributeConverter\Geo',
             'ezdate' => '\Opencontent\Opendata\Api\AttributeConverter\Date',
-            'ezdatetime' => '\Opencontent\Opendata\Api\AttributeConverter\Date',
+            'ezdatetime' => '\Opencontent\Opendata\Api\AttributeConverter\DateAndTime',
             'eztime' => '\Opencontent\Opendata\Api\AttributeConverter\Time',
             'ezmatrix' => '\Opencontent\Opendata\Api\AttributeConverter\Matrix',
             'ezxmltext' => '\Opencontent\Opendata\Api\AttributeConverter\EzXml',
