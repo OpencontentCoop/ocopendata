@@ -77,7 +77,7 @@ class ContentDataStruct extends \ArrayObject
                     } else {
                         $converter->validateOnUpdate($identifier, $dataTranslation[$identifier], $attribute);
                     }
-                    if (!$update && empty($dataTranslation[$identifier])){
+                    if (!$update && $this->isEmpty($dataTranslation[$identifier])){
                         if ($isRequired) {
                             $this->throwException("Field $identifier is required");
                         }elseif($options && $options->isUpdateNullFields() == true){
@@ -93,6 +93,15 @@ class ContentDataStruct extends \ArrayObject
                 }
             }
         }
+    }
+
+    private function isEmpty($value)
+    {
+        if (is_array($value)){
+            return empty($value);
+        }
+
+        return !($value && $value !== '');
     }
 
     public function validateOnCreate(MetadataStruct $metadata, PublicationOptions $options = null)
