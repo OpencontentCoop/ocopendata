@@ -78,6 +78,10 @@ if ( $Debug )
 else
 {
     header('Content-Type: application/json');
+    $definedCustomFilters = eZINI::instance('rest.ini')->variable('ResponseFilters', 'Filters');
+    if (in_array('ApiCacheHeadersResponseFilter', $definedCustomFilters)){
+        ApiCacheHeadersResponseFilter::printHeaders($Module);
+    }
     echo json_encode( $data );
 }
 

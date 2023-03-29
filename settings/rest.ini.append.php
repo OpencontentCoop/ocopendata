@@ -33,4 +33,7 @@ RequireAuthentication=enabled
 AuthenticationStyle=OCOpenDataApiBasicAuthStyle
 DefaultUserID=
 
+#[ResponseFilters]
+#Filters[]=ApiCacheHeadersResponseFilter
+
 */ ?>
