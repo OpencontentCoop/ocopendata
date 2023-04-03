@@ -158,6 +158,7 @@ class Page extends Base
 
                 // create missing blocks in the ezm_block table
                 $flowBlock = \eZFlowBlock::fetch($ezPageBlock->attribute('id'));
+
                 if (!$flowBlock) {
                     $flowBlock = new \eZFlowBlock(array(
                         'id' => $ezPageBlock->attribute('id'),
@@ -166,8 +167,8 @@ class Page extends Base
                         'node_id' => 0,
                         'block_type' => $ezPageBlock->attribute('type'),
                     ));
-                    $flowBlock->store();
                 }
+                $flowBlock->store();
 
                 // reset block items: remove all existing (we assume block is manual)
                 \eZPersistentObject::removeObject(\eZFlowPoolItem::definition(), array('block_id' => $block['block_id']));

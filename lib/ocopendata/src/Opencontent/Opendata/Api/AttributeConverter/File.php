@@ -26,7 +26,7 @@ class File extends Base
             $url = 'content/download/' . $attribute->attribute('contentobject_id')
                    . '/' . $attribute->attribute('id')
                    . '/' . $attribute->attribute('version')
-                   . '/' . $file->attribute('original_filename');
+                   . '/' . urlencode($file->attribute('original_filename'));
             eZURI::transformURI($url, true, 'full');
 
             $content['content'] = array(
