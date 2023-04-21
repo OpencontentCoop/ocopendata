@@ -58,7 +58,7 @@ class File extends Base
 
         $path = null;
         if (isset( $data['filename'] )) {
-            $path = $this->getTemporaryFilePath($data['filename'], $data['url'], $data['file']);
+            $path = $this->getTemporaryFilePath($data['filename'], self::fixUrlIfNeeded($data['url']), $data['file']);
         }
 
         return $path;
@@ -72,8 +72,8 @@ class File extends Base
                     throw new InvalidInputException('Missing filename', $identifier, $data);
                 }
 
-                if (isset( $data['url'] ) && !eZHTTPTool::getDataByURL(trim($data['url']), true)) {
-                    throw new InvalidInputException('Url not responding', $identifier, $data);
+                if (isset( $data['url'] ) && !eZHTTPTool::getDataByURL(self::fixUrlIfNeeded($data['url']), true)) {
+                    throw new InvalidInputException('Url ' . self::fixUrlIfNeeded($data['url']) . ' not responding', $identifier, $data);
                 }
 
                 if (isset( $data['file'] )
@@ -85,6 +85,21 @@ class File extends Base
                 throw new InvalidInputException('Invalid data format', $identifier, $data);
             }
         }
+    }
+
+    protected static function fixUrlIfNeeded($url)
+    {
+        if (empty($url) || !is_string($url)){
+            return $url;
+        }
+
+        $url = trim($url);
+        $name = basename($url);
+        if (strpos($name, ' ') !== false){
+            $url = str_replace($name, urlencode($name), $url);
+        }
+
+        return $url;
     }
 
     public function type(\eZContentClassAttribute $attribute)
