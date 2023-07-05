@@ -16,12 +16,16 @@ class Tags extends Base
     public function get(eZContentObjectAttribute $attribute)
     {
         $content = parent::get($attribute);
-        $tagsList = explode(', ', $attribute->metaData());
-        $tags = array();
-        foreach ($tagsList as $tag) {
-            $tag = trim($tag);
-            if (!empty($tag)) {
-                $tags[] = $tag;
+        $tags = [];
+        if ($attribute->attribute('data_type_string') === \eZTagsType::DATA_TYPE_STRING) {
+            $tags = $attribute->content()->attribute('keywords');
+        } else {
+            $tagsList = explode(', ', $attribute->metaData());
+            foreach ($tagsList as $tag) {
+                $tag = trim($tag);
+                if (!empty($tag)) {
+                    $tags[] = $tag;
+                }
             }
         }
         $content['content'] = $tags;
