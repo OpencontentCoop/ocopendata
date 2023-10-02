@@ -114,6 +114,17 @@ class OCOpenDataProvider extends ezpRestApiProvider
                     null,
                     'Download a binary attachment'
                 ), 2
+            ),
+            'openData2url' => new OcOpenDataVersionedRoute(
+                new OcOpenDataRoute(
+                    '/url/:Id',
+                    'OCOpenDataController2',
+                    'getUrl',
+                    array(),
+                    'http-get',
+                    null,
+                    'Get url info by id'
+                ), 2
             )
         );
 

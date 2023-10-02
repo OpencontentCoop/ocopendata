@@ -6,6 +6,7 @@ use Opencontent\Opendata\Api\ContentRepository;
 use Opencontent\Opendata\Api\ContentSearch;
 use Opencontent\Opendata\Api\ClassRepository;
 use Opencontent\Opendata\Api\Exception\BaseException;
+use Opencontent\Opendata\Api\Exception\NotFoundException;
 use Opencontent\Opendata\Api\Values\ContentClass;
 use Opencontent\Opendata\Api\QueryLanguage\EzFind\ArrayQueryBuilder;
 
@@ -320,6 +321,33 @@ class OCOpenDataController2 extends ezpRestContentController
                 $classes[] = $item;
             }
             $result->variables['classes'] = $classes;
+        }
+        catch ( Exception $e )
+        {
+            $result = $this->doExceptionResult( $e );
+        }
+
+        return $result;
+    }
+
+    public function doGetUrl()
+    {
+        try
+        {
+            $urlId = $this->request->variables['Id'];
+            $url = eZURL::fetch((int)$urlId);
+            if (!$url instanceof eZURL){
+                throw new NotFoundException($urlId, 'Url');
+            }
+            $urlArray = [
+                'id' => (int)$url->attribute('id'),
+                'url' => $url->attribute('url'),
+                'is_valid' => (bool)$url->attribute('is_valid'),
+                'created_at' => date('c', $url->attribute('created')),
+                'modified_at' => date('c', $url->attribute('modified')),
+            ];
+            $result = new ezpRestMvcResult();
+            $result->variables = $urlArray;
         }
         catch ( Exception $e )
         {
