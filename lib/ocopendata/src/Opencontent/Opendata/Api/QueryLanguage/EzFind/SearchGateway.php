@@ -16,7 +16,6 @@ use Opencontent\Opendata\Api\EnvironmentSettings;
 use Opencontent\QueryLanguage\QueryBuilderInterface;
 use Opencontent\Opendata\Api\SearchResultDecoratorInterface;
 use ArrayObject;
-use eZSolr;
 use ezfSearchResultInfo;
 use Exception;
 use eZINI;
@@ -32,6 +31,8 @@ class SearchGateway implements BaseGateway
      * @var QueryBuilder
      */
     private $queryBuilder;
+
+    private $returnContentErrorInSearchHits = false;
 
     public function search($query, $limitation = null)
     {
@@ -68,7 +69,11 @@ class SearchGateway implements BaseGateway
         $filterLanguages = isset($ezFindQuery['_filterLanguages']) ? $ezFindQuery['_filterLanguages'] : null;
         unset($ezFindQuery['_filterLanguages']);
 
-        $solr = new eZSolr();
+        $solrClass = \ezpEvent::getInstance()->filter('opendata/instanceEngine', \eZSolr::class);
+        $solr = new $solrClass();
+        if (!$solr instanceof \eZSolr){
+            throw new \RuntimeException('Invalid search engine ' . $solrClass);
+        }
         $rawResults = @$solr->search(
             $ezFindQuery['_query'],
             $ezFindQuery
@@ -111,54 +116,33 @@ class SearchGateway implements BaseGateway
             $searchResults->nextPageQuery = (string)$nextPageQuery;
         }
 
-        $fileSystemGateway = new FileSystem();
-        $contentRepository = new ContentRepository();
-        $contentRepository->setEnvironment($this->environmentSettings);
-
         foreach ($rawResults['SearchResult'] as $resultItem) {
-            $id = isset($resultItem['meta_id_si']) ? $resultItem['meta_id_si'] : isset($resultItem['id_si']) ? $resultItem['id_si'] : $resultItem['id'];
-            try {
-                if (isset($resultItem['data_map']['opendatastorage'])) {
-                    $contentArray = $resultItem['data_map']['opendatastorage'];
-                    $content = new Content();
-                    $content->metadata = new Metadata((array)$contentArray['metadata']);
-                    $content->data = new ContentData((array)$contentArray['data']);
-                    if (isset($contentArray['extradata'])) {
-                        $content->extradata = new ExtraData((array)$contentArray['extradata']);
-                    }
-                } else {
-                    $content = $fileSystemGateway->loadContent((int)$id);
-                }
-
-                $ignorePolicies = false;
-                if (is_array($limitation)) {
-                    if (empty($limitation) || (isset($limitation['accessWord']) && $limitation['accessWord'] == 'yes')) {
-                        $ignorePolicies = true;
-                    }
-                }
-                $content = $contentRepository->read($content, $ignorePolicies);
-
+            try{
+                $content = $this->buildResultHit($resultItem, $limitation);
                 if ($filterFields !== null) {
                     $this->filterFields($filterFieldsResult, $content, $filterFields, $filterLanguages);
                 } else {
                     $searchResults->searchHits[] = $content;
                 }
-
-            } catch (Exception $e) {
-                $content = new Content();
-                $content->metadata = new Metadata(array('id' => $id));
-                $content->data = new ContentData(
-                    array(
-                        '_error' => $e->getMessage(),
-                        '_rawresult' => $resultItem
-                    )
-                );
+            }catch (Exception $e){
+                if ($this->returnContentErrorInSearchHits){
+                    $content = new Content();
+                    $content->metadata = new Metadata(
+                        ['id' => $resultItem['meta_id_si'] ?? $resultItem['id_si'] ?? $resultItem['id'] ?? null]
+                    );
+                    $content->data = new ContentData(
+                        [
+                            '_error' => $e->getMessage(),
+                            '_rawresult' => $resultItem,
+                        ]
+                    );
+                    $searchResults->searchHits[] = $content;
+                }
             }
         }
 
-        if (isset($ezFindQuery['Facet'])
+        if (!empty($ezFindQuery['Facet'])
             && is_array($ezFindQuery['Facet'])
-            && !empty($ezFindQuery['Facet'])
             && $searchExtra instanceof SearchResultInfo
         ) {
             $facets = array();
@@ -193,6 +177,53 @@ class SearchGateway implements BaseGateway
             $ezFindQueryObject,
             $this->queryBuilder
         );
+    }
+
+    /**
+     * @param array|object $resultItem
+     * @param $limitation
+     * @return array|Content
+     * @throws \Opencontent\Opendata\Api\Exception\ForbiddenException
+     * @throws \Opencontent\Opendata\Api\Exception\NotFoundException
+     */
+    private function buildResultHit($resultItem, $limitation)
+    {
+        $resultItemFiltered = \ezpEvent::getInstance()->filter(
+            'opendata/buildSearchResult',
+            $resultItem,
+            $limitation
+        );
+        if ($resultItemFiltered){
+            return \ezpEvent::getInstance()->filter(
+                'opendata/filterSearchContent',
+                $resultItemFiltered,
+                $this->environmentSettings
+            );
+        }
+
+        $fileSystemGateway = new FileSystem();
+        $contentRepository = new ContentRepository();
+        $contentRepository->setEnvironment($this->environmentSettings);
+        $id = $resultItem['meta_id_si'] ?? $resultItem['id_si'] ?? $resultItem['id'] ?? null;
+        if (isset($resultItem['data_map']['opendatastorage'])) {
+            $contentArray = $resultItem['data_map']['opendatastorage'];
+            $content = new Content();
+            $content->metadata = new Metadata((array)$contentArray['metadata']);
+            $content->data = new ContentData((array)$contentArray['data']);
+            if (isset($contentArray['extradata'])) {
+                $content->extradata = new ExtraData((array)$contentArray['extradata']);
+            }
+        } else {
+            $content = $fileSystemGateway->loadContent((int)$id);
+        }
+
+        $ignorePolicies = false;
+        if (is_array($limitation)) {
+            if (empty($limitation) || (isset($limitation['accessWord']) && $limitation['accessWord'] == 'yes')) {
+                $ignorePolicies = true;
+            }
+        }
+        return $contentRepository->read($content, $ignorePolicies);
     }
 
     public function getEnvironmentSettings()
