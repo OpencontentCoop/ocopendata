@@ -37,16 +37,16 @@
     defaultSize: "m",
     apiUrl: "https://api.tiles.mapbox.com/v3/marker/",
     smallOptions: {
-      iconSize: [20, 50],
-      popupAnchor: [0,-20]
+      iconSize: [25, 41],
+      popupAnchor: [0,-26]
     },
     mediumOptions: {
-      iconSize: [30,70],
-      popupAnchor: [0,-30]
+      iconSize: [25, 41],
+      popupAnchor: [0,-26]
     },
     largeOptions: {
-      iconSize: [36,90],
-      popupAnchor: [0,-40]
+      iconSize: [25, 41],
+      popupAnchor: [0,-26]
     }
   };
 
@@ -97,8 +97,11 @@
         pin += "+" + options.color;
       }
 
-      options.iconUrl = "" + L.MakiMarkers.apiUrl + pin +  ".png";
-      options.iconRetinaUrl = L.MakiMarkers.apiUrl + pin + "@2x.png";
+      // options.iconUrl = "" + L.MakiMarkers.apiUrl + pin +  ".png";
+      // options.iconRetinaUrl = L.MakiMarkers.apiUrl + pin + "@2x.png";
+
+      options.iconUrl = "/extension/ocopendata/design/standard/javascript/images/marker-icon.png"
+      options.iconRetinaUrl = "/extension/ocopendata/design/standard/javascript/images/marker-icon-2x.png"
     }
   });
 
