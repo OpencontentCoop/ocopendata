@@ -167,7 +167,10 @@ class Page extends Base
                         'node_id' => 0,
                         'block_type' => $ezPageBlock->attribute('type'),
                     ));
+                } else {
+                    $flowBlock->setAttribute('block_type', $ezPageBlock->attribute('type'));
                 }
+
                 $flowBlock->store();
 
                 // reset block items: remove all existing (we assume block is manual)
