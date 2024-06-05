@@ -2,6 +2,8 @@
 
 namespace Opencontent\Opendata\Api;
 
+use Opencontent\Opendata\Api\Exception\InvalidInputException;
+use Opencontent\Opendata\Api\Exception\InvalidPayloadException;
 use Opencontent\Opendata\Api\Exception\OutOfRangeException;
 use Opencontent\Opendata\Api\Values\Content;
 use Opencontent\Opendata\Api\Values\SearchResults;
@@ -125,6 +127,9 @@ class EnvironmentSettings
      */
     public function instanceCreateStruct( $data )
     {
+        if (!is_array($data)){
+            throw new InvalidPayloadException('Empty data');
+        }
         return ContentCreateStruct::fromArray( $data ) ;
     }
 
@@ -139,6 +144,9 @@ class EnvironmentSettings
      */
     public function instanceUpdateStruct( $data )
     {
+        if (!is_array($data)){
+            throw new InvalidPayloadException('Empty data');
+        }
         return ContentUpdateStruct::fromArray( $data );
     }
 

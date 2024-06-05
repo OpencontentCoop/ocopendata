@@ -14,6 +14,8 @@ use Opencontent\Opendata\Api\PublicationProcess;
 
 class File extends Base
 {
+    private static $enableSslVerify = true;
+
     public function get(eZContentObjectAttribute $attribute)
     {
         $content = parent::get($attribute);
@@ -24,15 +26,15 @@ class File extends Base
             $file = $attribute->content();
 
             $url = 'content/download/' . $attribute->attribute('contentobject_id')
-                   . '/' . $attribute->attribute('id')
-                   . '/' . $attribute->attribute('version')
-                   . '/' . urlencode($file->attribute('original_filename'));
+                . '/' . $attribute->attribute('id')
+                . '/' . $attribute->attribute('version')
+                . '/' . urlencode($file->attribute('original_filename'));
             eZURI::transformURI($url, true, 'full');
 
-            $content['content'] = array(
+            $content['content'] = [
                 'filename' => $file->attribute('original_filename'),
-                'url' => $url
-            );
+                'url' => $url,
+            ];
         }
 
         return $content;
@@ -40,24 +42,24 @@ class File extends Base
 
     public function set($data, PublicationProcess $process)
     {
-        if (!is_array($data)){
-            $data = array(
+        if (!is_array($data)) {
+            $data = [
                 'url' => null,
                 'file' => null,
-                'filename' => null
-            );
+                'filename' => null,
+            ];
         }
 
-        if (!isset( $data['url'] )) {
+        if (!isset($data['url'])) {
             $data['url'] = null;
         }
 
-        if (!isset( $data['file'] )) {
+        if (!isset($data['file'])) {
             $data['file'] = null;
         }
 
         $path = null;
-        if (isset( $data['filename'] )) {
+        if (isset($data['filename'])) {
             $path = $this->getTemporaryFilePath($data['filename'], self::fixUrlIfNeeded($data['url']), $data['file']);
         }
 
@@ -68,16 +70,20 @@ class File extends Base
     {
         if ($data) {
             if (is_array($data)) {
-                if (!isset( $data['filename'] )) {
+                if (!isset($data['filename'])) {
                     throw new InvalidInputException('Missing filename', $identifier, $data);
                 }
 
-                if (isset( $data['url'] ) && !eZHTTPTool::getDataByURL(self::fixUrlIfNeeded($data['url']), true)) {
-                    throw new InvalidInputException('Url ' . self::fixUrlIfNeeded($data['url']) . ' not responding', $identifier, $data);
+                if (isset($data['url']) && !self::getDataByURL(self::fixUrlIfNeeded($data['url']), true)) {
+                    throw new InvalidInputException(
+                        'Url ' . self::fixUrlIfNeeded($data['url']) . ' not responding',
+                        $identifier,
+                        $data
+                    );
                 }
 
-                if (isset( $data['file'] )
-                    && !( base64_encode(base64_decode($data['file'], true)) === $data['file'] )
+                if (isset($data['file'])
+                    && !(base64_encode(base64_decode($data['file'], true)) === $data['file'])
                 ) {
                     throw new InvalidInputException('Invalid base64 encoding', $identifier, $data);
                 }
@@ -89,13 +95,13 @@ class File extends Base
 
     protected static function fixUrlIfNeeded($url)
     {
-        if (empty($url) || !is_string($url)){
+        if (empty($url) || !is_string($url)) {
             return $url;
         }
 
         $url = trim($url);
         $name = basename($url);
-        if (strpos($name, ' ') !== false){
+        if (strpos($name, ' ') !== false) {
             $url = str_replace($name, urlencode($name), $url);
         }
 
@@ -104,21 +110,21 @@ class File extends Base
 
     public function type(\eZContentClassAttribute $attribute)
     {
-        return array(
+        return [
             'identifier' => 'file',
-            'format' => array(
+            'format' => [
                 'url' => 'public http uri',
                 'file' => 'base64 encoded file (url alternative)',
-                'filename' => 'string'
-            )
-        );
+                'filename' => 'string',
+            ],
+        ];
     }
 
     protected function getTemporaryFilePath($filename, $url = null, $fileEncoded = null)
     {
         $data = null;
         if ($url !== null) {
-            $binary = eZHTTPTool::getDataByURL($url);
+            $binary = self::getDataByURL($url);
             eZFile::create($filename, self::tempDir(), $binary);
             $data = self::tempDir() . $filename;
         } elseif ($fileEncoded !== null) {
@@ -130,15 +136,53 @@ class File extends Base
         return $data;
     }
 
+    public static function getDataByURL($url, $justCheckURL = false)
+    {
+        $ch = curl_init($url);
+        curl_setopt_array(
+            $ch,
+            [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+            ]
+        );
+        $ini = \eZINI::instance();
+        if ($justCheckURL) {
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+            curl_setopt($ch, CURLOPT_FAILONERROR, true);
+            curl_setopt($ch, CURLOPT_NOBODY, true);
+        }
+        //curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);
+        if (!self::$enableSslVerify) {
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        }
+        $result = curl_exec($ch);
+        curl_close($ch);
+
+        return $justCheckURL ? $result !== false : $result;
+    }
+
+    public static function enableSslVerify()
+    {
+        self::$enableSslVerify = true;
+    }
+
+    public static function disableSslVerify()
+    {
+        self::$enableSslVerify = false;
+    }
+
     public static function clean()
     {
-        eZDir::recursiveDelete( self::tempDir() );
+        eZDir::recursiveDelete(self::tempDir());
     }
 
     protected static function tempDir()
     {
         //return sys_get_temp_dir()  . eZSys::fileSeparator();
-        $path = eZDir::path(array(eZSys::cacheDirectory(), 'tmp'), true);
+        $path = eZDir::path([eZSys::cacheDirectory(), 'tmp'], true);
         eZDir::mkdir($path);
 
         return $path;
@@ -146,7 +190,7 @@ class File extends Base
 
     public function toCSVString($content, $params = null)
     {
-        if (is_array($content) && isset( $content['url'] )) {
+        if (is_array($content) && isset($content['url'])) {
             return $content['url'];
         }
 

@@ -180,7 +180,7 @@ class Relations extends Base
             $data = self::tempDir() . $filename;
         }
         elseif ($url !== null) {
-            $binary = eZHTTPTool::getDataByURL($url);
+            $binary = File::getDataByURL($url);
             eZFile::create($filename, self::tempDir(), $binary);
             $data = self::tempDir() . $filename;
         }

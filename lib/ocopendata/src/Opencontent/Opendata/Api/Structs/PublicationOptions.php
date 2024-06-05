@@ -9,7 +9,8 @@ class PublicationOptions extends \ezcBaseOptions
         $this->properties = array(
             'modification_check'        => false,
             'update_null_field'         => false, // If true, will update any field in DB, even if data is not set (null)
-            'copy_prev_version_fields'  => array()
+            'copy_prev_version_fields'  => array(),
+            'ssl_verify'                => true,
         );
 
         parent::__construct( $options );
@@ -21,6 +22,11 @@ class PublicationOptions extends \ezcBaseOptions
             throw new \ezcBasePropertyNotFoundException( $optionName );
 
         $this->properties[$optionName] = $optionValue;
+    }
+
+    public function isSslVerifyEnabled()
+    {
+        return $this->ssl_verify == true;
     }
 
     public function isUpdateNullFields()

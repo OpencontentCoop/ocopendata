@@ -3,6 +3,7 @@
 namespace Opencontent\Opendata\Api\Structs;
 
 
+use Opencontent\Opendata\Api\AttributeConverter\File;
 use Opencontent\Opendata\Api\AttributeConverterLoader;
 use Opencontent\Opendata\Api\Exception\CreateContentException;
 use Opencontent\Opendata\Api\Exception\UpdateContentException;
@@ -39,6 +40,10 @@ class ContentDataStruct extends \ArrayObject
     {
         if (empty($this)){
             $this->throwException("No data found");
+        }
+
+        if ($options instanceof PublicationOptions && !$options->isSslVerifyEnabled()){
+            File::disableSslVerify();
         }
 
         if ($metadata->useDefaultLanguage()) {
