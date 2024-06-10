@@ -32,7 +32,8 @@ class OCOpenDataOperators
             'fetch_charsets' => array(),
             'api_search' => array(
                 'query' => array( 'type' => 'string', 'required' => true, 'default' => false ),
-                'environment' => array( 'type' => 'string', 'required' => false, 'default' => 'content' )
+                'environment' => array( 'type' => 'string', 'required' => false, 'default' => 'content' ),
+                'return_all' => array( 'type' => 'boolean', 'required' => false, 'default' => false ),
             ),
             'api_read' => array(
                 'query' => array( 'type' => 'string', 'required' => true, 'default' => false ),
@@ -130,6 +131,14 @@ class OCOpenDataOperators
                     elseif ( $Action == 'search' )
                     {
                         $data = (array)$contentSearch->search( $Param );
+                        if ($namedParameters['return_all'] && $data['nextPageQuery']) {
+                            $nextPageQuery =  $data['nextPageQuery'];
+                            while($nextPageQuery) {
+                                $nextData = (array)$contentSearch->search($nextPageQuery);
+                                $data['searchHits'] = array_merge($data['searchHits'], $nextData['searchHits']);
+                                $nextPageQuery = $nextData['nextPageQuery'];
+                            }
+                        }
                     }
                 }
                 catch( Exception $e )
