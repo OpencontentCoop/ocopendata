@@ -17,7 +17,13 @@ class GeoEnvironmentSettings extends EnvironmentSettings
     {
         $language = isset( $this->request->get['language'] ) ? $this->request->get['language'] : null;
 
-        return $content->geoJsonSerialize($language);
+        $feature = $content->geoJsonSerialize($language);
+        $context = $this->request->get['context'] ?? 0;
+        $mainNodeId = $content->getNodeIdFromContext((int)$context) ?? (int)$content->metadata->mainNodeId;
+        $feature->properties->add('mainNodeId', $mainNodeId);
+        $feature->properties->add('urlAlias', $content->getUrlAlias($mainNodeId));
+
+        return $feature;
     }
 
     public function filterSearchResult(

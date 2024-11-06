@@ -89,7 +89,7 @@ class Content
 
         $value = array(
             'metadata' => $metadata,
-            'data' => $data
+            'data' => $data,
         );
 
         if (!empty($extradata)){
@@ -162,28 +162,11 @@ class Content
                 $geometry->type = 'Point';
                 $geometry->coordinates = array(
                     isset( $attribute['content']['longitude'] ) ? $attribute['content']['longitude'] : 0,
-                    isset( $attribute['content']['latitude'] ) ? $attribute['content']['latitude'] : 0
+                    isset( $attribute['content']['latitude'] ) ? $attribute['content']['latitude'] : 0,
                 );
                 if (!empty( $attribute['content']['address'] )) {
                     $properties[$identifier] = $attribute['content']['address'];
                 }
-            } else {
-                //                if ( $attribute['content'] && !isset( $properties[$identifier] ))
-                //                {
-                //                    if ( is_scalar( $attribute['content'] ) )
-                //                    {
-                //                        $content = $attribute['content'];
-                //                    }
-                //                    elseif ( is_array( $attribute['content'] ) && isset( $attribute['content']['url'] ) )
-                //                    {
-                //                        $content = $attribute['content']['url'];
-                //                    }
-                //                    else
-                //                    {
-                //                        $content = $attribute['content']; //@todo
-                //                    }
-                //                    $properties[$identifier] = $content;
-                //                }
             }
         }
 
@@ -238,7 +221,7 @@ class Content
                             $access = 'denied';
                             $limitationList = array(
                                 'Limitation' => $key,
-                                'Required' => $limitationArray[$key]
+                                'Required' => $limitationArray[$key],
                             );
                         }
                     }
@@ -252,7 +235,7 @@ class Content
                             $access = 'denied';
                             $limitationList = array(
                                 'Limitation' => $key,
-                                'Required' => $limitationArray[$key]
+                                'Required' => $limitationArray[$key],
                             );
                         }
                     }
@@ -274,7 +257,7 @@ class Content
                             $access = 'denied';
                             $limitationList = array(
                                 'Limitation' => $key,
-                                'Required' => $limitationArray[$key]
+                                'Required' => $limitationArray[$key],
                             );
                         }
                     }
@@ -288,7 +271,7 @@ class Content
                             $access = 'denied';
                             $limitationList = array(
                                 'Limitation' => $key,
-                                'Required' => $limitationArray[$key]
+                                'Required' => $limitationArray[$key],
                             );
                         }
                     }
@@ -316,7 +299,7 @@ class Content
                             $access = 'denied';
                             $limitationList = array(
                                 'Limitation' => $key,
-                                'Required' => $limitationArray[$key]
+                                'Required' => $limitationArray[$key],
                             );
                         }
                     }
@@ -333,7 +316,7 @@ class Content
                             $access = 'denied';
                             $limitationList = array(
                                 'Limitation' => $key,
-                                'Required' => $limitationArray[$key]
+                                'Required' => $limitationArray[$key],
                             );
                         }
                     }
@@ -345,7 +328,7 @@ class Content
                             $access = 'denied';
                             $limitationList = array(
                                 'Limitation' => $key,
-                                'Required' => $limitationArray[$key]
+                                'Required' => $limitationArray[$key],
                             );
                         } else {
                             $access = 'allowed';
@@ -369,7 +352,7 @@ class Content
                             // ??? TODO: if there is a limitation on Subtree, return two limitations?
                             $limitationList = array(
                                 'Limitation' => $key,
-                                'Required' => $limitationArray[$key]
+                                'Required' => $limitationArray[$key],
                             );
                         } else {
                             $access = 'allowed';
@@ -420,7 +403,7 @@ class Content
                             // ??? TODO: if there is a limitation on Node, return two limitations?
                             $limitationList = array(
                                 'Limitation' => $key,
-                                'Required' => $limitationArray[$key]
+                                'Required' => $limitationArray[$key],
                             );
                         } else {
                             $access = 'allowed';
@@ -465,7 +448,7 @@ class Content
                             $access = 'denied';
                             $limitationList = array(
                                 'Limitation' => $key,
-                                'Required' => $limitationArray[$key]
+                                'Required' => $limitationArray[$key],
                             );
                         }
                     }
@@ -477,7 +460,7 @@ class Content
                                 $access = 'denied';
                                 $limitationList = array(
                                     'Limitation' => $key,
-                                    'Required' => $limitationArray[$key]
+                                    'Required' => $limitationArray[$key],
                                 );
                             } else {
                                 $access = 'allowed';
@@ -492,7 +475,7 @@ class Content
 
             $policyList[] = array(
                 'PolicyID' => $pkey,
-                'LimitationList' => $limitationList
+                'LimitationList' => $limitationList,
             );
         }
 
@@ -583,8 +566,8 @@ class Content
         $version = $this->metadata->currentVersion;
         $dataMap = array(
             $version => array(
-                $languageCode => array()
-            )
+                $languageCode => array(),
+            ),
         );
         $data = array();
         foreach ($this->data[$languageCode] as $identifier => $field) {
@@ -623,5 +606,29 @@ class Content
         $eZContentObjectContentObjectCache[$this->metadata->id] = $object;
 
         return $object;
+    }
+
+    public function getUrlAlias(?int $mainNodeId = null): string
+    {
+        $mainNodeId = $mainNodeId ?? $this->metadata->mainNodeId;
+        $urlAliasRequest = (new \ezpLanguageSwitcherFunctionCollection)->fetchUrlAlias($mainNodeId, null, \eZLocale::currentLocaleCode());
+        $urlAlias = $urlAliasRequest['result'] ?: '/content/view/full/' . $mainNodeId;
+        \eZURI::transformURI($urlAlias);
+
+        return $urlAlias;
+    }
+
+    /**
+     * @param int|string $contextNode
+     * @return int|null
+     */
+    public function getNodeIdFromContext($contextNode): ?int
+    {
+        foreach ($this->metadata->assignedNodes as $assignedNode) {
+            if (strpos($assignedNode['path_string'], '/' . $contextNode . '/') !== false) {
+                return (int)$assignedNode['id'];
+            }
+        }
+        return null;
     }
 }
