@@ -116,7 +116,7 @@ class SearchGateway implements BaseGateway
         $contentRepository->setEnvironment($this->environmentSettings);
 
         foreach ($rawResults['SearchResult'] as $resultItem) {
-            $id = isset($resultItem['meta_id_si']) ? $resultItem['meta_id_si'] : isset($resultItem['id_si']) ? $resultItem['id_si'] : $resultItem['id'];
+            $id = isset($resultItem['meta_id_si']) ? $resultItem['meta_id_si'] : (isset($resultItem['id_si']) ? $resultItem['id_si'] : $resultItem['id']);
             try {
                 if (isset($resultItem['data_map']['opendatastorage'])) {
                     $contentArray = $resultItem['data_map']['opendatastorage'];
