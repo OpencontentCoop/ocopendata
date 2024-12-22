@@ -293,26 +293,14 @@ class SearchGateway implements BaseGateway
         return $item;
     }
 
-    private static function getValueFromDottedKey($array, $key, $language, $default = null)
+    private static function getValueFromDottedKey($data, $key, $language, $default = null)
     {
-        $value = $default;
-        foreach (explode('.', $key) as $segment) {
-            if (isset($array[$segment])) {
-                $value = $array[$segment];
-                if (is_array($array[$segment])) {
-                    $array = $array[$segment];
-                    if (isset($array[$language]) && is_array($array[$language])) {
-                        $array = $array[$language];
-                    }
-                }
-            } else {
-                return $default;
-            }
-        }
-        if (isset($value[$language])) {
-            $value = $value[$language];
-        }
+        $key = str_replace(['{', '}'], ['[', ']'], $key);
+        $runtime = new \JmesPath\AstRuntime();
+        $data['metadata']['name'] = $data['metadata']['name'][$language];
+        $data['data'] = $data['data'][$language];
+        $result = $runtime($key, $data);
 
-        return $value;
+        return $result[$language] ?? $result ?? $default;
     }
 }

@@ -39,6 +39,13 @@ class ContentSearch
         $this->searchGateway->setEnvironmentSettings($this->environmentSettings);
         $this->searchGateway->setQueryBuilder($this->queryBuilder);
 
+        $this->queryBuilder->getTokenFactory()->setSubQueryResolver(function ($query) use ($limitation){
+            $searchGateway = new QueryLanguage\EzFind\SearchGateway();
+            $searchGateway->setEnvironmentSettings($this->environmentSettings);
+            $searchGateway->setQueryBuilder(new QueryLanguage\EzFind\QueryBuilder());
+            return array_filter((array)$searchGateway->search($query, $limitation));
+        });
+
         return $this->searchGateway->search($query, $limitation);
     }
 

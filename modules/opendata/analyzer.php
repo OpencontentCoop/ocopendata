@@ -1,5 +1,8 @@
 <?php
 
+use Opencontent\Opendata\Api\QueryLanguage\EzFind\QueryBuilder;
+use Opencontent\Opendata\Api\QueryLanguage\EzFind\SearchGateway;
+
 $module = $Params['Module'];
 $tpl = eZTemplate::factory();
 $http = eZHTTPTool::instance();
@@ -11,7 +14,13 @@ if ( $http->hasGetVariable( 'query' ) )
 
     try
     {
-        $builder = new \Opencontent\Opendata\Api\QueryLanguage\EzFind\QueryBuilder();
+        $builder = new QueryBuilder();
+        $builder->getTokenFactory()->setSubQueryResolver(function ($query){
+            $searchGateway = new SearchGateway();
+            $searchGateway->setEnvironmentSettings(new DefaultEnvironmentSettings());
+            $searchGateway->setQueryBuilder(new QueryBuilder());
+            return array_filter((array)$searchGateway->search($query, []));
+        });
         $ezFindQuery = null;
         try
         {

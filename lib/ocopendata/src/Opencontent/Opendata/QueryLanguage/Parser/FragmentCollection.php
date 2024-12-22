@@ -126,7 +126,7 @@ class FragmentCollection implements Iterator, Countable
                         $sentence->setOperator( $token );
 
                     if ( $token->isValue() )
-                        $sentence->setValue( $token );
+                        $sentence->setValue( $token, $this->tokenFactory->getSubQueryResolver() );
 
                 }
                 if ( !$sentence->isValid() )
@@ -142,7 +142,7 @@ class FragmentCollection implements Iterator, Countable
                         $parameter->setKey( $token );
 
                     if ( $token->isValue() )
-                        $parameter->setValue( $token );
+                        $parameter->setValue( $token, $this->tokenFactory->getSubQueryResolver() );
                 }
                 if ( !$parameter->isValid() )
                 {

@@ -13,6 +13,11 @@ class TokenFactory
     protected $clauses;
 
     /**
+     * @var ?callable
+     */
+    protected $subQueryResolver;
+
+    /**
      * @param $string
      * @param Token|null $previousToken
      *
@@ -132,5 +137,15 @@ class TokenFactory
     protected function setIsOperator( Token $token )
     {
         $token->setType( 'operator' );
+    }
+
+    public function getSubQueryResolver()
+    {
+        return $this->subQueryResolver;
+    }
+
+    public function setSubQueryResolver($subQueryResolver): void
+    {
+        $this->subQueryResolver = $subQueryResolver;
     }
 }

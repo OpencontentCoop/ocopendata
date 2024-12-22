@@ -14,7 +14,8 @@
         "ezsystems/ezpublish-legacy-installer": "*",
         "ezsystems/ezprestapiprovider-ls": "*",
         "opencontent/ocexportas-ls": "*",
-        "lolautruche/sqliimport": "*"
+        "lolautruche/sqliimport": "*",
+        "mtdowling/jmespath.php": "*"
     },
     "extra": {
         "ezpublish-legacy-extension-name": "ocopendata"

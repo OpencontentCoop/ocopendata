@@ -46,9 +46,9 @@ class Sentence
         $this->operator[] = $data;
     }
 
-    public function setValue(Token $data)
+    public function setValue(Token $data, callable $subQueryResolver = null)
     {
-        $this->value = ValueParser::parseString($data);
+        $this->value = ValueParser::parseString($data, $subQueryResolver);
     }
 
     public function __toString()

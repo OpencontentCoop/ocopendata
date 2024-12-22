@@ -4,9 +4,12 @@ namespace Opencontent\QueryLanguage\Parser;
 
 class ValueParser
 {
-    public static function parseString($string)
+    public static function parseString($string, callable $subQueryResolver = null)
     {
         $string = trim($string);
+        if (strpos($string, '[{') === 0) {
+            return is_callable($subQueryResolver) ? new QueryValue($string, $subQueryResolver) : new Value($string);
+        }
         if (strpos($string, '[') === 0) {
             return self::parseArray($string);
         }
