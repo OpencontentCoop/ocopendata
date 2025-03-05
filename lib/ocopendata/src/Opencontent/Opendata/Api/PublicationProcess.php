@@ -116,7 +116,11 @@ class PublicationProcess
                     foreach ($fieldList as $field){
                         $identifier = $field['identifier'];
                         if (isset($content->fields[$language]->{$identifier})){
-                            $content->fields[$language]->{$identifier} = (string)$content->fields[$language]->{$identifier};
+                            if( $content->fields[$language]->{$identifier}->data_type_string === \eZBinaryFileType::DATA_TYPE_STRING ){
+                                $content->fields[$language]->{$identifier} = '';
+                            } else {
+                                $content->fields[$language]->{$identifier} = (string)$content->fields[$language]->{$identifier};
+                            }
                         }
                     }
                 }
