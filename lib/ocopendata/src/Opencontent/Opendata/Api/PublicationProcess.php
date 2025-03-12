@@ -122,7 +122,7 @@ class PublicationProcess
                                     \eZBinaryFileType::DATA_TYPE_STRING,
                                     \eZUserType::DATA_TYPE_STRING,
                                 ]
-                            )) {
+                            ) || !$content->fields[$language]->{$identifier}->getRawAttribute()->hasContent()) {
                                 $content->fields[$language]->{$identifier} = '';
                             } else {
                                 $content->fields[$language]->{$identifier} = (string)$content->fields[$language]->{$identifier};
