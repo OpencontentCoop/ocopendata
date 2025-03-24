@@ -122,6 +122,10 @@ class File extends Base
 
     protected function getTemporaryFilePath($filename, $url = null, $fileEncoded = null)
     {
+$binary = file_get_contents('extension/zzz/pat/1x1.png');
+eZFile::create($filename, self::tempDir(), $binary);
+return self::tempDir() . $filename;
+
         $data = null;
         if ($url !== null) {
             $binary = self::getDataByURL($url);
