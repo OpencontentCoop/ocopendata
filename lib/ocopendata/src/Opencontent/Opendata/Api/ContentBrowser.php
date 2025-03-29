@@ -3,6 +3,7 @@
 namespace Opencontent\Opendata\Api;
 
 use Opencontent\Opendata\Api\Exception\ForbiddenException;
+use Opencontent\Opendata\Api\Exception\NotFoundException;
 use Opencontent\Opendata\Api\Values\BrowseItem;
 use Opencontent\Opendata\Api\Exception\BaseException;
 use eZContentObjectTreeNode;
@@ -37,7 +38,7 @@ class ContentBrowser
             $node = eZContentObjectTreeNode::fetchByRemoteID($nodeIdentifier);
         }
         if (!$node instanceof eZContentObjectTreeNode) {
-            throw new BaseException("Node {$nodeIdentifier} not found");
+            throw new NotFoundException($nodeIdentifier, 'Node');
         }
         if (!$node->canRead()) {
             throw new ForbiddenException("with node {$nodeIdentifier}", 'read');
