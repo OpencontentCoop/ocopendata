@@ -2,9 +2,7 @@
 
 namespace Opencontent\Opendata\Api\Exception;
 
-use Opencontent\Opendata\Api\Exception\BaseException;
-
-class InvalidPayloadException extends BaseException
+class InvalidQueryException extends BaseException
 {
     public function getServerErrorCode()
     {

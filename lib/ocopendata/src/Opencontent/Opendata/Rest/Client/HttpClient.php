@@ -237,7 +237,7 @@ class HttpClient
         }
 
         if (!in_array($info['http_code'], array(100, 200, 201, 202))) {
-            throw new \Exception("Unknown error");
+            throw new \Exception("Unknown error " . $info['http_code']);
         }
 
         $data = json_decode($body, true);

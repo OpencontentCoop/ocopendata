@@ -5,6 +5,7 @@ use Opencontent\Opendata\Api\ContentBrowser;
 use Opencontent\Opendata\Api\ContentRepository;
 use Opencontent\Opendata\Api\ContentSearch;
 use Opencontent\Opendata\Api\ClassRepository;
+use Opencontent\Opendata\Api\Exception\BaseException;
 use Opencontent\Opendata\Api\TagRepository;
 
 $Module = $Params['Module'];
@@ -57,6 +58,11 @@ try
 }
 catch( Exception $e )
 {
+    $responseCode = 400;
+    if ($e instanceof BaseException){
+        $responseCode = $e->getServerErrorCode();
+    }
+    header("HTTP/1.1 " . $responseCode . " " . ezpRestStatusResponse::$statusCodes[$responseCode]);
     $data = array(
         'error_code' => $e->getCode(),
         'error_message' => $e->getMessage()

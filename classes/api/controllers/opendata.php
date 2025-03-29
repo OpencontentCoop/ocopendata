@@ -18,7 +18,7 @@ class OCOpenDataController extends ezpRestContentController
         $version = isset( $tokenMatches['version'] ) ? $tokenMatches['version'] : 'v' . count($routesDescription);
 
         if (!isset($routesDescription[$version])) {
-            throw new Exception("Api version $version is not yet implemented");
+            throw new ezpContentNotFoundException("Api version $version is not yet implemented");
         }
         $result->variables = $routesDescription[$version];
         return $result;
@@ -142,7 +142,7 @@ class OCOpenDataController extends ezpRestContentController
         $openDataTools = new OCOpenDataTools();
         $class = $openDataTools->getClass($this->classIdentifier);
         if (!$class instanceof eZContentClass) {
-            throw new Exception('La classe non esiste');
+            throw new ezpContentNotFoundException('La classe non esiste');
         }
         $classIdentifier = $class->attribute('identifier');
         $className = $class->attribute('name');
