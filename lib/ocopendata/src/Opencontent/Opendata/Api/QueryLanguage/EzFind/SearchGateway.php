@@ -3,6 +3,7 @@
 namespace Opencontent\Opendata\Api\QueryLanguage\EzFind;
 
 use Opencontent\Opendata\Api\ContentRepository;
+use Opencontent\Opendata\Api\Exception\SearchEngineError;
 use Opencontent\Opendata\Api\Gateway\FileSystem;
 use Opencontent\Opendata\Api\Gateway\SolrStorage;
 use Opencontent\Opendata\Api\SearchGateway as BaseGateway;
@@ -81,7 +82,7 @@ class SearchGateway implements BaseGateway
                 if (is_array($error)) {
                     $error = (string)$error['msg'];
                 }
-                throw new \RuntimeException($error);
+                throw new SearchEngineError('Search engine error: ' . $error);
             }
 
             $searchExtra = SearchResultInfo::fromEzfSearchResultInfo($rawResults['SearchExtras']);
