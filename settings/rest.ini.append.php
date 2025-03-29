@@ -36,4 +36,7 @@ DefaultUserID=
 #[ResponseFilters]
 #Filters[]=ApiCacheHeadersResponseFilter
 
+[PreRoutingFilters]
+Filters[]=InvalidProviderFilter
+
 */ ?>
