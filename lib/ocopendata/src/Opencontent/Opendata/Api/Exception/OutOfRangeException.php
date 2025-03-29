@@ -11,4 +11,9 @@ class OutOfRangeException extends BaseException
         $message = "Field '$field' is out of range in " . $trace[0]['class'];
         return parent::__construct($message, $code = 0, $previous );
     }
+
+    public function getServerErrorCode()
+    {
+        return 406;
+    }
 }

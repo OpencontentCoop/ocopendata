@@ -8,6 +8,6 @@ class InvalidPayloadException extends BaseException
 {
     public function getServerErrorCode()
     {
-        return 500;
+        return 400;
     }
 }
