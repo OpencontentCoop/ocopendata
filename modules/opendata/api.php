@@ -85,7 +85,7 @@ else
 {
     header('Content-Type: application/json');
     $definedCustomFilters = eZINI::instance('rest.ini')->variable('ResponseFilters', 'Filters');
-    if (in_array('ApiCacheHeadersResponseFilter', $definedCustomFilters)){
+    if (in_array('ApiCacheHeadersResponseFilter', $definedCustomFilters) && eZUser::currentUser()->isAnonymous()){
         ApiCacheHeadersResponseFilter::printHeaders($Module);
     }
     echo json_encode( $data );
