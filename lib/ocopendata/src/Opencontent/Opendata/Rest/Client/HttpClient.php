@@ -34,6 +34,8 @@ class HttpClient
 
     public $logger;
 
+    protected $headers = [];
+
     public function __construct(
         $server,
         $login = null,
@@ -120,6 +122,11 @@ class HttpClient
         return $this->request('POST', $this->buildUrl('/update'), json_encode($data));
     }
 
+    public function upsert($data)
+    {
+        return $this->request('POST', $this->buildUrl('/upsert'), json_encode($data));
+    }
+
     public function delete($data)
     {
         return $this->request('POST', $this->buildUrl('/delete'), json_encode($data));
@@ -156,7 +163,10 @@ class HttpClient
 
     public function request($method, $url, $data = null)
     {
-        $headers = array();
+        if (strpos($url, $this->server) === false) {
+            $url = 'https://' . $this->server . $url;
+        }
+        $headers = $this->headers;
 
         if ($this->login && $this->password) {
             $credentials = "{$this->login}:{$this->password}";
@@ -253,5 +263,17 @@ class HttpClient
         }
 
         return $repository->createUpdate((array)$payload);
+    }
+
+    public function setHeaders(array $headers): self
+    {
+        $this->headers = $headers;
+        return $this;
+    }
+
+    public function setHeader(string $key, string $value): self
+    {
+        $this->headers[] = "$key: $value";
+        return $this;
     }
 }
