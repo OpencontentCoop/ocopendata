@@ -23,6 +23,9 @@ class EzXml extends Base
 
     public function set( $data, PublicationProcess $process )
     {
+        if (strpos($data, '<?xml version="1.0" encoding="utf-8"?>') !== false){
+            return $data;
+        }
         return SQLIContentUtils::getRichContent( $data );
     }
 
