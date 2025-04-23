@@ -124,6 +124,8 @@ class PublicationProcess
                                 ]
                             ) || !$content->fields[$language]->{$identifier}->getRawAttribute()->hasContent()) {
                                 $content->fields[$language]->{$identifier} = '';
+                            } elseif ($content->fields[$language]->{$identifier}->data_type_string === \eZBooleanType::DATA_TYPE_STRING) {
+                                $content->fields[$language]->{$identifier} = (string)$content->fields[$language]->{$identifier}->data_int;
                             } else {
                                 $content->fields[$language]->{$identifier} = (string)$content->fields[$language]->{$identifier};
                             }
