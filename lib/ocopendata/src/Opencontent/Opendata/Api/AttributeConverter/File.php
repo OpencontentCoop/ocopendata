@@ -197,5 +197,12 @@ class File extends Base
         return '';
     }
 
+    public function onPublishNullData(
+        eZContentObjectAttribute $attribute,
+        PublicationProcess $process
+    ): bool {
+        $attribute->dataType()->deleteStoredObjectAttribute($attribute, $attribute->attribute('version'));
+        return true;
+    }
 
 }
