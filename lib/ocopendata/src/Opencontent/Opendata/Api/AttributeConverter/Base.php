@@ -52,7 +52,7 @@ class Base
             'data_int' => $attribute->attribute('data_int'),
             'data_float' => $attribute->attribute('data_float'),
             'is_information_collector' => $attribute->attribute('is_information_collector'),
-            'content' => $this->attributeContent($attribute)
+            'content' => $this->attributeContent($attribute),
         );
 
         return $data;
@@ -115,5 +115,12 @@ class Base
     public function toCSVString($content, $params = null)
     {
         return is_string($content) ? $content : '';
+    }
+
+    public function onPublishNullData(
+        eZContentObjectAttribute $attribute,
+        PublicationProcess $process
+    ): bool {
+        return false;
     }
 }

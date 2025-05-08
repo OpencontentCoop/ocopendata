@@ -6,6 +6,7 @@ use Opencontent\Opendata\Api\ContentRepository;
 use Opencontent\Opendata\Api\ContentSearch;
 use Opencontent\Opendata\Api\ClassRepository;
 use Opencontent\Opendata\Api\Exception\BaseException;
+use Opencontent\Opendata\Api\Exception\EnvironmentMisconfigurationException;
 use Opencontent\Opendata\Api\TagRepository;
 
 $Module = $Params['Module'];
@@ -55,6 +56,10 @@ try
             $data = (array)$contentBrowser->browse( $Param );
         }
     }
+}
+catch ( EnvironmentMisconfigurationException $e )
+{
+    return $Module->handleError( eZError::KERNEL_MODULE_NOT_FOUND, 'kernel' );
 }
 catch( Exception $e )
 {

@@ -78,6 +78,8 @@ class PublicationProcess
             $content = \SQLIContent::create($contentOptions);
         }
 
+        $nullUpdates = [];
+
         try {
             foreach ($this->currentStruct->data as $language => $values) {
                 if ($language == $mainLanguage) {
@@ -87,6 +89,7 @@ class PublicationProcess
                                 $content->fields->{$identifier} = (string)$content->fields->{$identifier};
                             }elseif ($this->currentStruct->options->isUpdateNullFields() == true){
                                 $content->fields->{$identifier} = null;
+                                $nullUpdates[$language][] = $identifier;
                             }
                         }else{
                             $content->fields->{$identifier} = $converters[$identifier]->set($data, $this);
@@ -101,6 +104,7 @@ class PublicationProcess
                                 $content->fields[$language]->{$identifier} = (string)$content->fields[$language]->{$identifier};
                             }elseif ($this->currentStruct->options->isUpdateNullFields() == true) {
                                 $content->fields[$language]->{$identifier} = null;
+                                $nullUpdates[$language][] = $identifier;
                             }
                         }else {
                             $content->fields[$language]->{$identifier} = $converters[$identifier]->set($data, $this);
@@ -145,7 +149,6 @@ class PublicationProcess
             }
 
             //publish date
-            //publish date
             if ($this->currentStruct->metadata->published) {
                 $content->getRawContentObject()->setAttribute('published', $this->currentStruct->metadata->published);
             }
@@ -177,32 +180,61 @@ class PublicationProcess
             unset( $content );
 
             // remove locations missing in payload
-            if ($this->isUpdate && !empty($this->currentStruct->metadata->parentNodes)){
+            if ($this->isUpdate && (!empty($this->currentStruct->metadata->parentNodes) || !empty($nullUpdates))){
                 \eZContentObject::clearCache([$id]);
                 $object = \eZContentObject::fetch($id);
                 if ($object instanceof \eZContentObject){
-                    $assignedNodes = $object->assignedNodes();
-                    if (count($assignedNodes) !== count($this->currentStruct->metadata->parentNodes)){
-                        $removeList = [];
-                        foreach ($assignedNodes as $assignedNode){
-                            if (
-                                !in_array($assignedNode->attribute('parent_node_id'), $this->currentStruct->metadata->parentNodes)
-                                && $assignedNode->canRemove()
-                                && $assignedNode->canRemoveLocation()
-                            ){
-                                $removeList[] = $assignedNode->attribute('node_id');
+                    $refresh = false;
+                    if (!empty($nullUpdates)){
+                        foreach ($nullUpdates as $language => $identifiers) {
+                            $dataMap = $object->fetchDataMap(false, $language);
+                            foreach ($identifiers as $identifier) {
+                                if (isset($converters[$identifier]) && isset($dataMap[$identifier])) {
+                                    $hasChanges = $converters[$identifier]->onPublishNullData(
+                                        $dataMap[$identifier],
+                                        $this
+                                    );
+                                    if ($hasChanges) {
+                                        $refresh = true;
+                                    }
+                                }
                             }
                         }
-                        if (!empty($removeList)) {
-                            if (\eZOperationHandler::operationIsAvailable('content_removelocation')) {
-                                \eZOperationHandler::execute('content',
-                                    'removelocation', array('node_list' => $removeList),
-                                    null,
-                                    true);
-                            } else {
-                                \eZContentOperationCollection::removeNodes($removeList);
+                    }
+                    if (!empty($this->currentStruct->metadata->parentNodes)) {
+                        $assignedNodes = $object->assignedNodes();
+                        if (count($assignedNodes) !== count($this->currentStruct->metadata->parentNodes)) {
+                            $removeList = [];
+                            foreach ($assignedNodes as $assignedNode) {
+                                if (
+                                    !in_array(
+                                        $assignedNode->attribute('parent_node_id'),
+                                        $this->currentStruct->metadata->parentNodes
+                                    )
+                                    && $assignedNode->canRemove()
+                                    && $assignedNode->canRemoveLocation()
+                                ) {
+                                    $removeList[] = $assignedNode->attribute('node_id');
+                                }
+                            }
+                            if (!empty($removeList)) {
+                                $refresh = false;
+                                if (\eZOperationHandler::operationIsAvailable('content_removelocation')) {
+                                    \eZOperationHandler::execute(
+                                        'content',
+                                        'removelocation',
+                                        ['node_list' => $removeList],
+                                        null,
+                                        true
+                                    );
+                                } else {
+                                    \eZContentOperationCollection::removeNodes($removeList);
+                                }
                             }
                         }
+                    }
+                    if ($refresh){
+                        \eZContentOperationCollection::registerSearchObject($object->attribute('id'));
                     }
                 }
             }
