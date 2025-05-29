@@ -16,6 +16,8 @@ class File extends Base
 {
     private static $enableSslVerify = true;
 
+    private static $requestCookie = null;
+
     public function get(eZContentObjectAttribute $attribute)
     {
         $content = parent::get($attribute);
@@ -158,6 +160,9 @@ class File extends Base
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         }
+        if (self::$requestCookie){
+            curl_setopt($ch, CURLOPT_COOKIE, self::$requestCookie);
+        }
         $result = curl_exec($ch);
         curl_close($ch);
 
@@ -172,6 +177,11 @@ class File extends Base
     public static function disableSslVerify()
     {
         self::$enableSslVerify = false;
+    }
+
+    public static function useCookie($cookie)
+    {
+        self::$requestCookie = $cookie;
     }
 
     public static function clean()
