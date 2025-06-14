@@ -484,7 +484,7 @@ class SentenceConverter
             {
                 if ( count( $value ) > 1 )
                 {
-                    $data = array( 'and' );
+                    $data = array( /*'and'*/ );
                     foreach ( $value as $item )
                     {
                         $data[] = $negative . $fieldName . ':' . $this->formatFilterValue( $item, $type );
