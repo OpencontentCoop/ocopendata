@@ -90,7 +90,8 @@ class OCOpenDataQueries
 
                         foreach ($blocks as $index => $block) {
                             $custom = $block->attribute('custom_attributes');
-                            if (!empty($custom['query'])) {
+                            $customUrl = $custom['remote_url'] ?? null;
+                            if (!empty($custom['query']) && empty($customUrl)) {
                                 $error = false;
                                 try {
                                     $analysis = $this->analyze($custom['query']);
@@ -143,13 +144,18 @@ class OCOpenDataQueries
 
     public function optimize(string $query): string
     {
+        /** @var Query $queryObject */
         $queryObject = $this->analyze($query)['query'];
         foreach ($queryObject->getFilters() as $item) {
             foreach ($item->getSentences() as $sentence) {
                 $token = $sentence->getField();
-//                $token->setToken('ciccio');
-//                $sentence->setField($token);
-                break;
+                if ((string)$token === 'raw[ezf_df_text]') {
+                    $token->setToken('all_text');
+                    $sentence->setField($token);
+                }else if ((string)$token === 'raw[ezf_df_tag_ids]') {
+                    $token->setToken('eztags_id');
+                    $sentence->setField($token);
+                }
             }
         }
 

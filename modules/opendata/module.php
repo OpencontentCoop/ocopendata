@@ -40,9 +40,9 @@ $ViewList['help'] = array(
     'params' => array( 'Section', 'Identifier' ),
     'unordered_params' => array()
 );
-$ViewList['queries'] = array(
+$ViewList['check_queries'] = array(
     'functions' => array( 'queries' ),
-    'script' => 'queries.php',
+    'script' => 'check_queries.php',
     'params' => array(),
     'unordered_params' => array()
 );

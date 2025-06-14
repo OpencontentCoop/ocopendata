@@ -15,7 +15,7 @@ if ($http->hasGetVariable('load')) {
         );
     } catch (Exception $e) {
         header('HTTP/1.1 500 Internal Server Error');
-        $data = ['error' => $e->getMessage()];
+        $data = ['error_message' => $e->getMessage()];
     }
 }
 
@@ -26,7 +26,7 @@ if ($http->hasGetVariable('optimize')) {
         $data = OCOpenDataQueries::getInstance()->optimize($http->getVariable('optimize'));
     } catch (Exception $e) {
         header('HTTP/1.1 500 Internal Server Error');
-        $data = ['error' => $e->getMessage()];
+        $data = ['error_message' => $e->getMessage()];
     }
 }
 
@@ -37,7 +37,7 @@ if ($http->hasGetVariable('tag')) {
         $data = 0;
     } catch (Exception $e) {
         header('HTTP/1.1 500 Internal Server Error');
-        $data = ['error' => $e->getMessage()];
+        $data = ['error_message' => $e->getMessage()];
     }
 }
 
@@ -78,7 +78,7 @@ if ($http->hasGetVariable('save')) {
                             }
                         }
                     }
-                    if (!$modifyBlock['modified']){
+                    if (!$modifyBlock['modified']) {
                         $modifyBlock['error'] = 'block not found';
                     }
                 } else {
@@ -99,8 +99,13 @@ if ($isAsync) {
 
 
 $Result = [];
-$Result['content'] = $tpl->fetch('design:opendata/queries.tpl');
-$Result['path'] = [];
+$Result['content'] = $tpl->fetch('design:opendata/check_queries.tpl');
+$Result['path'] = [
+    [
+        'text' => 'Controllo delle query nei blocchi opendata',
+        'url' => false,
+    ],
+];
 $contentInfoArray = [
     'node_id' => null,
     'class_identifier' => null,

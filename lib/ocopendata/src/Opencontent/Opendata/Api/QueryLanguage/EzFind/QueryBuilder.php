@@ -9,7 +9,9 @@ use eZINI;
 class QueryBuilder extends BaseQueryBuilder
 {
     public $fields = array(
-        'q'
+        'q',
+        'eztags_id',
+        'all_text'
     );
 
     public $metaFields = array(

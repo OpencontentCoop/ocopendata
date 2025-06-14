@@ -1,6 +1,6 @@
 <div class="row">
   <div class="col-12">
-    <h1 class="h3 pt-3">Controllo delle query nei blocchi di layout</h1>
+    <h1 class="h3 pt-3">Controllo delle query nei blocchi opendata</h1>
   </div>
 </div>
 <div class="row">
@@ -34,7 +34,7 @@
   <div class="col-9 tab-content" id="query-list"></div>
 </div>
 
-<div id="test-modal" class="modal fade" data-backdrop="static" style="z-index:10000">
+<div id="test-modal" class="modal fade" style="z-index:10000">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-body">
@@ -65,9 +65,9 @@
         {{for blocks}}
         <div class="mb-4 border rounded p-5" data-query-group>
           {{for languages}}
-            <div class="form-group mb-2">
-              {{if error}}<div class="bg-danger rounded p-2"><span class="text-white">{{:error}}</span></div>{{/if}}
+            <div class="form-group mb-2" data-query>
               <label class="form-label h6 ps-0">{{:block_name}} ({{:block_index}})</label>
+              {{if error}}<div class="bg-danger rounded p-2 my-2"><span class="text-white">{{:error}}</span></div>{{/if}}
               <div class="input-group flex-nowrap">
                 <button class="btn btn-outline-secondary btn-xs" type="button"><img src="/share/icons/flags/{{:attribute_language}}.gif" width="18" height="12" alt="{{:attribute_language}}"></button>
                 <textarea class="form-control"
@@ -76,16 +76,19 @@
                   data-attribute_language="{{:attribute_language}}"
                   data-zone_identifier="{{:zone_identifier}}"
                   data-block_id="{{:block_id}}"
-                  style="height: 75px;border: 2px solid hsl(210,17%,44%) !important;border-left: none !important;border-right: none !important;" class="form-control">{{>query}}</textarea>
-                <button class="btn btn-outline-secondary btn-xs" data-trigger="test" type="button" data-url="{{:search_url}}">Test</button>
+                  style="height: 75px;border: 2px solid hsl(210,17%,44%) !important;border-left: none !important;" class="form-control">{{>query}}</textarea>
+              </div>
+              <div class="text-end mt-2">
+                <button class="btn btn-secondary btn-xs me-2" data-trigger="test" type="button" data-url="{{:search_url}}">Test</button>
+                <button class="btn btn-secondary btn-xs" data-trigger="optimize" type="button">Ottimizza</button>
               </div>
             </div>
           {{/for}}
           <div class="text-end mt-5">
             {{if languages.length > 1}}
-              <a href="#" class="btn btn-xs btn-outline-info me-3" data-trigger="copy">Copia italiano in tutte le lingue</a>
+              <a href="#" class="btn btn-xs btn-outline-secondary me-3" data-trigger="copy">Copia italiano in tutte le lingue</a>
             {{/if}}
-            <a href="#" class="btn btn-xs btn-success" data-trigger="save">Salva</a>
+            <a href="#" class="btn btn-xs btn-success" data-trigger="save">Salva modifiche</a>
           </div>
         </div>
         {{/for}}
@@ -154,7 +157,7 @@
         spinner.show()
         let withField = filterToggle.find('input').is(':checked') ? 1 : 0
         let withError = errorToggle.find('input').is(':checked') ? 1 : 0
-        $.get('/opendata/queries?load=1&withField='+withField+'&withError='+withError, function (response){
+        $.get('/opendata/check_queries?load=1&withField='+withField+'&withError='+withError, function (response){
           spinner.hide()
           searchInput.show()
           filterToggle.show()
@@ -165,16 +168,38 @@
             let query = $($.templates('#tpl-query').render(this))
             query.find('[data-trigger="test"]').on('click', function (e){
               let url = $(this).data('url')
-              let q = $(this).prev().val()
+              let q = $(this).parent().parent().find('textarea').val()
               contentSearch(url+'/'+q)
               e.preventDefault()
             })
-            query.find('[data-trigger="copy"]').on('click', function (e){
-              let parent = $(this).parents('[data-query-group]')
-              let ita = parent.find('[data-attribute_language="ita-IT"]').val()
-              parent.find('textarea').val(ita)
+
+            query.find('[data-trigger="optimize"]').on('click', function (e){
+              let textarea = $(this).parent().parent().find('textarea')
+              $.ajax({
+                type: "GET",
+                url: '/opendata/check_queries?optimize='+textarea.val(),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function(response) {
+                  textarea.val(response)
+                },
+                error: function(data){
+                  var error = data.responseJSON;
+                  alert(error.error_message);
+                }
+              });
               e.preventDefault()
             })
+
+            query.find('[data-trigger="copy"]').on('click', function (e){
+              let parent = $(this).parents('[data-query-group]')
+              let itaField = parent.find('textarea[data-attribute_language="ita-IT"]')
+              if (itaField.length > 0) {
+                parent.find('textarea').val(itaField.val())
+              }
+              e.preventDefault()
+            })
+
             query.find('[data-trigger="save"]').on('click', function (e){
               let parent = $(this).parents('[data-query-group]')
               let payload = []
@@ -187,11 +212,12 @@
               if (tokenNode) {
                 $.ajax({headers: {'X-CSRF-TOKEN': tokenNode.getAttribute('title')}})
               }
-              $.post('/opendata/queries?save=1', {blocks: payload}, function (r){
+              $.post('/opendata/check_queries?save=1', {blocks: payload}, function (r){
                 console.log(r)
               }, 'json')
               e.preventDefault()
             })
+
             query.appendTo(queryContainer);
           })
           searchInput.quicksearch('ul#object-list li')

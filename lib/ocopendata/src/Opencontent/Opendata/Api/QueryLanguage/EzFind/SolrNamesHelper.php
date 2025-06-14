@@ -84,6 +84,13 @@ class SolrNamesHelper
 
             return array('meta_' . $field => $this->getMetaFieldName((string)$field, $context));
         } elseif ($field->data('is_field')) {
+            if ($field == 'eztags_id') {
+                return array('ezf_df_tag_ids' => 'ezf_df_tag_ids');
+            }
+            if ($field == 'all_text') {
+                return array('ezf_df_text' => 'ezf_df_text');
+            }
+
             if ($subFields = $field->data('sub_fields')) {
                 if (count($subFields) == 2) {
                     $mainField = $subFields[0];
