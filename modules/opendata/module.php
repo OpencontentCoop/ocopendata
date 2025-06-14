@@ -40,6 +40,12 @@ $ViewList['help'] = array(
     'params' => array( 'Section', 'Identifier' ),
     'unordered_params' => array()
 );
+$ViewList['queries'] = array(
+    'functions' => array( 'queries' ),
+    'script' => 'queries.php',
+    'params' => array(),
+    'unordered_params' => array()
+);
 
 $FunctionList = array();
 $FunctionList['api'] = array();
@@ -47,6 +53,7 @@ $FunctionList['console'] = array();
 $FunctionList['analyzer'] = array();
 $FunctionList['datatable'] = array();
 $FunctionList['import'] = array();
+$FunctionList['queries'] = array();
 
 $presetList = array();
 foreach( \Opencontent\Opendata\Api\EnvironmentLoader::getAvailablePresetIdentifiers() as $preset )
