@@ -9,7 +9,9 @@ use eZINI;
 class QueryBuilder extends BaseQueryBuilder
 {
     public $fields = array(
-        'q'
+        'q',
+        'ez_tag_ids',
+        'ez_all_texts'
     );
 
     public $metaFields = array(
@@ -98,7 +100,7 @@ class QueryBuilder extends BaseQueryBuilder
         return parent::instanceQuery($string);
     }
 
-    public function getSolrNamesHelper()
+    public function getSolrNamesHelper(): SolrNamesHelper
     {
         return $this->solrNamesHelper;
     }
