@@ -41,6 +41,26 @@ if ($http->hasGetVariable('tag')) {
     }
 }
 
+if ($http->hasGetVariable('translate')) {
+    $isAsync = true;
+    try {
+        header('HTTP/1.1 200 OK');
+        if (OCOpenDataQueries::getInstance()->canTranslate()){
+            $data = OCOpenDataQueries::getInstance()->translate(
+                $http->getVariable('translate'),
+                $http->getVariable('from'),
+                $http->getVariable('to')
+            );
+        } else {
+            $data = $http->getVariable('translate');
+        }
+
+    } catch (Exception $e) {
+        header('HTTP/1.1 500 Internal Server Error');
+        $data = ['error_message' => $e->getMessage()];
+    }
+}
+
 if ($http->hasGetVariable('save')) {
     $isAsync = true;
     $data = $_POST;
@@ -97,6 +117,7 @@ if ($isAsync) {
     eZExecution::cleanExit();
 }
 
+$tpl->setVariable('is_translation_enabled', OCOpenDataQueries::getInstance()->canTranslate());
 
 $Result = [];
 $Result['content'] = $tpl->fetch('design:opendata/check_queries.tpl');

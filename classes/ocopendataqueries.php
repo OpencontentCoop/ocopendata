@@ -21,6 +21,73 @@ class OCOpenDataQueries
         return self::$instance;
     }
 
+    public function canTranslate(): bool
+    {
+        return class_exists('TranslatorManager');
+    }
+
+    public function translate(string $query, string $fromLanguage, string $toLanguage)
+    {
+        $analysis = $this->analyze($query);
+        /** @var Query $queryObject */
+        $queryObject = $analysis['query'];
+
+        /** @var QueryBuilder $queryBuilder */
+        $queryBuilder = $analysis['builder'];
+        $nameHelper = $queryBuilder->getSolrNamesHelper();
+
+        foreach ($queryObject->getFilters() as $item) {
+            $this->translateItemSentences($item, $nameHelper, $fromLanguage, $toLanguage);
+        }
+
+        return (string)$queryObject;
+    }
+
+    private function translateItemSentences(Parser\Item $item, SolrNamesHelper $nameHelper, $fromLanguage, $toLanguage): void
+    {
+        if (!$this->canTranslate()){
+            return;
+        }
+        foreach ($item->getSentences() as $sentence) {
+            $field = $sentence->getField();
+            $doTranslate = false;
+            if ((string)$field === 'raw[ezf_df_text]' || (string)$field === 'ez_all_texts') {
+                $doTranslate = true;
+            } elseif ($field->isField()) {
+                try {
+                    $datatypes = $nameHelper->getDatatypesByIdentifier((string)$field);
+                } catch (\Exception $exception) {
+                    $datatypes = [];
+                }
+                if (in_array('eztext', $datatypes)
+                    || in_array('ezstring', $datatypes)
+                    || in_array('ezxmltext', $datatypes)) {
+                    $doTranslate = true;
+                }
+            }
+            if ($doTranslate) {
+                $values = $sentence->getValue();
+                if (!is_array($values)) {
+                    $values = [$values];
+                }
+                $values = array_map(function ($value) {
+                    return trim($value, '"');
+                }, $values);
+                $translatedValues = TranslatorManager::instance()
+                    ->getHandler()
+                    ->translate($values, $fromLanguage, $toLanguage);
+                if (!empty($translatedValues)) {
+                    $valueToken = new Parser\Token();
+                    $valueToken->setToken('["' . implode('","', $translatedValues) . '"]');
+                    $sentence->setValue($valueToken);
+                }
+            }
+        }
+        foreach ($item->getChildren() as $child) {
+            $this->translateItemSentences($child, $nameHelper, $fromLanguage, $toLanguage);
+        }
+    }
+
     public function getStaticQueries($onlyWithStringFilters = false, $onlyWithError = false): array
     {
         if ($this->staticQueries === null) {
