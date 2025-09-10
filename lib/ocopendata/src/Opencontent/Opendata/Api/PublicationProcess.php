@@ -79,7 +79,7 @@ class PublicationProcess
         }
 
         $nullUpdates = [];
-
+        
         try {
             foreach ($this->currentStruct->data as $language => $values) {
                 if ($language == $mainLanguage) {
@@ -124,6 +124,7 @@ class PublicationProcess
                                 $content->fields[$language]->{$identifier}->data_type_string,
                                 [
                                     \eZBinaryFileType::DATA_TYPE_STRING,
+                                    \OCMultiBinaryType::DATA_TYPE_STRING,
                                     \eZUserType::DATA_TYPE_STRING,
                                 ]
                             ) || !$content->fields[$language]->{$identifier}->getRawAttribute()->hasContent()) {
