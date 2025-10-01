@@ -125,6 +125,28 @@ class OCOpenDataProvider extends ezpRestApiProvider
                     null,
                     'Get url info by id'
                 ), 2
+            ),
+            'openData2readLayout' => new OcOpenDataVersionedRoute(
+                new OcOpenDataRoute(
+                    '/block/read/:Id/:Language/:Attribute/:Zone/:BlockId',
+                    'OCOpenDataController2',
+                    'readBlock',
+                    array(),
+                    'http-get',
+                    null,
+                    'Get layout block info'
+                ), 2
+            ),
+            'openData2editLayout' => new OcOpenDataVersionedRoute(
+                new OcOpenDataRoute(
+                    '/block/update/:Id/:Language/:Attribute/:Zone/:BlockId',
+                    'OCOpenDataController2',
+                    'updateBlock',
+                    array(),
+                    'http-put',
+                    null,
+                    'Update layout block'
+                ), 2
             )
         );
 

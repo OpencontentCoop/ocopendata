@@ -338,4 +338,63 @@ class OCOpenDataController2 extends ezpRestContentController
 
         return $result;
     }
+
+    public function doReadBlock()
+    {
+        $objectId = $this->request->variables['Id'];
+        $language = $this->request->variables['Language'];
+        $attribute = $this->request->variables['Attribute'];
+        $zone = $this->request->variables['Zone'];
+        $blockId = $this->request->variables['BlockId'];
+
+        try {
+            $currentEnvironment = new DefaultEnvironmentSettings();
+            $currentEnvironment->__set('requestBaseUri', $this->getBaseUri());
+            $currentEnvironment->__set('request', $this->request);
+            $this->contentRepository->setEnvironment($currentEnvironment);
+
+            $result = new ezpRestMvcResult();
+            $result->variables = $this->contentRepository->readBlock(
+                $objectId,
+                $language,
+                $attribute,
+                $zone,
+                $blockId
+            );
+        } catch (Exception $e) {
+            $result = $this->doExceptionResult($e);
+        }
+
+        return $result;
+    }
+
+    public function doUpdateBlock()
+    {
+        $objectId = $this->request->variables['Id'];
+        $language = $this->request->variables['Language'];
+        $attribute = $this->request->variables['Attribute'];
+        $zone = $this->request->variables['Zone'];
+        $blockId = $this->request->variables['BlockId'];
+
+        try {
+            $currentEnvironment = new DefaultEnvironmentSettings();
+            $currentEnvironment->__set('requestBaseUri', $this->getBaseUri());
+            $currentEnvironment->__set('request', $this->request);
+            $this->contentRepository->setEnvironment($currentEnvironment);
+
+            $result = new ezpRestMvcResult();
+            $result->variables = $this->contentRepository->updateBlock(
+                $objectId,
+                $language,
+                $attribute,
+                $zone,
+                $blockId,
+                $this->getPayload()
+            );
+        } catch (Exception $e) {
+            $result = $this->doExceptionResult($e);
+        }
+
+        return $result;
+    }
 }
