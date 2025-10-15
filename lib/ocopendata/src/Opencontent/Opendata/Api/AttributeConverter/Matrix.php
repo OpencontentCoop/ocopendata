@@ -37,6 +37,15 @@ class Matrix extends Base
         $rows = array();
         foreach( $data as $item )
         {
+            $item = array_map(function ($value) {
+                $response = html_entity_decode($value);
+                $response = str_replace('|', '', $response);
+                if (strpos($response, '&') !== false) {
+                    $response = preg_replace("/&#?[a-z0-9]+;/i", "", $response);
+                    $response = str_replace('&', '', $response);
+                }
+                return $response;
+            }, $item);
             $rows[] = implode( '|', array_values( $item ) );
         }
         return implode( '&', $rows );

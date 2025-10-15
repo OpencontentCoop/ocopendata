@@ -2,6 +2,8 @@
 
 namespace Opencontent\Opendata\Api\Structs;
 
+use Opencontent\Opendata\Api\Exception\DuplicateRemoteIdException;
+use Opencontent\Opendata\Api\Exception\ForbiddenException;
 use Opencontent\Opendata\Api\Exception\OutOfRangeException;
 
 class ContentCreateStruct implements \ArrayAccess
@@ -28,6 +30,10 @@ class ContentCreateStruct implements \ArrayAccess
         $this->options = $options instanceof PublicationOptions ? $options : new PublicationOptions();
     }
 
+    /**
+     * @throws ForbiddenException
+     * @throws DuplicateRemoteIdException
+     */
     public function validate($ignorePolicies = false)
     {
         $this->metadata->validateOnCreate();
@@ -37,6 +43,11 @@ class ContentCreateStruct implements \ArrayAccess
         $this->data->validateOnCreate( $this->metadata, $this->options );
     }
 
+    /**
+     * @throws \ezcBasePropertyNotFoundException
+     * @throws OutOfRangeException
+     * @throws \ezcBaseValueException
+     */
     public static function fromArray(array $array)
     {
         $metadata = array();
@@ -70,6 +81,9 @@ class ContentCreateStruct implements \ArrayAccess
         return $this->{$property};
     }
 
+    /**
+     * @throws OutOfRangeException
+     */
     public function offsetSet($property, $value)
     {
         if ( property_exists( $this, $property ) )
