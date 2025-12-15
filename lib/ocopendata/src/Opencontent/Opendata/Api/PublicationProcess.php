@@ -59,6 +59,7 @@ class PublicationProcess
         if ($this->currentStruct->metadata->getContentObject() instanceof \eZContentObject) {
             $this->isUpdate = true;
             $content = \SQLIContent::fromContentObject($this->currentStruct->metadata->getContentObject());
+            $this->versionCheck($content->getRawContentObject());
             $currentObjectLanguages = array_keys(
                 $this->currentStruct->metadata->getContentObject()->allLanguages()
             );
@@ -248,6 +249,32 @@ class PublicationProcess
                 $content->getDraft()->removeThis();
             }
             throw new PublicationException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    private function versionCheck(\eZContentObject $object)
+    {
+        $versionLimit = \eZContentClass::versionHistoryLimit($object->attribute('contentclass_id'));
+        $versionCount = $object->getVersionCount();
+        if ($versionCount == $versionLimit) {
+            $versionLimit--;
+        }
+        if ($versionCount > $versionLimit) {
+            // Remove oldest archived version
+            $params = ['conditions' => ['status' => \eZContentObjectVersion::STATUS_ARCHIVED]];
+            $versions = $object->versions(true, $params);
+            if (count($versions) > 0) {
+                $modified = $versions[0]->attribute('modified');
+                $removeVersion = $versions[0];
+                foreach ($versions as $version) {
+                    $currentModified = $version->attribute('modified');
+                    if ($currentModified < $modified) {
+                        $modified = $currentModified;
+                        $removeVersion = $version;
+                    }
+                }
+                $removeVersion->removeThis();
+            }
         }
     }
 }

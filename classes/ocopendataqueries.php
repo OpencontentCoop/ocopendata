@@ -227,7 +227,7 @@ class OCOpenDataQueries
         return false;
     }
 
-    public function optimize(string $query): string
+    public function optimize(string $query, $options = []): string
     {
         $analysis = $this->analyze($query);
         /** @var Query $queryObject */
@@ -238,13 +238,13 @@ class OCOpenDataQueries
         $nameHelper = $queryBuilder->getSolrNamesHelper();
 
         foreach ($queryObject->getFilters() as $item) {
-            $this->optimizeItemSentences($item, $nameHelper);
+            $this->optimizeItemSentences($item, $nameHelper, $options);
         }
 
         return (string)$queryObject;
     }
 
-    private function optimizeItemSentences(Parser\Item $item, SolrNamesHelper $nameHelper): void
+    private function optimizeItemSentences(Parser\Item $item, SolrNamesHelper $nameHelper, $options = []): void
     {
         foreach ($item->getSentences() as $sentence) {
             $field = $sentence->getField();
@@ -270,11 +270,17 @@ class OCOpenDataQueries
                     }
                     $tagIds = [];
                     foreach ($values as $value) {
-                        $value = trim($value, '"');
+                        $value = trim($value, '\'"');
                         $tags = eZTagsObject::fetchByKeyword($value);
                         if (!empty($tags)) {
                             foreach ($tags as $tag) {
                                 $tagIds[] = $tag->attribute('id');
+                                if ($options['include_tag_synonym']){
+                                   $synonyms = $tag->getSynonyms();
+                                   foreach ($synonyms as $synonym) {
+                                        $tagIds[] = $synonym->attribute('id');
+                                   }
+                                }
                             }
                         }
                     }
