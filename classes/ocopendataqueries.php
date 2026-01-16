@@ -244,10 +244,64 @@ class OCOpenDataQueries
         return (string)$queryObject;
     }
 
+    private function getTagIdListFromSentence($sentence, array $options): array
+    {
+        $values = $sentence->getValue();
+        if (!is_array($values)) {
+            $values = [$values];
+        }
+        $tagIds = [];
+        foreach ($values as $value) {
+            $value = trim($value, '\'"');
+            $tags = eZTagsObject::fetchByKeyword($value);
+            if (!empty($tags)) {
+                foreach ($tags as $tag) {
+                    $tagIds[] = $tag->attribute('id');
+                    if ($options['include_tag_synonym']){
+                        $synonyms = $tag->getSynonyms();
+                        foreach ($synonyms as $synonym) {
+                            $tagIds[] = $synonym->attribute('id');
+                        }
+                    }
+                }
+            }
+        }
+
+        return $tagIds;
+    }
+
+    private function getTagKeywordListFromSentence($sentence, array $options): array
+    {
+        $values = $sentence->getValue();
+        if (!is_array($values)) {
+            $values = [$values];
+        }
+        $keywords = [];
+        foreach ($values as $value) {
+            $value = trim($value, '\'"');
+            $tags = eZTagsObject::fetchByKeyword($value);
+            if (!empty($tags)) {
+                foreach ($tags as $tag) {
+                    $keywords[] = $tag->attribute('keyword');
+                    if ($options['include_tag_synonym']){
+                        $synonyms = $tag->getSynonyms();
+                        foreach ($synonyms as $synonym) {
+                            $keywords[] = $synonym->attribute('keyword');
+                        }
+                    }
+                }
+            }
+        }
+
+        return $keywords;
+    }
+
     private function optimizeItemSentences(Parser\Item $item, SolrNamesHelper $nameHelper, $options = []): void
     {
         foreach ($item->getSentences() as $sentence) {
+
             $field = $sentence->getField();
+            $subFields = $field->data('sub_fields');
 
             if ((string)$field === 'raw[ezf_df_text]') {
                 $field->setToken('ez_all_texts');
@@ -264,26 +318,7 @@ class OCOpenDataQueries
                     $datatypes = [];
                 }
                 if (in_array('eztags', $datatypes) || (string)$field === 'raw[ezf_df_tags]') {
-                    $values = $sentence->getValue();
-                    if (!is_array($values)) {
-                        $values = [$values];
-                    }
-                    $tagIds = [];
-                    foreach ($values as $value) {
-                        $value = trim($value, '\'"');
-                        $tags = eZTagsObject::fetchByKeyword($value);
-                        if (!empty($tags)) {
-                            foreach ($tags as $tag) {
-                                $tagIds[] = $tag->attribute('id');
-                                if ($options['include_tag_synonym']){
-                                   $synonyms = $tag->getSynonyms();
-                                   foreach ($synonyms as $synonym) {
-                                        $tagIds[] = $synonym->attribute('id');
-                                   }
-                                }
-                            }
-                        }
-                    }
+                    $tagIds = $this->getTagIdListFromSentence($sentence, $options);
                     if (!empty($tagIds)) {
                         $field->setToken('ez_tag_ids');
                         $sentence->setField($field);
@@ -291,16 +326,22 @@ class OCOpenDataQueries
                         $valueToken->setToken('[' . implode(',', $tagIds) . ']');
                         $sentence->setValue($valueToken);
                     }
-                } elseif ($subFields = $field->data('sub_fields')) {
+                } elseif (count($subFields) > 0) {
                     if (count($subFields) == 2) {
                         $mainField = $subFields[0];
                         $subField = $subFields[1];
                         try {
-                            $datatypes = $nameHelper->getDatatypesByIdentifier((string)$mainField);
+                            $mainDatatypes = $nameHelper->getDatatypesByIdentifier((string)$mainField);
                         } catch (\Exception $exception) {
-                            $datatypes = [];
+                            $mainDatatypes = [];
                         }
-                        if (in_array('ezobjectrelationlist', $datatypes) || (string)$subField === 'name') {
+                        try {
+                            $subDatatypes = $nameHelper->getDatatypesByIdentifier((string)$subField);
+                        } catch (\Exception $exception) {
+                            $subDatatypes = [];
+                        }
+
+                        if (in_array('ezobjectrelationlist', $mainDatatypes) && empty($subDatatypes) || (string)$subField === 'name') {
                             $values = $sentence->getValue();
                             if (!is_array($values)) {
                                 $values = [$values];
@@ -315,17 +356,25 @@ class OCOpenDataQueries
                                                 select ezcontentclass_attribute.id from ezcontentclass_attribute WHERE ezcontentclass_attribute.identifier = '{$mainField}'
                                             )
                                         ) where ezcontentobject_name.name = '{$value}'";
-                                $objectIds = array_unique(array_column(
+                                $objectIds = array_merge($objectIds, array_column(
                                     eZDB::instance()->arrayQuery($findByNameQuery),
                                     'contentobject_id'
                                 ));
-                                if (count($objectIds) > 0) {
-                                    $field->setToken($mainField . '.id');
-                                    $sentence->setField($field);
-                                    $valueToken = new Parser\Token();
-                                    $valueToken->setToken('[' . implode(',', $objectIds) . ']');
-                                    $sentence->setValue($valueToken);
-                                }
+                            }
+                            if (count($objectIds) > 0) {
+                                $objectIds = array_unique($objectIds);
+                                $field->setToken($mainField . '.id');
+                                $sentence->setField($field);
+                                $valueToken = new Parser\Token();
+                                $valueToken->setToken('[' . implode(',', $objectIds) . ']');
+                                $sentence->setValue($valueToken);
+                            }
+                        } elseif (in_array('ezobjectrelationlist', $mainDatatypes) && in_array('eztags', $subDatatypes)) {
+                            $keywords = $this->getTagKeywordListFromSentence($sentence, $options);
+                            if (!empty($keywords)) {
+                                $valueToken = new Parser\Token();
+                                $valueToken->setToken('["' . implode('","', $keywords) . '"]');
+                                $sentence->setValue($valueToken);
                             }
                         }
                     }
