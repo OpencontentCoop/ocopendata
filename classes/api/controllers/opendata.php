@@ -4,6 +4,7 @@
  * @property string $datasetId
  * @property int $nodeId
  * @property int $objectId
+ * @property string $classIdentifier
  * @property string $fieldIdentifier
  */
 class OCOpenDataController extends ezpRestContentController
@@ -311,7 +312,7 @@ class OCOpenDataController extends ezpRestContentController
 
         // Handle object/node metadata
         if ($this->hasResponseGroup(self::VIEWFIELDS_RESPONSEGORUP_METADATA)) {
-            $objectMetadata = OCOpenDataContentModel::getMetadataByContent($content, $isNodeRequested);
+            $objectMetadata = OCOpenDataContentModel::getMetadataByContent($content); // @phpstan-ignore arguments.count
             if ($isNodeRequested) {
                 $nodeMetadata = OCOpenDataContentModel::getMetadataByLocation(ezpContentLocation::fetchByNodeId($this->nodeId));
                 $objectMetadata = array_merge($objectMetadata, $nodeMetadata);

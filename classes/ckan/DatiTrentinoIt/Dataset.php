@@ -201,7 +201,7 @@ class Dataset extends Base
     public static function fromArray( array $data )
     {
 
-        $instance = new static();
+        $instance = new static(); // @phpstan-ignore new.static
         foreach ( $data as $key => $value )
         {
             if ( property_exists( $instance, $key ) )
