@@ -1,4 +1,8 @@
 <?php
+
+/**
+ * @property string $link
+ */
 class OCOpenDataApiChildNode implements ArrayAccess
 {
     protected $container;

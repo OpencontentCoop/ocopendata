@@ -1,4 +1,9 @@
 <?php
+
+/**
+ * @property array $metadata
+ * @property array $fields
+ */
 class OCOpenDataApiNode implements ArrayAccess
 {
     protected $container;

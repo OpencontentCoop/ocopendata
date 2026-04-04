@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * @property string $datasetId
+ * @property int $nodeId
+ * @property int $objectId
+ * @property string $fieldIdentifier
+ */
 class OCOpenDataController extends ezpRestContentController
 {
 
@@ -273,12 +279,17 @@ class OCOpenDataController extends ezpRestContentController
     {
         $this->setDefaultResponseGroups(array(self::VIEWFIELDS_RESPONSEGROUP_FIELDVALUES));
 
+        $content = null;
         $isNodeRequested = false;
         if (isset($this->nodeId)) {
             $isNodeRequested = true;
             $content = ezpContent::fromNodeId($this->nodeId);
         } else if (isset($this->objectId)) {
             $content = ezpContent::fromObjectId($this->objectId);
+        }
+
+        if (!$content) {
+            throw new ezpContentNotFoundException("Content not found");
         }
 
         $realFieldIdentifier = OCOpenDataContentModel::getRealFieldIdentifier($this->fieldIdentifier, $content->classIdentifier);
@@ -314,12 +325,17 @@ class OCOpenDataController extends ezpRestContentController
     {
         $this->setDefaultResponseGroups(array(self::VIEWFIELDS_RESPONSEGROUP_FIELDVALUES));
 
+        $content = null;
         $isNodeRequested = false;
         if (isset($this->nodeId)) {
             $content = ezpContent::fromNodeId($this->nodeId);
             $isNodeRequested = true;
         } else if (isset($this->objectId)) {
             $content = ezpContent::fromObjectId($this->objectId);
+        }
+
+        if (!$content) {
+            throw new ezpContentNotFoundException("Content not found");
         }
 
         $result = new ezpRestMvcResult();

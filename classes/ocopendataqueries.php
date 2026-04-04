@@ -73,6 +73,7 @@ class OCOpenDataQueries
                 $values = array_map(function ($value) {
                     return trim($value, '"');
                 }, $values);
+                /** @phpstan-ignore class.notFound (guarded by class_exists in canTranslate()) */
                 $translatedValues = TranslatorManager::instance()
                     ->getHandler()
                     ->translate($values, $fromLanguage, $toLanguage);

@@ -40,6 +40,7 @@ class SearchQueryCSVExporter extends AbstarctExporter
 
     protected $maxSearchLimit;
 
+    /** @phpstan-ignore constructor.unusedParameter ($parentNodeId kept for backward compatibility) */
     public function __construct($parentNodeId, $queryString)
     {
         $http = eZHTTPTool::instance();
@@ -404,14 +405,14 @@ class SearchQueryCSVExporter extends AbstarctExporter
             }
             catch ( Exception $e )
             {
-                eZDebug::writeError( $e->getMessage, __METHOD__ );
+                eZDebug::writeError( $e->getMessage(), __METHOD__ );
                 header( $_SERVER["SERVER_PROTOCOL"] . ' 404 Not Found' );
             }
 
             $file->purge();
             eZExecution::cleanExit();
         }else{
-            eZDebug::writeError( $e->getMessage, __METHOD__ );
+            eZDebug::writeError( 'File not found: ' . $filename, __METHOD__ );
             header( $_SERVER["SERVER_PROTOCOL"] . ' 500 Internal Server Error' );
             eZExecution::cleanExit();
         }

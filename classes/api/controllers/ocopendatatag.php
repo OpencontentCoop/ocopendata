@@ -3,6 +3,10 @@
 use Opencontent\Opendata\Api\Exception\BaseException;
 use Opencontent\Opendata\Api\TagRepository;
 
+/**
+ * @property int $offset
+ * @property int $limit
+ */
 class OCOpenDataTagController extends ezpRestContentController
 {
     /**

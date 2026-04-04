@@ -464,20 +464,27 @@ class CkanClientVersion2 implements OcOpenDataClientInterface
                     if ( isset( $package->notes ) && $package->notes && $show_notes )
                     {
                         print ': ';
-                        if ( true === $format_notes )
+                        if ( true === $format_notes && function_exists('Markdown') )
                         {
                             print Markdown( $package->notes );
                         }
-                        elseif ( false === $format_notes )
+                        elseif ( false === $format_notes || true === $format_notes )
                         {
                             print $package->notes;
                         }
                         else
                         {
-                            print strip_tags(
-                                Markdown( $package->notes ),
-                                $format_notes
-                            );
+                            if ( function_exists('Markdown') )
+                            {
+                                print strip_tags(
+                                    Markdown( $package->notes ),
+                                    $format_notes
+                                );
+                            }
+                            else
+                            {
+                                print strip_tags( $package->notes, $format_notes );
+                            }
                         }
                     }
                     print '</li>';
