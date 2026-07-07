@@ -207,6 +207,23 @@ class Page extends Base
 
             \eZFlowPool::insertItems($flowPoolItems);
 
+            // Rendi visibili immediatamente gli items appena inseriti.
+            // eZFlowPool::insertItems() non imposta ts_visible (rimane 0, default PostgreSQL),
+            // rendendo gli items invisibili a validNodes() finché non gira eZFlowOperations::update().
+            // Su tenant con workflow deferred (es. "Pre pubblicazione"), update() potrebbe non girare
+            // per ore/giorni, causando pool apparentemente vuota al prossimo form open → blocchi distrutti.
+            if (!empty($flowPoolItems)) {
+                $now = time();
+                foreach ($flowPoolItems as $item) {
+                    $db->query(
+                        "UPDATE ezm_pool SET ts_visible=$now" .
+                        " WHERE block_id='" . $db->escapeString($item['blockID']) . "'" .
+                        " AND object_id=" . (int)$item['objectID'] .
+                        " AND ts_visible=0 AND ts_hidden=0"
+                    );
+                }
+            }
+
             $ezPageZone->setAttribute('blocks', $blocks);
             $zones[] = $ezPageZone;
         }
