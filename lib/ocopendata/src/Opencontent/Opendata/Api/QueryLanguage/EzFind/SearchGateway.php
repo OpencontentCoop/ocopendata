@@ -73,7 +73,16 @@ class SearchGateway implements BaseGateway
         // Con MultiCore eZ Find elenca nei shards un URI per lingua: le lingue che puntano allo stesso core
         // lo duplicano e Solr, sommando i numFound di ogni shard, restituisce un totale che dipende da limit/offset
         if (is_array($solr->SolrLanguageShardURIs)) {
-            $solr->SolrLanguageShardURIs = array_unique($solr->SolrLanguageShardURIs);
+            $shardUris = array_unique($solr->SolrLanguageShardURIs);
+            // Se l'ambiente chiede una lingua precisa (opzionale) e quella lingua ha un suo core,
+            // la ricerca interroga solo quel core invece di tutti i core del sito
+            $language = method_exists($this->environmentSettings, 'getSolrSearchLanguage')
+                ? $this->environmentSettings->getSolrSearchLanguage()
+                : null;
+            if ($language && isset($shardUris[$language])) {
+                $shardUris = [$language => $shardUris[$language]];
+            }
+            $solr->SolrLanguageShardURIs = $shardUris;
         }
         $rawResults = @$solr->search(
             $ezFindQuery['_query'],
