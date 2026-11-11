@@ -70,6 +70,11 @@ class SearchGateway implements BaseGateway
         unset($ezFindQuery['_filterLanguages']);
 
         $solr = new eZSolr();
+        // Con MultiCore eZ Find elenca nei shards un URI per lingua: le lingue che puntano allo stesso core
+        // lo duplicano e Solr, sommando i numFound di ogni shard, restituisce un totale che dipende da limit/offset
+        if (is_array($solr->SolrLanguageShardURIs)) {
+            $solr->SolrLanguageShardURIs = array_unique($solr->SolrLanguageShardURIs);
+        }
         $rawResults = @$solr->search(
             $ezFindQuery['_query'],
             $ezFindQuery
