@@ -42,7 +42,10 @@ class Matrix extends Base
                 $response = str_replace('|', '', $response);
                 if (strpos($response, '&') !== false) {
                     $response = preg_replace("/&#?[a-z0-9]+;/i", "", $response);
-                    $response = str_replace('&', '', $response);
+                    // '&' separa le righe nel formato stringa di eZMatrix: va protetto con '\&' (lo stesso
+                    // escape che eZStringUtils::explodeStr riconosce), non eliminato, altrimenti si perde
+                    // ad esempio il carattere che separa i parametri di una query string
+                    $response = str_replace('&', '\\&', $response);
                 }
                 return $response;
             }, $item);
