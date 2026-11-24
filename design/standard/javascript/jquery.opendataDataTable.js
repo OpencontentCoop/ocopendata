@@ -44,12 +44,46 @@
         this._name = pluginName;
         this._ajaxUrl = this.settings.datatable.ajax.url;
         this.datatable = null;
+        this._bindPaginationFixes();
         this.init();
     }
 
     $.extend(OpendataDataTable.prototype, {
         init: function () {
             //this.loadDataTable();
+        },
+        // Legato una sola volta su this.element (stabile tra una
+        // loadDataTable() e l'altra - il <table> interno viene invece
+        // distrutto e ricreato ad ogni filtro/paginazione, vedi
+        // loadDataTable() sotto), con delega sul selettore 'table': niente
+        // da ri-agganciare quando l'elemento concreto cambia, l'evento
+        // draw.dt risale comunque fino a this.element.
+        //
+        // Due correzioni indipendenti dal chiamante (quindi qui, non in un
+        // drawCallback passato da un template - un template puo' gia'
+        // fornire il proprio drawCallback, es. children_table_fields.tpl
+        // per i bandi, e lo sostituirebbe del tutto invece di sommarsi):
+        // 1) la paginazione DataTables+Bootstrap marca la pagina corrente
+        //    con la classe ".page-item.active", ma il CSS di Bootstrap
+        //    Italia ha una regola piu' specifica (".pagination .page-item
+        //    .page-link") che la ignora e stila invece in base
+        //    all'attributo aria-current sul link - senza impostarlo la
+        //    pagina corrente non si distingue dalle altre (stesso problema
+        //    gia' corretto per le tabelle live-rendering ANAC, vedi
+        //    live_rendering_blocks.tpl).
+        // 2) "Precedente"/"Successivo" (e i numeri di pagina) restano
+        //    visibili anche quando gli elementi non superano una pagina
+        //    sola - richiesto da Marco, nascondere l'intero blocco invece
+        //    di disabilitare solo i due pulsanti: con una sola pagina i
+        //    numeri di pagina sarebbero comunque privi di senso.
+        _bindPaginationFixes: function () {
+            $(this.element).on('draw.dt', 'table', function () {
+                var $paginate = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
+                var pages = $(this).DataTable().page.info().pages;
+                $paginate.toggle(pages > 1);
+                $paginate.find('.page-link').removeAttr('aria-current');
+                $paginate.find('.page-item.active .page-link').attr('aria-current', 'page');
+            });
         },
         loadDataTable: function () {
             this.settings.datatable.prevQuery = this.settings.datatable.ajax.query;
